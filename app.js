@@ -242,7 +242,7 @@ function ligarApelido() {
   const aviso = document.getElementById('aviso-apelido');
 
   campo.addEventListener('input', () => {
-    campo.value = campo.value.toUpperCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 6);
+    campo.value = campo.value.toUpperCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 8);
     botao.disabled = !campo.value;
     aviso.textContent = '';
   });

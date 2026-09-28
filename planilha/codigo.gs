@@ -24,7 +24,7 @@ const ACOES = {
     const campos = {};
     if (apelido !== undefined) {
       const nome = String(apelido).trim().toUpperCase();
-      if (!/^[\p{L}\p{N}]{1,6}$/u.test(nome)) throw recusa('O apelido tem de 1 a 6 letras ou números, sem espaço.');
+      if (!/^[\p{L}\p{N}]{1,8}$/u.test(nome)) throw recusa('O apelido tem de 1 a 8 letras ou números, sem espaço.');
       const dono = ler('Jogadores').find(j => j.id !== eu.id && j.apelido.toUpperCase() === nome);
       if (dono && !dono.email && !eu.apelido && ehSim(eu.admin)) {
         atualizar('Jogadores', dono, { email: eu.email, admin: 'sim', foto: fotoValida(foto, dono.foto, conta.foto) });
