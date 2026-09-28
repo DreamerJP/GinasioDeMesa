@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ginásio de Mesa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@600&display=swap">
+<link rel="stylesheet" href="estilo.css">
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<div class="tela">
+  <header class="topo">
+    <h1 class="marca">Ginásio de Mesa</h1>
+    <button class="botao-menu" id="abrir-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="menu" hidden>Menu</button>
+  </header>
+
+  <nav class="caixa menu" id="menu" role="menu" hidden>
+    <button role="menuitem" data-item="ranking">Ranking</button>
+    <button role="menuitem" data-item="nova-partida" disabled>Nova partida</button>
+    <button role="menuitem" data-item="perfil" disabled>Perfil</button>
+    <button role="menuitem" data-item="insignias" disabled>Insígnias</button>
+    <button role="menuitem" data-item="campeoes" disabled>Campeões</button>
+    <button role="menuitem" data-item="regras" disabled>Regras</button>
+    <button role="menuitem" data-item="administracao" disabled>Administração</button>
+    <button role="menuitem" data-item="sair">Sair da conta</button>
+    <button role="menuitem" data-item="fechar">Fechar</button>
+  </nav>
+
+  <main class="conteudo" data-tela="entrada">
+    <section class="caixa entrada">
+      <p id="aviso-entrada"></p>
+      <div id="botao-google" hidden></div>
+      <button class="botao" id="tentar-de-novo" hidden>Tentar de novo</button>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="apelido" hidden>
+    <form class="caixa formulario" id="form-apelido">
+      <label class="rotulo" for="campo-apelido">Seu apelido no ranking</label>
+      <div class="linha-campo">
+        <input class="campo" id="campo-apelido" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <button class="botao" disabled>Salvar</button>
+      </div>
+      <p class="aviso" id="aviso-apelido" role="alert"></p>
+      <p class="detalhe">Até 6 letras ou números, sem espaço. Todo mundo do grupo vê.</p>
+    </form>
+  </main>
+
+  <main class="conteudo" data-tela="ranking" hidden>
+    <section class="caixa premio">
+      <div class="insignia-vaga" aria-hidden="true"></div>
+      <div class="premio-dados">
+        <p class="rotulo">Prêmio de <span data-mes></span></p>
+        <p class="premio-texto" id="premio-texto"></p>
+        <p class="detalhe">Vale a <span id="premio-insignia"></span></p>
+        <p class="detalhe" id="premio-fecha"></p>
+      </div>
+    </section>
+
+    <section class="caixa pendente" id="pendente" hidden>
+      <p><strong id="pendente-autor"></strong> abriu <strong id="pendente-jogo"></strong>. Falta o seu placar.</p>
+      <p class="detalhe" id="pendente-progresso"></p>
+      <button class="botao">Lançar meu placar</button>
+    </section>
+
+    <section class="caixa">
+      <div class="cabecalho">
+        <h2 class="rotulo">Ranking de <span data-mes></span></h2>
+        <p class="detalhe" id="total-partidas"></p>
+      </div>
+      <ol class="ranking" id="ranking"></ol>
+      <p class="rodape">Nota de 0 a 1: soma das notas de cada partida dividida pelas partidas do grupo no mês. Quem faltou leva 0 naquela partida.</p>
+    </section>
+  </main>
+</div>
+
+<template id="modelo-linha">
+  <li class="linha">
+    <span class="posicao"></span>
+    <img class="foto" alt="" width="40" height="40" referrerpolicy="no-referrer">
+    <div class="dados">
+      <span class="apelido"></span>
+      <span class="nota"></span>
+      <div class="barra" role="meter" aria-valuemin="0" aria-valuemax="1"><span></span></div>
+      <span class="partidas"></span>
+    </div>
+  </li>
+</template>
+</body>
+</html>
