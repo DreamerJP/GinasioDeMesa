@@ -107,6 +107,14 @@ body {
 .entrada { display: grid; gap: 14px; justify-items: start; }
 #botao-google { min-height: 44px; }
 
+.privacidade {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding-top: 12px;
+  border-top: 2px solid var(--caixa-funda);
+}
+
 .formulario { display: grid; gap: 8px; }
 .linha-campo { display: flex; gap: 8px; }
 

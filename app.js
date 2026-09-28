@@ -1,5 +1,5 @@
-const SERVIDOR = 'COLE_AQUI_A_URL_DO_APP_DA_WEB';
-const CLIENTE_GOOGLE = 'COLE_AQUI_O_ID_DO_CLIENTE.apps.googleusercontent.com';
+const SERVIDOR = 'https://script.google.com/macros/s/AKfycbzYLpiPppzfMLWMTQuQ7R5EkBud4oeGGqdxV4fM5p9KmPGnUqMQiesW9eN-ml-U_Biq/exec';
+const CLIENTE_GOOGLE = '777149850301-ht36a0eodiaqs0398l5qgoaoeglteajg.apps.googleusercontent.com';
 const CHAVE_TOKEN = 'ginasio.token';
 const TELAS_COM_MENU = ['ranking'];
 

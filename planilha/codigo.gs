@@ -1,4 +1,8 @@
-const CLIENTE_GOOGLE = 'COLE_AQUI_O_ID_DO_CLIENTE.apps.googleusercontent.com';
+/**
+ * @OnlyCurrentDoc
+ */
+
+const CLIENTE_GOOGLE = '777149850301-ht36a0eodiaqs0398l5qgoaoeglteajg.apps.googleusercontent.com';
 const FUSO = 'America/Sao_Paulo';
 const LIMITE_FOTO = 45000;
 
