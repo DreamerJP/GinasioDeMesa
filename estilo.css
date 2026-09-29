@@ -434,16 +434,73 @@ select.campo {
 .lista-donos li { display: flex; align-items: center; gap: 10px; }
 .lista-donos .foto { width: 32px; height: 32px; }
 
-.campeao { display: grid; gap: 10px; }
+.campeao { display: grid; gap: 12px; }
+.campeao-topo { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+.campeao-pessoas { display: grid; gap: 10px; }
 
-.campeao-pessoa {
+.campeao-pessoa { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 10px; align-items: center; }
+.campeao-pessoa .perfil-apelido { font-size: 20px; overflow-wrap: anywhere; }
+.campeao-topo .insignia.grande { width: 80px; height: 80px; }
+.campeao .foto-grande { width: 80px; height: 80px; }
+
+.balao {
+  position: relative;
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 14px;
-  align-items: center;
+  gap: 2px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: var(--px) solid var(--tinta);
+  background: #fff;
 }
 
-.frase { font-size: 18px; }
+.balao::before,
+.balao::after {
+  content: '';
+  position: absolute;
+  border-style: solid;
+  border-color: transparent;
+}
+
+.balao::before { bottom: calc(100% + var(--px)); left: 119px; border-width: 0 12px 12px; border-bottom-color: var(--tinta); }
+.balao::after { bottom: 100%; left: 124px; border-width: 0 7px 7px; border-bottom-color: #fff; }
+
+.frase { font-size: 17px; }
+
+.lista-campeoes-antigos { display: grid; margin-top: 6px; padding: 0; list-style: none; }
+.lista-campeoes-antigos > li { border-top: 2px solid var(--caixa-funda); }
+.lista-campeoes-antigos > li:first-child { border-top: 0; }
+
+.linha-campeao {
+  display: grid;
+  grid-template-columns: 44px auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
+}
+
+.linha-campeao .insignia { width: 44px; height: 44px; }
+.linha-campeao-rostos { display: flex; gap: 2px; }
+.linha-campeao-rostos .foto { width: 36px; height: 36px; }
+.linha-campeao-nome { display: grid; }
+.campeao-aberto {
+  margin: 8px 0;
+  padding: 12px;
+  background: var(--caixa-marcada);
+  box-shadow: inset 0 0 0 var(--px) var(--moldura);
+  clip-path: var(--canto);
+}
+
+.campeao-aberto > .rotulo { cursor: pointer; }
+
+.campeao-seguintes { display: flex; flex-wrap: wrap; gap: 8px 16px; padding-top: 10px; border-top: 2px solid var(--caixa-funda); }
+.campeao-seguinte { display: flex; align-items: center; gap: 6px; }
+.campeao-seguinte .foto { width: 28px; height: 28px; }
 
 .formula { padding: 12px 0; overflow-x: auto; font-size: clamp(10px, 3.2vw, 17px); text-align: center; }
 

@@ -67,6 +67,7 @@ let partidaAberta = '';
 let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
+let mesDoCampeaoAberto = '';
 let carregamentoKatex = null;
 const tocadores = {};
 let somLigado = lerPreferenciaDeSom();
@@ -1298,26 +1299,95 @@ function mostrarCampeoes() {
     lista.replaceChildren(vazio);
     return;
   }
-  lista.replaceChildren(...meses.map(cartaoDeCampeao));
+  const [recente, ...anteriores] = meses;
+  const partes = [cartaoDeCampeao(recente)];
+  if (anteriores.length) {
+    const caixa = criar('section', 'caixa');
+    const linhas = criar('ul', 'lista-campeoes-antigos');
+    for (const mes of anteriores) {
+      const item = criar('li');
+      if (mes === mesDoCampeaoAberto) {
+        const cartao = cartaoDeCampeao(mes);
+        cartao.classList.remove('caixa');
+        cartao.classList.add('campeao-aberto');
+        cartao.querySelector('.rotulo').addEventListener('click', () => abrirCampeao(''));
+        item.append(cartao);
+      } else {
+        item.append(linhaDeCampeao(mes));
+      }
+      linhas.append(item);
+    }
+    caixa.append(criar('h2', 'rotulo', 'Meses anteriores'), linhas);
+    partes.push(caixa);
+  }
+  lista.replaceChildren(...partes);
+}
+
+function abrirCampeao(mes) {
+  mesDoCampeaoAberto = mes;
+  mostrarCampeoes();
+}
+
+function linhaDeCampeao(mes) {
+  const campeoes = campeoesDe(mes);
+  const botao = criar('button', 'linha-campeao');
+  botao.type = 'button';
+  const rostos = criar('span', 'linha-campeao-rostos');
+  rostos.append(...campeoes.map(l => imagemDe(jogador(l.id), 'foto')));
+  const nome = criar('span', 'linha-campeao-nome');
+  nome.append(criar('span', '', campeoes.map(l => jogador(l.id)?.apelido || '?').join(' e ')), criar('span', 'detalhe', nomeDoMes(mes)));
+  botao.append(desenhoDaInsignia(indiceDoMes(mes), 1), rostos, nome);
+  botao.addEventListener('click', () => abrirCampeao(mes));
+  return botao;
 }
 
 function cartaoDeCampeao(mes) {
-  const campeoes = campeoesDe(mes);
+  const { linhas } = rankingDe(mes);
+  const campeoes = linhas.filter(l => l.posicao === 1 && l.nota > 0);
+  const indice = indiceDoMes(mes);
   const cartao = criar('section', 'caixa campeao');
   cartao.append(criar('h2', 'rotulo', nomeDoMes(mes)));
 
-  for (const linha of campeoes) {
+  const trofeu = criar('button', 'botao-limpo');
+  trofeu.type = 'button';
+  trofeu.setAttribute('aria-label', `Ver a ${INSIGNIAS[indice].nome}`);
+  trofeu.append(desenhoDaInsignia(indice, 1, true));
+  trofeu.addEventListener('click', () => irPara('insignia', indice + 1));
+  const pessoas = criar('div', 'campeao-pessoas');
+  pessoas.append(...campeoes.map(linha => {
     const alguem = jogador(linha.id);
     const pessoa = criar('div', 'campeao-pessoa');
     const dados = criar('div');
     dados.append(criar('p', 'perfil-apelido', alguem.apelido), criar('p', 'detalhe', `Nota do mês ${formatoNota.format(linha.nota)}`));
     pessoa.append(imagemDe(alguem, 'foto-grande'), dados);
-    cartao.append(pessoa);
+    return pessoa;
+  }));
+  const topo = criar('div', 'campeao-topo');
+  topo.append(trofeu, pessoas);
+  cartao.append(topo);
+
+  for (const linha of campeoes) {
     const frase = estado.frases.find(f => f.mes === mes && f.jogador === linha.id);
-    if (frase) cartao.append(criar('p', 'frase', `“${frase.texto}”`));
+    if (!frase) continue;
+    const balao = criar('div', 'balao');
+    if (campeoes.length > 1) balao.append(criar('span', 'detalhe', jogador(linha.id).apelido));
+    balao.append(criar('p', 'frase', frase.texto));
+    cartao.append(balao);
   }
 
-  cartao.append(criar('p', 'detalhe', `Prêmio: ${estado.premios[mes] || 'não registrado'}`));
+  cartao.append(criar('p', 'detalhe', `${INSIGNIAS[indice].nome} e ${estado.premios[mes] || 'prêmio não registrado'}`));
+
+  const seguintes = linhas.filter(l => l.nota > 0 && l.posicao > 1 && l.posicao <= 3);
+  if (seguintes.length) {
+    const podio = criar('div', 'campeao-seguintes');
+    podio.append(...seguintes.map(linha => {
+      const alguem = jogador(linha.id);
+      const item = criar('span', 'campeao-seguinte');
+      item.append(criar('span', '', `${linha.posicao}º`), imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido), criar('span', 'detalhe', formatoNota.format(linha.nota)));
+      return item;
+    }));
+    cartao.append(podio);
+  }
 
   if (campeoes.some(l => l.id === estado.eu.id)) {
     const atual = estado.frases.find(f => f.mes === mes && f.jogador === estado.eu.id);
