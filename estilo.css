@@ -349,6 +349,8 @@ select.campo {
   margin-top: 10px;
 }
 
+.historia { margin-top: 8px; font-size: 15px; }
+
 .grade-insignias {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
