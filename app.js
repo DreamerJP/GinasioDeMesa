@@ -1233,11 +1233,26 @@ function ligarPerfil() {
 }
 
 function mostrarInsignias() {
-  const vezes = vezesPorInsignia(conquistas().get(estado.eu.id));
+  const emDisputa = indiceDoMes(estado.mesAtual);
+  const ultimoDono = Array(12).fill(null);
+  const ultimoMes = Array(12).fill('');
+  for (const [id, meses] of conquistas()) {
+    for (const mes of meses) {
+      const i = indiceDoMes(mes);
+      if (mes > ultimoMes[i]) {
+        ultimoMes[i] = mes;
+        ultimoDono[i] = id;
+      }
+    }
+  }
+
   document.getElementById('grade-insignias').replaceChildren(...INSIGNIAS.map((insignia, i) => {
-    const botao = criar('button', 'botao-insignia');
+    const botao = criar('button', `botao-insignia${i === emDisputa ? ' em-disputa' : ''}`);
     botao.type = 'button';
-    botao.append(desenhoDaInsignia(i, vezes[i]), criar('span', '', insignia.nome), criar('span', 'detalhe', MESES[i]));
+    botao.setAttribute('aria-label', `${insignia.nome}, ${MESES[i]}`);
+    const desenho = desenhoDaInsignia(i, 1);
+    if (ultimoDono[i]) desenho.append(imagemDe(jogador(ultimoDono[i]), 'foto dono-insignia'));
+    botao.append(desenho, criar('span', '', insignia.nome.replace(/^Insígnia d[oa]s? /, '')), criar('span', 'detalhe', MESES[i]));
     botao.addEventListener('click', () => irPara('insignia', i + 1));
     return botao;
   }));
@@ -1256,7 +1271,9 @@ function mostrarInsignia(numero) {
     .map(([id, meses]) => [jogador(id), meses.filter(m => indiceDoMes(m) === indice).map(m => m.slice(0, 4))])
     .filter(([alguem, anos]) => alguem && anos.length);
 
-  document.getElementById('insignia-imagem').replaceChildren(desenhoDaInsignia(indice, minhas, true));
+  document.getElementById('insignia-imagem').replaceChildren(desenhoDaInsignia(indice, Math.max(1, minhas), true));
+  document.getElementById('insignia-minha').hidden = !minhas;
+  document.getElementById('insignia-minha').textContent = minhas > 1 ? `Você tem esta insígnia ×${minhas}` : 'Você tem esta insígnia';
   document.getElementById('insignia-nome').textContent = nome;
   document.getElementById('insignia-trecho').textContent = `${trecho}, ${MESES[indice]}`;
   document.getElementById('insignia-texto').textContent = `${nome}. Entregue a quem fecha ${MESES[indice]} no topo do Ginásio.`;
