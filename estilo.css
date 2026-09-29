@@ -326,6 +326,7 @@ select.campo {
 
 .insignia.ganha { background: var(--ouro); box-shadow: inset 0 0 0 var(--px) var(--ouro-fundo); color: var(--tinta); }
 .insignia.grande { width: 128px; height: 128px; font-size: 22px; }
+.insignia.com-imagem { border-radius: 0; background: none; box-shadow: none; }
 .insignia img { width: 100%; height: 100%; object-fit: contain; }
 .insignia:not(.ganha) img { filter: brightness(0) opacity(0.25); }
 

@@ -1,6 +1,7 @@
 const SERVIDOR = 'https://script.google.com/macros/s/AKfycbzYLpiPppzfMLWMTQuQ7R5EkBud4oeGGqdxV4fM5p9KmPGnUqMQiesW9eN-ml-U_Biq/exec';
 const CLIENTE_GOOGLE = '777149850301-ht36a0eodiaqs0398l5qgoaoeglteajg.apps.googleusercontent.com';
 const CHAVE_TOKEN = 'ginasio.token';
+const CHAVE_SOM = 'ginasio.som';
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const LIMITE_FOTO = 45000;
 const LADO_FOTO = 160;
@@ -18,19 +19,19 @@ const SONS = {
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
 const INSIGNIAS = [
-  { bicho: 'Onça-pintada', nome: 'Insígnia da Garra', imagem: null },
-  { bicho: 'Arara-azul', nome: 'Insígnia da Pena', imagem: null },
-  { bicho: 'Tatu-bola', nome: 'Insígnia da Couraça', imagem: null },
-  { bicho: 'Capivara', nome: 'Insígnia da Calma', imagem: null },
-  { bicho: 'Tucano', nome: 'Insígnia do Bico', imagem: null },
-  { bicho: 'Coruja-buraqueira', nome: 'Insígnia da Noite', imagem: null },
-  { bicho: 'Lobo-guará', nome: 'Insígnia da Juba', imagem: null },
-  { bicho: 'Jararaca', nome: 'Insígnia do Bote', imagem: null },
-  { bicho: 'Mico-leão-dourado', nome: 'Insígnia do Salto', imagem: null },
-  { bicho: 'Jacaré', nome: 'Insígnia da Mordida', imagem: null },
-  { bicho: 'Piranha', nome: 'Insígnia do Dente', imagem: null },
-  { bicho: 'Harpia', nome: 'Insígnia da Asa', imagem: null },
-];
+  { nome: 'Insígnia do Canto', trecho: 'Mar de verão' },
+  { nome: 'Insígnia do Trovão', trecho: 'Tempestade de verão' },
+  { nome: 'Insígnia da Maré', trecho: 'Praia no fim do verão' },
+  { nome: 'Insígnia do Vento', trecho: 'Planície dos ventos' },
+  { nome: 'Insígnia da Teia', trecho: 'Bosque das teias' },
+  { nome: 'Insígnia da Lã', trecho: 'Pasto de nuvens' },
+  { nome: 'Insígnia da Geada', trecho: 'Campos de gelo' },
+  { nome: 'Insígnia do Cume', trecho: 'Pico da montanha' },
+  { nome: 'Insígnia do Leque', trecho: 'Vale do canto' },
+  { nome: 'Insígnia da Flor', trecho: 'Jardim de espinhos' },
+  { nome: 'Insígnia da Estrela', trecho: 'Árvore das estrelas' },
+  { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa' },
+].map((insignia, i) => ({ ...insignia, imagem: `midia/insignia-${String(i + 1).padStart(2, '0')}.webp` }));
 
 const CASAS_DA_NOTA = 3;
 const formatoNota = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: CASAS_DA_NOTA, maximumFractionDigits: CASAS_DA_NOTA });
@@ -45,8 +46,31 @@ let selecao = null;
 let conviteDeFraseFeito = false;
 let carregamentoKatex = null;
 const tocadores = {};
+let somLigado = lerPreferenciaDeSom();
+
+function lerPreferenciaDeSom() {
+  try {
+    return localStorage.getItem(CHAVE_SOM) !== 'desligado';
+  } catch {
+    return true;
+  }
+}
+
+function alternarSom() {
+  somLigado = !somLigado;
+  try {
+    localStorage.setItem(CHAVE_SOM, somLigado ? 'ligado' : 'desligado');
+  } catch {}
+  mostrarItemDeSom();
+  tocar('escolher');
+}
+
+function mostrarItemDeSom() {
+  document.querySelector('[data-item="som"]').textContent = `Som: ${somLigado ? 'ligado' : 'desligado'}`;
+}
 
 function tocar(nome) {
+  if (!somLigado) return;
   try {
     tocadores[nome] ??= new Audio(SONS[nome]);
     tocadores[nome].currentTime = 0;
@@ -212,8 +236,8 @@ function imagemDe(alguem, classe) {
 }
 
 function desenhoDaInsignia(indice, vezes, grande = false) {
-  const desenho = criar('span', `insignia${vezes ? ' ganha' : ''}${grande ? ' grande' : ''}`);
   const { imagem } = INSIGNIAS[indice];
+  const desenho = criar('span', `insignia${vezes ? ' ganha' : ''}${grande ? ' grande' : ''}${imagem ? ' com-imagem' : ''}`);
   if (imagem) {
     const figura = criar('img');
     figura.alt = '';
@@ -720,7 +744,7 @@ function mostrarInsignia(numero) {
     irPara('insignias');
     return;
   }
-  const { bicho, nome } = INSIGNIAS[indice];
+  const { trecho, nome } = INSIGNIAS[indice];
   const todas = conquistas();
   const minhas = vezesPorInsignia(todas.get(estado.eu.id))[indice];
   const donos = [...todas]
@@ -729,7 +753,7 @@ function mostrarInsignia(numero) {
 
   document.getElementById('insignia-imagem').replaceChildren(desenhoDaInsignia(indice, minhas, true));
   document.getElementById('insignia-nome').textContent = nome;
-  document.getElementById('insignia-bicho').textContent = `${bicho}, ${MESES[indice]}`;
+  document.getElementById('insignia-trecho').textContent = `${trecho}, ${MESES[indice]}`;
   document.getElementById('insignia-texto').textContent = `${nome}. Entregue a quem fecha ${MESES[indice]} no topo do Ginásio.`;
   document.getElementById('insignia-donos').textContent = donos.length
     ? `Quem tem: ${donos.map(([alguem, anos]) => `${alguem.apelido} (${anos.join(', ')})`).join(', ')}`
@@ -939,7 +963,7 @@ function ligarMenu() {
   const botao = document.getElementById('abrir-menu');
   const menu = document.getElementById('menu');
   const itensAtivos = () => [...menu.querySelectorAll('button:not([hidden])')];
-  const acoes = { sair: sairDaConta, fechar: () => {} };
+  const acoes = { som: alternarSom, sair: sairDaConta, fechar: () => {} };
 
   const alternar = aberto => {
     if (aberto) tocar('mover');
@@ -954,7 +978,7 @@ function ligarMenu() {
     const item = e.target.closest('button');
     if (!item) return;
     alternar(false);
-    tocar('escolher');
+    if (item.dataset.item !== 'som') tocar('escolher');
     if (acoes[item.dataset.item]) acoes[item.dataset.item]();
     else irPara(item.dataset.item);
   });
@@ -998,6 +1022,7 @@ function iniciarGoogle() {
 }
 
 function iniciar() {
+  mostrarItemDeSom();
   ligarMenu();
   ligarApelido();
   ligarPartida();
