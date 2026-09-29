@@ -432,7 +432,7 @@ function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
 }
 
 function linhaDoMes(linha, total) {
-  return linhaDoRanking(linha.id, linha.posicao, formatoNota.format(1 + linha.nota), `${linha.partidas} de ${total} partidas`, linha.nota);
+  return linhaDoRanking(linha.id, linha.posicao, formatoNota.format(linha.nota), `${linha.partidas} de ${total} partidas`, linha.nota);
 }
 
 function rankingGeral() {
@@ -567,7 +567,7 @@ function mostrarPartida(id) {
       valor.append(criar('span', 'detalhe', s.valor === null ? 'falta' : proprio ? formatoPlacar.format(s.valor) : 'lançou'));
     } else {
       if (!jogo.semPlacar) valor.append(criar('span', '', formatoPlacar.format(s.valor)));
-      valor.append(criar('span', 'detalhe', `nota ${formatoNota.format(1 + notas.get(s.jogador))}`));
+      valor.append(criar('span', 'detalhe', `nota ${formatoNota.format(notas.get(s.jogador))}`));
     }
     linha.append(criar('span', 'posicao', aberta ? '' : `${lugares.get(s.jogador)}º`), imagemDe(alguem, 'foto'), criar('span', '', alguem?.apelido || '?'), valor);
     return linha;
@@ -876,7 +876,7 @@ function cartaoDeCampeao(mes) {
     const alguem = jogador(linha.id);
     const pessoa = criar('div', 'campeao-pessoa');
     const dados = criar('div');
-    dados.append(criar('p', 'perfil-apelido', alguem.apelido), criar('p', 'detalhe', `Nota do mês ${formatoNota.format(1 + linha.nota)}`));
+    dados.append(criar('p', 'perfil-apelido', alguem.apelido), criar('p', 'detalhe', `Nota do mês ${formatoNota.format(linha.nota)}`));
     pessoa.append(imagemDe(alguem, 'foto-grande'), dados);
     cartao.append(pessoa);
     const frase = estado.frases.find(f => f.mes === mes && f.jogador === linha.id);
