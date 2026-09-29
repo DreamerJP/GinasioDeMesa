@@ -597,7 +597,13 @@ select.campo {
 }
 
 .celebracao-titulo { font-size: 20px; }
-.celebracao-subtitulo { font-size: 15px; }
-.celebracao-lore { font-size: 13px; color: var(--tinta-suave); }
+.celebracao-centro .podio { margin-top: 64px; }
+.celebracao-centro .podio-pessoa { pointer-events: none; }
+.celebracao-frases { display: grid; gap: 14px; width: 100%; margin-top: 10px; text-align: left; }
+.celebracao-frases:empty { display: none; }
+.balao-centro::before { left: calc(50% - 12px); }
+.balao-centro::after { left: calc(50% - 7px); }
+.celebracao-entrega { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; }
+.celebracao-subtitulo { font-size: 16px; }
 .celebracao-fechar { justify-self: center; margin-top: 6px; }
 

@@ -682,35 +682,51 @@ function convidarParaFrase() {
   return true;
 }
 
+function desenharPodio(podio, linhas) {
+  podio.querySelectorAll('.podio-lugar').forEach(lugar => {
+    const noDegrau = linhas.filter(l => l.nota > 0 && l.posicao === Number(lugar.dataset.degrau));
+    lugar.replaceChildren(...noDegrau.map(linha => {
+      const alguem = jogador(linha.id);
+      const pessoa = criar('button', 'podio-pessoa');
+      pessoa.type = 'button';
+      pessoa.append(criar('span', '', alguem.apelido), criar('span', 'detalhe', formatoNota.format(linha.nota)), imagemDe(alguem, 'foto'));
+      pessoa.addEventListener('click', () => irPara('perfil', linha.id));
+      return pessoa;
+    }));
+  });
+}
+
 function mostrarCelebracao(mes, campeoes) {
   const indice = indiceDoMes(mes);
   const insignia = INSIGNIAS[indice];
   const euVenci = campeoes.some(l => l.id === estado.eu.id);
-  const nomesVencedores = campeoes.map(l => jogador(l.id)?.apelido || '?').join(' e ');
+  const escreveu = estado.frases.some(f => f.mes === mes && f.jogador === estado.eu.id);
+  const varios = campeoes.length > 1;
+  const nomes = euVenci && !varios ? 'Você' : campeoes.map(l => jogador(l.id)?.apelido || '?').join(' e ');
+  const premio = estado.premios[mes];
 
   const overlay = document.getElementById('celebracao');
-  const imgEl = document.getElementById('celebracao-insignia');
-  const titulo = document.getElementById('celebracao-titulo');
-  const subtitulo = document.getElementById('celebracao-subtitulo');
-  const lore = document.getElementById('celebracao-lore');
   const botao = document.getElementById('celebracao-fechar');
 
   renderizar();
-  imgEl.replaceChildren(desenhoDaInsignia(indice, 1, true));
-  lore.textContent = insignia.lore || '';
-  if (euVenci) {
-    overlay.dataset.campeao = '';
-    titulo.textContent = `Parabéns, ${estado.eu.apelido}!`;
-    subtitulo.textContent = `Você venceu ${nomeDoMes(mes)} e ganhou a ${insignia.nome}.`;
-  } else {
-    delete overlay.dataset.campeao;
-    titulo.textContent = `${nomesVencedores} venceu${campeoes.length > 1 ? 'ram' : ''} ${nomeDoMes(mes)}!`;
-    subtitulo.textContent = `A ${insignia.nome} ficou com ${nomesVencedores}.`;
-  }
+  document.getElementById('celebracao-titulo').textContent = `${varios ? 'Campeões' : 'Campeão'} de ${MESES[indice]}`;
+  desenharPodio(document.getElementById('celebracao-podio'), rankingDe(mes).linhas);
+  document.getElementById('celebracao-frases').replaceChildren(...campeoes.flatMap(linha => {
+    const frase = estado.frases.find(f => f.mes === mes && f.jogador === linha.id);
+    if (!frase) return [];
+    const balao = criar('div', 'balao balao-centro');
+    if (varios) balao.append(criar('span', 'detalhe', jogador(linha.id)?.apelido || '?'));
+    balao.append(criar('p', 'frase', frase.texto));
+    return [balao];
+  }));
+  document.getElementById('celebracao-insignia').replaceChildren(desenhoDaInsignia(indice, 1));
+  let entrega = `${nomes} ${varios ? 'levam' : 'leva'} a ${insignia.nome}.`;
+  if (premio) entrega = `${nomes} ${varios ? 'dividem' : 'leva'}: ${premio} e ${insignia.nome}.`;
+  document.getElementById('celebracao-subtitulo').textContent = entrega;
+  botao.textContent = euVenci && !escreveu ? 'Escrever minha frase' : 'Continuar';
 
   const fechar = () => {
     overlay.hidden = true;
-    const escreveu = estado.frases.some(f => f.mes === mes && f.jogador === estado.eu.id);
     if (euVenci && !escreveu) irPara('campeoes');
     else renderizar();
   };
@@ -798,17 +814,7 @@ function mostrarInicio() {
 
   const { linhas, total } = rankingDe(mesAtual);
   document.getElementById('podio-vazio').hidden = total > 0;
-  document.querySelectorAll('.podio-lugar').forEach(lugar => {
-    const noDegrau = linhas.filter(l => l.nota > 0 && l.posicao === Number(lugar.dataset.degrau));
-    lugar.replaceChildren(...noDegrau.map(linha => {
-      const alguem = jogador(linha.id);
-      const pessoa = criar('button', 'podio-pessoa');
-      pessoa.type = 'button';
-      pessoa.append(criar('span', '', alguem.apelido), criar('span', 'detalhe', formatoNota.format(linha.nota)), imagemDe(alguem, 'foto'));
-      pessoa.addEventListener('click', () => irPara('perfil', linha.id));
-      return pessoa;
-    }));
-  });
+  desenharPodio(document.getElementById('podio-do-mes'), linhas);
 
   const geral = rankingGeral();
   const donos = conquistas();
