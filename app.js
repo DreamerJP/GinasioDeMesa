@@ -21,18 +21,18 @@ const SONS = {
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
 const INSIGNIAS = [
-  { nome: 'Insígnia do Canto', trecho: 'Mar de verão', lore: 'O ginásio começa sua travessia à beira do mar, no calor do verão. O vencedor abre o caminho.' },
-  { nome: 'Insígnia do Trovão', trecho: 'Tempestade de verão', lore: 'Uma tempestade varre o mar de verão. Quem resiste sai mais forte do que entrou.' },
+  { nome: 'Insígnia do Canto', trecho: 'Mar de verão', lore: 'O Ginásio começa sua travessia à beira do mar, no calor do verão, ao som do canto das baleias.' },
+  { nome: 'Insígnia do Trovão', trecho: 'Tempestade de verão', lore: 'Uma tempestade varre o mar de verão. Os raios iluminam a água por um instante.' },
   { nome: 'Insígnia da Maré', trecho: 'Praia no fim do verão', lore: 'O verão chega ao fim. A maré leva o que ficou para trás e prepara a virada.' },
   { nome: 'Insígnia do Vento', trecho: 'Planície dos ventos', lore: 'O outono começa nas planícies abertas. O vento não deixa nada parado por muito tempo.' },
-  { nome: 'Insígnia da Teia', trecho: 'Bosque das teias', lore: 'No bosque, cada movimento deixa uma marca. A teia conecta o grupo e guarda segredos.' },
+  { nome: 'Insígnia da Teia', trecho: 'Bosque das teias', lore: 'No bosque, as teias brilham com o orvalho da manhã. Cada fio marca um caminho.' },
   { nome: 'Insígnia da Lã', trecho: 'Pasto de nuvens', lore: 'O outono termina entre nuvens baixas e pasto macio. A jornada descansa antes do frio.' },
-  { nome: 'Insígnia da Geada', trecho: 'Campos de gelo', lore: 'O inverno chega com força. Os campos de gelo testam quem teve coragem de ir até aqui.' },
+  { nome: 'Insígnia da Geada', trecho: 'Campos de gelo', lore: 'O inverno chega com força. Os campos de gelo cobrem o caminho até onde a vista alcança.' },
   { nome: 'Insígnia do Cume', trecho: 'Pico da montanha', lore: 'O ponto mais alto da travessia. Daqui se vê toda a jornada e o caminho que ainda falta.' },
-  { nome: 'Insígnia do Leque', trecho: 'Vale do canto', lore: 'O inverno amena no vale. Entre ecos e ventos suaves, a primavera já se anuncia.' },
-  { nome: 'Insígnia da Flor', trecho: 'Jardim de espinhos', lore: 'A primavera floresceu, mas o jardim guarda seus espinhos. Beleza e perigo andam juntos.' },
-  { nome: 'Insígnia da Estrela', trecho: 'Árvore das estrelas', lore: 'A árvore mais alta da terra do ginásio. Suas folhas brilham como estrelas na noite da primavera.' },
-  { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa', lore: 'O fim da travessia. Além daqui, o mapa está em branco. Até o ginásio recomeçar no próximo ano.' },
+  { nome: 'Insígnia do Leque', trecho: 'Vale do canto', lore: 'O inverno fica ameno no vale. Entre ecos e ventos suaves, a primavera já se anuncia.' },
+  { nome: 'Insígnia da Flor', trecho: 'Jardim de espinhos', lore: 'A primavera floresce entre espinhos. As flores do jardim só abrem para quem passa com cuidado.' },
+  { nome: 'Insígnia da Estrela', trecho: 'Árvore das estrelas', lore: 'A árvore mais alta da terra do Ginásio. Suas folhas brilham como estrelas na noite da primavera.' },
+  { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa', lore: 'O fim da travessia. Além daqui, o mapa está em branco. Até o Ginásio recomeçar no próximo ano.' },
 ].map((insignia, i) => ({ ...insignia, imagem: `midia/insignia-${String(i + 1).padStart(2, '0')}.webp` }));
 
 const CASAS_DA_NOTA = 3;
@@ -360,14 +360,10 @@ function mostrarEntrada(mensagem, saida = null) {
 }
 
 function tratarFalha(erro, avisar) {
-  if (['token', 'nao-liberado'].includes(erro.codigo)) {
+  if (['token', 'nao-liberado', 'pendente'].includes(erro.codigo)) {
     guardarToken(null);
-    window.google?.accounts.id.disableAutoSelect();
+    if (erro.codigo !== 'token') window.google?.accounts.id.disableAutoSelect();
     mostrarEntrada(erro.message, 'google');
-  } else if (erro.codigo === 'pendente') {
-    guardarToken(null);
-    window.google?.accounts.id.disableAutoSelect();
-    mostrarEntrada(erro.message);
   } else if (erro.codigo === 'sem-apelido') {
     mostrarTela('apelido');
   } else {
@@ -424,6 +420,7 @@ function mostrarCelebracao(mes, campeoes) {
   const lore = document.getElementById('celebracao-lore');
   const botao = document.getElementById('celebracao-fechar');
 
+  renderizar();
   imgEl.replaceChildren(desenhoDaInsignia(indice, 1, true));
   lore.textContent = insignia.lore || '';
   if (euVenci) {
@@ -433,7 +430,7 @@ function mostrarCelebracao(mes, campeoes) {
   } else {
     delete overlay.dataset.campeao;
     titulo.textContent = `${nomesVencedores} venceu${campeoes.length > 1 ? 'ram' : ''} ${nomeDoMes(mes)}!`;
-    subtitulo.textContent = `A ${insignia.nome} foi para ${campeoes.length > 1 ? 'eles' : 'ele'}.`;
+    subtitulo.textContent = `A ${insignia.nome} ficou com ${nomesVencedores}.`;
   }
 
   const fechar = () => {
