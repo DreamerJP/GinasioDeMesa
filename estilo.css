@@ -195,6 +195,7 @@ select.campo {
 
 .disputa { display: grid; justify-items: center; gap: 4px; text-align: center; }
 .disputa .cabecalho { justify-self: stretch; }
+.linha-rodape { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .botao-limpo { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 .disputa .botao-menu { justify-self: center; margin-top: 10px; }
 

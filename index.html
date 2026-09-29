@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=19">
-<script type="module" src="app.js?v=19" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=20">
+<script type="module" src="app.js?v=20" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -107,7 +107,10 @@
         <p class="detalhe" id="total-partidas"></p>
       </div>
       <ol class="ranking" id="ranking"></ol>
-      <p class="rodape">Nota de 0 a 1: soma das notas de cada partida dividida pelas partidas do grupo no mês. Quem faltou leva metade da nota do último colocado daquela partida.</p>
+      <div class="rodape linha-rodape">
+        <span>Nota de 0 a 1.</span>
+        <button class="botao-menu" data-ir="regras">Como é calculada</button>
+      </div>
     </section>
 
     <section class="caixa">
