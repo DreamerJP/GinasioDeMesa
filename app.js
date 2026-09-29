@@ -315,6 +315,8 @@ function desenhoDaInsignia(indice, vezes, grande = false) {
     figura.alt = '';
     figura.src = imagem;
     desenho.append(figura);
+    desenho.style.setProperty('--imagem', `url(${imagem})`);
+    if (grande) desenho.classList.add('brilha');
   } else {
     desenho.append(MESES[indice].slice(0, 3));
   }
@@ -719,7 +721,10 @@ function mostrarCelebracao(mes, campeoes) {
     balao.append(criar('p', 'frase', frase.texto));
     return [balao];
   }));
-  document.getElementById('celebracao-insignia').replaceChildren(desenhoDaInsignia(indice, 1));
+  const insigniaDaEntrega = desenhoDaInsignia(indice, 1);
+  insigniaDaEntrega.classList.add('brilha');
+  insigniaDaEntrega.style.setProperty('--atraso', '0.8s');
+  document.getElementById('celebracao-insignia').replaceChildren(insigniaDaEntrega);
   let entrega = `${nomes} ${varios ? 'levam' : 'leva'} a ${insignia.nome}.`;
   if (premio) entrega = varios ? `${nomes} dividem: ${premio}. Cada um leva a ${insignia.nome}.` : `${nomes} leva: ${premio} e ${insignia.nome}.`;
   document.getElementById('celebracao-subtitulo').textContent = entrega;
