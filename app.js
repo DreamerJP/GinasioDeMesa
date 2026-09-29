@@ -6,6 +6,15 @@ const LIMITE_FOTO = 45000;
 const LADO_FOTO = 160;
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const SONS = {
+  mover: 'midia/som-mover.wav',
+  escolher: 'midia/som-escolher.wav',
+  confirmar: 'midia/som-confirmar.wav',
+  partidaFechada: 'midia/som-partida-fechada.wav',
+  campeao: 'midia/som-campeao.wav',
+  erro: 'midia/som-erro.wav',
+};
+
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
 const INSIGNIAS = [
@@ -35,6 +44,15 @@ let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
 let carregamentoKatex = null;
+const tocadores = {};
+
+function tocar(nome) {
+  try {
+    tocadores[nome] ??= new Audio(SONS[nome]);
+    tocadores[nome].currentTime = 0;
+    tocadores[nome].play().catch(() => {});
+  } catch {}
+}
 
 function colocacoes(valores, menorVence) {
   return valores.map(v => 1 + valores.filter(outro => (menorVence ? outro < v : outro > v)).length);
@@ -224,15 +242,17 @@ async function chamar(acao, dados) {
   return corpo.dados;
 }
 
-async function enviar(botao, aviso, acao, dados) {
+async function enviar(botao, aviso, acao, dados, somDoSucesso = 'confirmar') {
   const texto = botao.textContent;
   botao.disabled = true;
   botao.textContent = 'Salvando…';
   aviso.textContent = '';
   try {
     aplicarEstado(await chamar(acao, dados));
+    tocar(typeof somDoSucesso === 'function' ? somDoSucesso() : somDoSucesso);
     return true;
   } catch (erro) {
+    tocar('erro');
     tratarFalha(erro, mensagem => { aviso.textContent = mensagem; });
     return false;
   } finally {
@@ -314,6 +334,7 @@ function convidarParaFrase() {
   const venceu = ultimo && campeoesDe(ultimo).some(l => l.id === estado.eu.id);
   const escreveu = estado.frases.some(f => f.mes === ultimo && f.jogador === estado.eu.id);
   if (!venceu || escreveu) return false;
+  tocar('campeao');
   irPara('campeoes');
   return true;
 }
@@ -471,7 +492,8 @@ function ligarPartida() {
     evento.preventDefault();
     const valor = valorDoPlacar();
     if (valor === null) return;
-    await enviar(formulario.querySelector('button'), document.getElementById('aviso-placar'), 'lancarPlacar', { partida: partidaAberta, valor });
+    const somDoSucesso = () => (estado.partidas.find(p => p.id === partidaAberta)?.estado === 'fechada' ? 'partidaFechada' : 'confirmar');
+    await enviar(formulario.querySelector('button'), document.getElementById('aviso-placar'), 'lancarPlacar', { partida: partidaAberta, valor }, somDoSucesso);
     if (!formulario.hidden) validarPlacar();
   });
 
@@ -579,7 +601,7 @@ function ligarNovaPartida() {
     const jogo = jogoSelecionado();
     if (!jogo || selecao.length < 3) return;
     const dados = { jogo: jogo.id, participantes: selecao, ordem: jogo.semPlacar ? selecao : undefined };
-    const abriu = await enviar(formPartida.querySelector('.botao'), document.getElementById('aviso-partida'), 'abrirPartida', dados);
+    const abriu = await enviar(formPartida.querySelector('.botao'), document.getElementById('aviso-partida'), 'abrirPartida', dados, jogo.semPlacar ? 'partidaFechada' : 'confirmar');
     if (!abriu) {
       desenharFichas();
       return;
@@ -763,7 +785,7 @@ function cartaoDeCampeao(mes) {
     campo.addEventListener('input', validar);
     formulario.addEventListener('submit', async evento => {
       evento.preventDefault();
-      await enviar(salvar, aviso, 'salvarFrase', { mes, texto: campo.value });
+      await enviar(salvar, aviso, 'salvarFrase', { mes, texto: campo.value }, 'campeao');
     });
     linhaCampo.append(campo, salvar);
     formulario.append(rotulo, linhaCampo, aviso);
@@ -920,6 +942,7 @@ function ligarMenu() {
   const acoes = { sair: sairDaConta, fechar: () => {} };
 
   const alternar = aberto => {
+    if (aberto) tocar('mover');
     menu.hidden = !aberto;
     botao.setAttribute('aria-expanded', aberto);
     const atual = menu.querySelector(`[data-item="${telaVisivel === 'insignia' ? 'insignias' : telaVisivel}"]`);
@@ -931,6 +954,7 @@ function ligarMenu() {
     const item = e.target.closest('button');
     if (!item) return;
     alternar(false);
+    tocar('escolher');
     if (acoes[item.dataset.item]) acoes[item.dataset.item]();
     else irPara(item.dataset.item);
   });
@@ -942,6 +966,7 @@ function ligarMenu() {
     else if (e.key === 'ArrowUp') itens[(atual - 1 + itens.length) % itens.length].focus();
     else if (e.key === 'Escape') alternar(false);
     else return;
+    if (e.key !== 'Escape') tocar('mover');
     e.preventDefault();
   });
   document.addEventListener('pointerdown', e => {
