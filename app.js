@@ -680,7 +680,7 @@ function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
   item.querySelector('.posicao').textContent = `${posicao}º`;
   mostrarFoto(item.querySelector('.foto'), alguem);
   item.querySelector('.apelido').textContent = alguem.apelido;
-  item.querySelector('.nota').textContent = principal;
+  item.querySelector('.nota').replaceChildren(principal);
   item.querySelector('.partidas').textContent = secundario;
   if (nota === null) {
     barra.remove();
@@ -723,7 +723,7 @@ function mostrarInicio() {
   document.getElementById('premio-texto').textContent = premios[mesAtual] || 'O administrador ainda não definiu.';
   document.getElementById('premio-insignia').textContent = INSIGNIAS[indice].nome;
   document.getElementById('premio-fecha').textContent = textoFechamento(mesAtual);
-  document.getElementById('premio-insignia-imagem').replaceChildren(desenhoDaInsignia(indice, 1));
+  document.getElementById('premio-insignia-imagem').replaceChildren(desenhoDaInsignia(indice, 1, true));
 
   const doMes = partidas.filter(p => p.mes === mesAtual);
   const pedidos = estado.pedidos || [];
@@ -745,19 +745,40 @@ function mostrarInicio() {
   }
 
   const { linhas, total } = rankingDe(mesAtual);
-  const podio = total ? linhas.filter(l => l.posicao <= 3).map(l => linhaDoMes(l, total)) : [criar('li', 'detalhe', 'Nenhuma partida neste mês ainda.')];
-  document.getElementById('inicio-podio').replaceChildren(...podio);
+  document.getElementById('podio-vazio').hidden = total > 0;
+  document.querySelectorAll('.podio-lugar').forEach(lugar => {
+    const noDegrau = linhas.filter(l => l.nota > 0 && l.posicao === Number(lugar.dataset.degrau));
+    lugar.replaceChildren(...noDegrau.map(linha => {
+      const alguem = jogador(linha.id);
+      const pessoa = criar('button', 'podio-pessoa');
+      pessoa.type = 'button';
+      pessoa.append(criar('span', '', alguem.apelido), criar('span', 'detalhe', formatoNota.format(linha.nota)), imagemDe(alguem, 'foto'));
+      pessoa.addEventListener('click', () => irPara('perfil', linha.id));
+      return pessoa;
+    }));
+  });
 
   const geral = rankingGeral();
+  const donos = conquistas();
   const proximo = MESES[(indice + 1) % 12];
   document.getElementById('ranking-geral').replaceChildren(...(geral.length
     ? geral.map(l => linhaDoRanking(
       l.id,
       l.posicao,
-      `${l.insignias} ${l.insignias === 1 ? 'insígnia' : 'insígnias'}`,
+      insigniasEmMiniatura(donos.get(l.id), l.insignias),
       `${l.podios} ${l.podios === 1 ? 'vez' : 'vezes'} entre os 3 primeiros`,
     ))
     : [criar('li', 'detalhe', `Nenhum mês fechou ainda. O primeiro entra aqui em 1º de ${proximo}.`)]));
+}
+
+function insigniasEmMiniatura(meses, total) {
+  const miniaturas = criar('span', 'insignias-miniatura');
+  miniaturas.setAttribute('aria-label', `${total} ${total === 1 ? 'insígnia' : 'insígnias'}`);
+  vezesPorInsignia(meses).forEach((vezes, i) => {
+    if (vezes) miniaturas.append(desenhoDaInsignia(i, vezes));
+  });
+  if (!total) miniaturas.append(criar('span', 'detalhe', 'sem insígnia'));
+  return miniaturas;
 }
 
 function mostrarRanking() {

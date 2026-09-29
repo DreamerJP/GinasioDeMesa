@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=10">
-<script type="module" src="app.js?v=10" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=11">
+<script type="module" src="app.js?v=11" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -64,14 +64,22 @@
   </main>
 
   <main class="conteudo" data-tela="inicio" hidden>
-    <section class="caixa premio">
-      <div id="premio-insignia-imagem"></div>
-      <div>
-        <p class="rotulo">Prêmio de <span data-mes></span></p>
-        <p class="premio-texto" id="premio-texto"></p>
-        <p class="detalhe">Vale a <span id="premio-insignia"></span></p>
+    <section class="caixa disputa">
+      <div class="cabecalho">
+        <h2 class="rotulo">Disputa de <span data-mes></span></h2>
         <p class="detalhe" id="premio-fecha"></p>
       </div>
+      <div id="premio-insignia-imagem"></div>
+      <p class="premio-texto" id="premio-texto"></p>
+      <p class="detalhe">e a <span id="premio-insignia"></span></p>
+      <div class="podio">
+        <img class="podio-base" src="midia/podio.png" alt="">
+        <div class="podio-lugar" data-degrau="1"></div>
+        <div class="podio-lugar" data-degrau="2"></div>
+        <div class="podio-lugar" data-degrau="3"></div>
+      </div>
+      <p class="detalhe" id="podio-vazio" hidden>Nenhuma partida neste mês ainda.</p>
+      <button class="botao-texto" data-ir="ranking">Ver ranking completo</button>
     </section>
 
     <section class="caixa pendente" id="aviso-pedidos" hidden>
@@ -83,14 +91,6 @@
       <p><strong id="pendente-autor"></strong> abriu <strong id="pendente-jogo"></strong>. Falta o seu placar.</p>
       <p class="detalhe" id="pendente-progresso"></p>
       <button class="botao" id="pendente-botao">Lançar meu placar</button>
-    </section>
-
-    <section class="caixa">
-      <div class="cabecalho">
-        <h2 class="rotulo">Ranking de <span data-mes></span></h2>
-        <button class="botao-texto" data-ir="ranking">Ver completo</button>
-      </div>
-      <ol class="ranking" id="inicio-podio"></ol>
     </section>
 
     <section class="caixa">

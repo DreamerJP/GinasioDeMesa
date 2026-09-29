@@ -179,7 +179,6 @@ select.campo {
   height: 40px;
   object-fit: cover;
   background: var(--caixa-funda);
-  image-rendering: pixelated;
   clip-path: var(--canto);
 }
 
@@ -191,14 +190,43 @@ select.campo {
   clip-path: var(--canto);
 }
 
-.premio {
-  display: grid;
-  grid-template-columns: 64px 1fr;
-  gap: 14px;
-  align-items: center;
-}
+.disputa { display: grid; justify-items: center; gap: 4px; text-align: center; }
+.disputa .cabecalho { justify-self: stretch; }
+.disputa .botao-texto { justify-self: center; margin-top: 8px; }
 
 .premio-texto { font-size: 20px; }
+
+.podio { position: relative; width: 100%; aspect-ratio: 96 / 48; margin-top: 70px; }
+.podio-base { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+
+.podio-lugar {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 8px;
+}
+
+.podio-pessoa {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tinta);
+  cursor: pointer;
+}
+
+.podio-lugar[data-degrau="1"] { left: 50%; bottom: 66.7%; }
+.podio-lugar[data-degrau="2"] { left: 19.8%; bottom: 50%; }
+.podio-lugar[data-degrau="3"] { left: 80.2%; bottom: 37.5%; }
+.podio-lugar .foto { width: 64px; height: 64px; margin-top: 2px; }
+.podio-lugar:has(> :nth-child(2)) .foto { width: 44px; height: 44px; }
+.podio-lugar:has(> :nth-child(3)) .foto { width: 32px; height: 32px; }
+.podio-lugar:has(> :nth-child(3)) .podio-pessoa > span { display: none; }
+.podio-lugar:empty { display: none; }
 
 .pendente { --moldura: var(--ouro); display: grid; gap: 10px; }
 
@@ -232,6 +260,10 @@ select.campo {
 }
 
 .apelido, .nota { font-size: 17px; }
+
+.insignias-miniatura { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px; }
+.insignias-miniatura .insignia { width: 28px; height: 28px; }
+.insignias-miniatura .insignia-vezes { right: -3px; bottom: -3px; padding: 0 2px; font-size: 10px; }
 
 .barra {
   display: block;
