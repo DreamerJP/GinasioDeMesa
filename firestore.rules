@@ -1,0 +1,159 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+
+    function email() {
+      return request.auth.token.email;
+    }
+
+    function caminhoDoAcesso() {
+      return /databases/$(database)/documents/acessos/$(email());
+    }
+
+    function membro() {
+      return logado() && exists(caminhoDoAcesso());
+    }
+
+    function meuId() {
+      return get(caminhoDoAcesso()).data.jogador;
+    }
+
+    function admin() {
+      return membro() && get(caminhoDoAcesso()).data.admin == true;
+    }
+
+    function temApelido() {
+      return membro() && exists(/databases/$(database)/documents/jogadores/$(meuId()));
+    }
+
+    function mesAtual() {
+      let hoje = request.time - duration.value(3, 'h');
+      return string(hoje.year()) + (hoje.month() < 10 ? '-0' : '-') + string(hoje.month());
+    }
+
+    function texto(valor, minimo, maximo) {
+      return valor is string && valor.size() >= minimo && valor.size() <= maximo;
+    }
+
+    function fotoValida(foto) {
+      return foto is string && foto.size() <= 45000 && (
+        foto == ''
+        || foto.matches("https://[^\\s\"'<>]{4,500}")
+        || foto.matches('data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+')
+        || foto.matches('midia/[A-Za-z0-9_-]+[.](png|jpe?g|webp)'));
+    }
+
+    function apelidoValido(apelido) {
+      return apelido is string && apelido.matches('[\\p{L}\\p{N}]{1,8}') && apelido == apelido.upper();
+    }
+
+    match /acessos/{conta} {
+      allow read: if logado() && (conta == email() || admin());
+      allow create, update: if admin()
+        && conta.matches('[^\\sA-Z@]+@[^\\sA-Z@]+[.][^\\sA-Z@]+')
+        && request.resource.data.keys().hasOnly(['jogador', 'admin'])
+        && request.resource.data.jogador is string
+        && request.resource.data.jogador.matches('J[0-9a-f]{8}')
+        && request.resource.data.admin is bool;
+      allow delete: if admin();
+    }
+
+    match /pedidos/{conta} {
+      allow read: if logado() && (conta == email() || admin());
+      allow create: if logado() && conta == email() && !exists(caminhoDoAcesso())
+        && request.resource.data.keys().hasOnly(['nome', 'criadoEm'])
+        && texto(request.resource.data.nome, 0, 60)
+        && request.resource.data.criadoEm == request.time;
+      allow delete: if admin();
+    }
+
+    match /jogadores/{id} {
+      allow read: if membro();
+      allow create, update: if membro() && (id == meuId() || admin())
+        && request.resource.data.keys().hasOnly(['apelido', 'foto'])
+        && apelidoValido(request.resource.data.apelido)
+        && fotoValida(request.resource.data.foto);
+      allow delete: if admin();
+    }
+
+    match /jogos/{id} {
+      allow read: if membro();
+      allow create: if temApelido()
+        && request.resource.data.keys().hasOnly(['nome', 'menorVence', 'semPlacar', 'criadoPor', 'criadoEm'])
+        && texto(request.resource.data.nome, 2, 40)
+        && request.resource.data.menorVence is bool
+        && request.resource.data.semPlacar is bool
+        && !(request.resource.data.menorVence && request.resource.data.semPlacar)
+        && request.resource.data.criadoPor == meuId()
+        && request.resource.data.criadoEm == request.time;
+      allow write: if admin();
+    }
+
+    match /partidas/{id} {
+      allow read: if membro();
+
+      allow create: if temApelido()
+        && request.resource.data.keys().hasOnly(['mes', 'jogo', 'abertaPor', 'abertaEm', 'participantes', 'placares'])
+        && request.resource.data.abertaPor == meuId()
+        && request.resource.data.mes == mesAtual()
+        && request.resource.data.abertaEm == request.time
+        && request.resource.data.participantes is list
+        && request.resource.data.participantes.size() >= 3
+        && request.resource.data.participantes.size() <= 10
+        && request.resource.data.participantes.toSet().size() == request.resource.data.participantes.size()
+        && request.resource.data.placares is map
+        && request.resource.data.placares.keys().toSet() == request.resource.data.participantes.toSet()
+        && request.resource.data.jogo is string
+        && exists(/databases/$(database)/documents/jogos/$(request.resource.data.jogo))
+        && (get(/databases/$(database)/documents/jogos/$(request.resource.data.jogo)).data.semPlacar == true
+          ? request.resource.data.placares.values().toSet().size() == request.resource.data.participantes.size()
+            && request.resource.data.placares.values().hasOnly([1, 2, 3, 4, 5, 6, 7, 8, 9, 10][0:request.resource.data.participantes.size()])
+          : request.resource.data.placares.values().hasOnly([null]));
+
+      allow update: if temApelido()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['placares'])
+        && request.resource.data.placares.diff(resource.data.placares).affectedKeys().hasOnly([meuId()])
+        && meuId() in resource.data.placares
+        && resource.data.placares.values().hasAny([null])
+        && resource.data.mes == mesAtual()
+        && request.resource.data.placares[meuId()] is number
+        && request.resource.data.placares[meuId()] >= 0
+        && request.resource.data.placares[meuId()] <= 1000000000;
+
+      allow delete: if membro()
+        && (resource.data.abertaPor == meuId() || admin())
+        && resource.data.placares.values().hasAny([null]);
+
+      allow write: if admin();
+    }
+
+    match /premios/{mes} {
+      allow read: if membro();
+      allow create, update: if admin()
+        && mes.matches('[0-9]{4}-[0-9]{2}')
+        && request.resource.data.keys().hasOnly(['texto'])
+        && texto(request.resource.data.texto, 2, 80);
+      allow delete: if admin();
+    }
+
+    match /frases/{chave} {
+      allow read: if membro();
+      allow create, update: if temApelido()
+        && request.resource.data.keys().hasOnly(['mes', 'jogador', 'texto'])
+        && request.resource.data.jogador == meuId()
+        && request.resource.data.mes is string
+        && request.resource.data.mes.matches('[0-9]{4}-[0-9]{2}')
+        && request.resource.data.mes < mesAtual()
+        && chave == request.resource.data.mes + '_' + meuId()
+        && texto(request.resource.data.texto, 2, 120);
+      allow write: if admin();
+    }
+  }
+}

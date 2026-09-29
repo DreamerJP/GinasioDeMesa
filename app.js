@@ -1,11 +1,19 @@
-const SERVIDOR = 'https://script.google.com/macros/s/AKfycbzYLpiPppzfMLWMTQuQ7R5EkBud4oeGGqdxV4fM5p9KmPGnUqMQiesW9eN-ml-U_Biq/exec';
-const CLIENTE_GOOGLE = '777149850301-ht36a0eodiaqs0398l5qgoaoeglteajg.apps.googleusercontent.com';
-const CHAVE_TOKEN = 'ginasio.token';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, clearIndexedDbPersistence,
+  collection, doc, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp,
+} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+
+const FIREBASE = {
+  apiKey: 'AIzaSyA13vwn78UVFuTeSR1fnOmvUa8Nk-E697Q',
+  authDomain: 'ginasio-de-mesa.firebaseapp.com',
+  projectId: 'ginasio-de-mesa',
+  appId: '1:777149850301:web:ef7fd180c2654bb338cdd4',
+};
 const CHAVE_SOM = 'ginasio.som';
-const MARGEM_DA_ENTRADA = 5 * 60000;
-const ESPERA_DA_RENOVACAO = 15000;
-const ESPERA_DA_PLANILHA = 20000;
-const ESPERA_DO_GOOGLE = 10000;
+const FUSO = 'America/Sao_Paulo';
+const AGUARDANDO = 'Seu pedido de entrada foi enviado. Assim que o administrador aprovar, o ginásio abre sozinho.';
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const LIMITE_FOTO = 45000;
 const LADO_FOTO = 320;
@@ -41,16 +49,23 @@ const CASAS_DA_NOTA = 3;
 const formatoNota = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: CASAS_DA_NOTA, maximumFractionDigits: CASAS_DA_NOTA });
 const formatoPlacar = new Intl.NumberFormat('pt-BR');
 
-let token = null;
+const app = initializeApp(FIREBASE);
+const auth = getAuth(app);
+const banco = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+
+let conta = null;
+let lidos = {};
+let fotoCompletada = false;
+let escutaDoAcesso = null;
+let escutasDosDados = [];
 let estado = null;
+let estadoEmEspera = null;
 let telaVisivel = '';
 let partidaAberta = '';
 let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
 let carregamentoKatex = null;
-let renovacaoPendente = null;
-let esperaDaRenovacao = null;
 const tocadores = {};
 let somLigado = lerPreferenciaDeSom();
 
@@ -190,9 +205,15 @@ function nomeDoMes(mes) {
   return `${MESES[indiceDoMes(mes)]} de ${mes.slice(0, 4)}`;
 }
 
+const formatoData = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+
 function dataCurta(momento) {
-  const partes = momento.match(/^\d{4}-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-  return partes ? `${partes[2]}/${partes[1]} ${partes[3]}:${partes[4]}` : '';
+  return formatoData.format(momento).replace(',', '');
+}
+
+function mesDeHoje() {
+  const partes = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO, year: 'numeric', month: '2-digit' }).formatToParts(new Date());
+  return `${partes.find(p => p.type === 'year').value}-${partes.find(p => p.type === 'month').value}`;
 }
 
 function textoFechamento(mesAtual, hoje = new Date()) {
@@ -268,66 +289,150 @@ function limparApelido(texto) {
   return texto.toUpperCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 8);
 }
 
-async function chamar(acao, dados, repeticao = false) {
-  if (token && expiracaoDoToken(token) - Date.now() < MARGEM_DA_ENTRADA) await renovarEntrada().catch(() => {});
-  let corpo;
-  const limite = new AbortController();
-  const relogio = setTimeout(() => limite.abort(), ESPERA_DA_PLANILHA);
-  try {
-    const resposta = await fetch(SERVIDOR, { method: 'POST', body: JSON.stringify({ acao, token, dados }), signal: limite.signal });
-    corpo = await resposta.json();
-  } catch {
-    const mensagem = limite.signal.aborted
-      ? 'A planilha demorou demais para responder. Confira a internet e tente de novo.'
-      : 'Não consegui falar com a planilha. Confira a internet e tente de novo.';
-    throw Object.assign(new Error(mensagem), { codigo: 'rede' });
-  } finally {
-    clearTimeout(relogio);
-  }
-  if (!corpo.ok && corpo.codigo === 'token' && !repeticao) {
-    const renovou = await renovarEntrada().then(() => true, () => false);
-    if (renovou) return chamar(acao, dados, true);
-  }
-  if (!corpo.ok) throw Object.assign(new Error(corpo.erro), { codigo: corpo.codigo });
-  return corpo.dados;
+function recusa(mensagem) {
+  return Object.assign(new Error(mensagem), { codigo: 'recusa' });
 }
 
-function renovarEntrada() {
-  if (!window.google?.accounts?.id) return Promise.reject(new Error('Entrada do Google indisponível.'));
-  renovacaoPendente ??= new Promise((resolver, rejeitar) => {
-    let terminou = false;
-    const encerrar = sucesso => {
-      if (terminou) return;
-      terminou = true;
-      clearTimeout(limite);
-      renovacaoPendente = null;
-      esperaDaRenovacao = null;
-      if (sucesso) resolver();
-      else rejeitar(new Error('A entrada não foi renovada.'));
-    };
-    const limite = setTimeout(() => encerrar(false), ESPERA_DA_RENOVACAO);
-    esperaDaRenovacao = encerrar;
-    google.accounts.id.prompt(momento => {
-      const pulou = momento.isSkippedMoment?.();
-      const fechou = momento.isDismissedMoment?.() && momento.getDismissedReason?.() !== 'credential_returned';
-      if (pulou || fechou) encerrar(false);
+function novoId(colecao) {
+  return doc(collection(banco, colecao)).id;
+}
+
+function novoIdDeJogador() {
+  return `J${[...crypto.getRandomValues(new Uint8Array(4))].map(b => b.toString(16).padStart(2, '0')).join('')}`;
+}
+
+function textoLivre(valor, minimo, maximo, rotulo) {
+  const texto = String(valor || '').trim().replace(/\s+/g, ' ');
+  if (texto.length < minimo || texto.length > maximo) throw recusa(`${rotulo} tem de ${minimo} a ${maximo} caracteres.`);
+  return texto;
+}
+
+function linkDeFoto(texto) {
+  return /^https:\/\/[^\s"'<>]{4,500}$/.test(texto);
+}
+
+function fotoDoGoogle() {
+  const foto = auth.currentUser?.photoURL || '';
+  return linkDeFoto(foto) ? foto : '';
+}
+
+function fotoValida(foto) {
+  if (foto === 'google') return fotoDoGoogle();
+  if (foto.length <= LIMITE_FOTO && /^data:image\/(jpeg|png|webp);base64,[\w+/=]+$/.test(foto)) return foto;
+  if (linkDeFoto(foto)) return foto;
+  throw recusa('Foto inválida ou grande demais.');
+}
+
+function exigirEmailLivre(endereco) {
+  if (lidos.acessos.some(a => a.id === endereco)) throw recusa('Esse e-mail já está liberado.');
+  if (lidos.pedidos.some(p => p.id === endereco)) throw recusa('Esse e-mail já pediu entrada. Aprove na lista de pedidos.');
+}
+
+function exigirJogadorSemEmail(id) {
+  if (!jogador(id) || lidos.acessos.some(a => a.jogador === id)) throw recusa('Esse jogador já tem e-mail.');
+}
+
+function partidaAbertaNoMes(id) {
+  const partida = estado.partidas.find(p => p.id === id);
+  if (!partida || partida.estado !== 'aberta') throw recusa('Essa partida não está mais aberta.');
+  return partida;
+}
+
+const ACOES = {
+  definirPerfil({ apelido, foto }) {
+    const { eu } = estado;
+    let nome = eu.apelido;
+    if (apelido !== undefined) {
+      nome = String(apelido).trim().toUpperCase();
+      if (!/^[\p{L}\p{N}]{1,8}$/u.test(nome)) throw recusa('O apelido tem de 1 a 8 letras ou números, sem espaço.');
+      if (estado.jogadores.some(j => j.id !== eu.id && j.apelido === nome)) throw recusa('Esse apelido já é de outro jogador.');
+    }
+    const novaFoto = foto === undefined ? eu.foto || fotoDoGoogle() : fotoValida(foto);
+    return setDoc(doc(banco, 'jogadores', eu.id), { apelido: nome, foto: novaFoto });
+  },
+
+  cadastrarJogo({ id, nome, menorVence, semPlacar }) {
+    const titulo = textoLivre(nome, 2, 40, 'O nome do jogo');
+    if (estado.jogos.some(j => j.nome.toLowerCase() === titulo.toLowerCase())) throw recusa('Esse jogo já está cadastrado.');
+    return setDoc(doc(banco, 'jogos', id), {
+      nome: titulo, menorVence: Boolean(menorVence && !semPlacar), semPlacar: Boolean(semPlacar), criadoPor: estado.eu.id, criadoEm: serverTimestamp(),
     });
-  });
-  return renovacaoPendente;
+  },
+
+  abrirPartida({ id, jogo, participantes }) {
+    const registro = estado.jogos.find(j => j.id === jogo);
+    if (!registro) throw recusa('Jogo não encontrado.');
+    const lista = [...new Set(participantes)];
+    if (lista.length < 3 || lista.length > 10) throw recusa('Uma partida tem de 3 a 10 jogadores.');
+    if (lista.some(j => !jogador(j))) throw recusa('Tem jogador na lista que não está no ranking.');
+    const placares = Object.fromEntries(lista.map((j, i) => [j, registro.semPlacar ? i + 1 : null]));
+    return setDoc(doc(banco, 'partidas', id), { mes: mesDeHoje(), jogo, abertaPor: estado.eu.id, abertaEm: serverTimestamp(), participantes: lista, placares });
+  },
+
+  lancarPlacar({ partida, valor }) {
+    const registro = partidaAbertaNoMes(partida);
+    if (registro.mes !== mesDeHoje()) throw recusa('Essa partida é de um mês que já fechou e não conta mais.');
+    if (!Number.isFinite(valor) || valor < 0 || valor > 1e9) throw recusa('Placar inválido.');
+    if (!registro.placares.some(s => s.jogador === estado.eu.id)) throw recusa('Você não está nessa partida.');
+    return updateDoc(doc(banco, 'partidas', partida), { [`placares.${estado.eu.id}`]: valor });
+  },
+
+  cancelarPartida({ partida }) {
+    const registro = partidaAbertaNoMes(partida);
+    if (registro.abertaPor !== estado.eu.id && !estado.eu.admin) throw recusa('Só quem abriu a partida pode cancelar.');
+    return deleteDoc(doc(banco, 'partidas', partida));
+  },
+
+  definirPremio({ mes, texto }) {
+    return setDoc(doc(banco, 'premios', mes), { texto: textoLivre(texto, 2, 80, 'O prêmio') });
+  },
+
+  liberarEmail({ email, jogador: id }) {
+    const endereco = String(email || '').trim().toLowerCase();
+    if (!EMAIL_VALIDO.test(endereco)) throw recusa('E-mail inválido.');
+    exigirEmailLivre(endereco);
+    if (id) exigirJogadorSemEmail(id);
+    return setDoc(doc(banco, 'acessos', endereco), { jogador: id || novoIdDeJogador(), admin: false });
+  },
+
+  aprovarPedido({ pedido, jogador: id }) {
+    if (!lidos.pedidos.some(p => p.id === pedido)) throw recusa('Esse pedido não existe mais.');
+    if (id) exigirJogadorSemEmail(id);
+    const lote = writeBatch(banco);
+    lote.set(doc(banco, 'acessos', pedido), { jogador: id || novoIdDeJogador(), admin: false });
+    lote.delete(doc(banco, 'pedidos', pedido));
+    return lote.commit();
+  },
+
+  recusarPedido({ pedido }) {
+    return deleteDoc(doc(banco, 'pedidos', pedido));
+  },
+
+  salvarFrase({ mes, texto }) {
+    if (!/^\d{4}-\d{2}$/.test(mes) || mes >= mesDeHoje()) throw recusa('Só dá para escrever a frase de um mês que já fechou.');
+    return setDoc(doc(banco, 'frases', `${mes}_${estado.eu.id}`), { mes, jogador: estado.eu.id, texto: textoLivre(texto, 2, 120, 'A frase') });
+  },
+};
+
+function mensagemDeErro(erro) {
+  if (erro.codigo === 'recusa') return erro.message;
+  if (erro.code === 'permission-denied') return 'O banco recusou essa alteração.';
+  return 'Não consegui salvar. Tente de novo.';
 }
 
-async function enviar(botao, aviso, acao, dados, somDoSucesso = 'confirmar') {
+async function enviar(botao, aviso, acao, valores, somDoSucesso = 'confirmar') {
   const texto = botao.textContent;
   botao.disabled = true;
   botao.textContent = 'Salvando…';
   aviso.textContent = '';
   try {
-    aplicarEstado(await chamar(acao, dados));
+    await ACOES[acao](valores);
+    aplicarEstadoEmEspera();
     tocar(typeof somDoSucesso === 'function' ? somDoSucesso() : somDoSucesso);
     return true;
   } catch (erro) {
     tocar('erro');
-    tratarFalha(erro, mensagem => { aviso.textContent = mensagem; });
+    aviso.textContent = mensagemDeErro(erro);
     return false;
   } finally {
     if (botao.textContent === 'Salvando…') {
@@ -337,29 +442,144 @@ async function enviar(botao, aviso, acao, dados, somDoSucesso = 'confirmar') {
   }
 }
 
-function expiracaoDoToken(jwt) {
+function pararDados() {
+  escutasDosDados.forEach(parar => parar());
+  escutasDosDados = [];
+  lidos = {};
+}
+
+function pararEscutas() {
+  escutaDoAcesso?.();
+  escutaDoAcesso = null;
+  pararDados();
+  conta = null;
+  estado = null;
+  estadoEmEspera = null;
+}
+
+function acompanharConta(usuario) {
+  pararEscutas();
+  conviteDeFraseFeito = false;
+  fotoCompletada = false;
+  if (!usuario) {
+    mostrarEntrada('Entre com a conta Google que o administrador liberou.', 'google');
+    return;
+  }
+  mostrarEntrada('Abrindo o ginásio…');
+  const email = usuario.email.toLowerCase();
+  escutaDoAcesso = onSnapshot(doc(banco, 'acessos', email), retrato => {
+    if (retrato.metadata.hasPendingWrites) return;
+    if (!retrato.exists()) {
+      if (retrato.metadata.fromCache) return;
+      pararDados();
+      conta = null;
+      estado = null;
+      pedirEntrada(usuario, email);
+      return;
+    }
+    const { jogador: id, admin } = retrato.data();
+    if (conta?.id === id && conta?.admin === admin) return;
+    conta = { id, admin };
+    escutarDados();
+  }, falhaDeLeitura);
+}
+
+async function pedirEntrada(usuario, email) {
+  mostrarEntrada('Abrindo o ginásio…');
   try {
-    return JSON.parse(atob(jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).exp * 1000;
+    const pedido = doc(banco, 'pedidos', email);
+    if (!(await getDoc(pedido)).exists()) await setDoc(pedido, { nome: (usuario.displayName || '').slice(0, 60), criadoEm: serverTimestamp() });
+    if (!conta) mostrarEntrada(AGUARDANDO, 'google');
   } catch {
-    return 0;
+    if (!conta) mostrarEntrada('Não consegui registrar seu pedido de entrada.', 'tentar');
   }
 }
 
-function tokenGuardado() {
-  try {
-    const valor = localStorage.getItem(CHAVE_TOKEN);
-    return valor && expiracaoDoToken(valor) > Date.now() + 60000 ? valor : null;
-  } catch {
-    return null;
-  }
+function escutarDados() {
+  pararDados();
+  const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', ...(conta.admin ? ['acessos', 'pedidos'] : [])];
+  escutasDosDados = nomes.map(nome => onSnapshot(collection(banco, nome), retrato => {
+    lidos[nome] = retrato.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+    if (!nomes.every(n => lidos[n])) return;
+    receberEstado(montarEstado());
+    completarFoto();
+  }, falhaDeLeitura));
 }
 
-function guardarToken(valor) {
-  token = valor;
+function falhaDeLeitura() {
+  pararEscutas();
+  mostrarEntrada('Não consegui abrir os dados do ginásio.', 'tentar');
+}
+
+function comoPartida(p) {
+  const placares = p.participantes.map(id => ({ jogador: id, valor: p.placares[id] ?? null }));
+  return {
+    id: p.id, mes: p.mes, jogo: p.jogo, abertaPor: p.abertaPor, abertaEm: p.abertaEm?.toDate?.() || new Date(0),
+    estado: placares.some(s => s.valor === null) ? 'aberta' : 'fechada', placares,
+  };
+}
+
+function montarEstado() {
+  const meu = lidos.jogadores.find(j => j.id === conta.id);
+  const jogadores = lidos.jogadores.filter(j => j.apelido).map(({ id, apelido, foto }) => ({ id, apelido, foto }));
+  const apelidoDe = id => jogadores.find(j => j.id === id)?.apelido || '';
+  const comEmail = new Set((lidos.acessos || []).map(a => a.jogador));
+  return {
+    mesAtual: mesDeHoje(),
+    eu: { id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', admin: conta.admin },
+    jogadores,
+    jogos: lidos.jogos.map(({ id, nome, menorVence, semPlacar }) => ({ id, nome, menorVence, semPlacar })),
+    partidas: lidos.partidas.map(comoPartida).sort((a, b) => a.abertaEm - b.abertaEm),
+    premios: Object.fromEntries(lidos.premios.map(p => [p.id, p.texto])),
+    frases: lidos.frases.map(({ mes, jogador: id, texto }) => ({ mes, jogador: id, texto })),
+    liberados: conta.admin
+      ? [
+        ...lidos.acessos.map(a => ({ id: a.jogador, email: a.id, apelido: apelidoDe(a.jogador) })),
+        ...jogadores.filter(j => !comEmail.has(j.id)).map(j => ({ id: j.id, email: '', apelido: j.apelido })),
+      ]
+      : [],
+    pedidos: conta.admin ? lidos.pedidos.map(p => ({ id: p.id, email: p.id, nome: p.nome })) : [],
+  };
+}
+
+function completarFoto() {
+  const { eu } = estado || {};
+  if (fotoCompletada || !eu?.apelido || eu.foto || !fotoDoGoogle()) return;
+  fotoCompletada = true;
+  setDoc(doc(banco, 'jogadores', eu.id), { apelido: eu.apelido, foto: fotoDoGoogle() }).catch(() => {});
+}
+
+function digitando() {
+  return Boolean(document.activeElement?.matches('main input:not([type=checkbox]):not([type=file]), main select'));
+}
+
+function receberEstado(novo) {
+  if (estado && digitando()) {
+    estadoEmEspera = novo;
+    return;
+  }
+  estadoEmEspera = null;
+  aplicarEstado(novo);
+}
+
+function aplicarEstadoEmEspera() {
+  if (!estadoEmEspera) return;
+  const novo = estadoEmEspera;
+  estadoEmEspera = null;
+  aplicarEstado(novo);
+}
+
+async function entrarComGoogle() {
+  const provedor = new GoogleAuthProvider();
+  provedor.setCustomParameters({ prompt: 'select_account' });
   try {
-    if (valor) localStorage.setItem(CHAVE_TOKEN, valor);
-    else localStorage.removeItem(CHAVE_TOKEN);
-  } catch {}
+    await signInWithPopup(auth, provedor);
+  } catch (erro) {
+    if (['auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(erro.code)) return;
+    document.getElementById('aviso-entrada').textContent = erro.code === 'auth/popup-blocked'
+      ? 'O navegador bloqueou a janela do Google. Toque no botão de novo.'
+      : 'Não consegui entrar com o Google. Tente de novo.';
+  }
 }
 
 function mostrarTela(nome) {
@@ -374,18 +594,6 @@ function mostrarEntrada(mensagem, saida = null) {
   document.getElementById('botao-google').hidden = saida !== 'google';
   document.getElementById('tentar-de-novo').hidden = saida !== 'tentar';
   mostrarTela('entrada');
-}
-
-function tratarFalha(erro, avisar) {
-  if (['token', 'nao-liberado', 'pendente'].includes(erro.codigo)) {
-    guardarToken(null);
-    if (erro.codigo !== 'token') window.google?.accounts.id.disableAutoSelect();
-    mostrarEntrada(erro.message, 'google');
-  } else if (erro.codigo === 'sem-apelido') {
-    mostrarTela('apelido');
-  } else {
-    avisar(erro.message);
-  }
 }
 
 function aplicarEstado(novo) {
@@ -459,16 +667,6 @@ function mostrarCelebracao(mes, campeoes) {
   botao.onclick = fechar;
   overlay.onclick = e => { if (e.target === overlay) fechar(); };
   overlay.hidden = false;
-}
-
-
-async function carregar() {
-  mostrarEntrada('Abrindo o ginásio…');
-  try {
-    aplicarEstado(await chamar('estado'));
-  } catch (erro) {
-    tratarFalha(erro, mensagem => mostrarEntrada(mensagem, 'tentar'));
-  }
 }
 
 function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
@@ -764,9 +962,10 @@ function ligarNovaPartida() {
 
   formJogo.addEventListener('submit', async evento => {
     evento.preventDefault();
-    const dados = { nome: nome.value.trim(), menorVence: menorVence.checked, semPlacar: semPlacar.checked };
+    const id = novoId('jogos');
+    const dados = { id, nome: nome.value.trim(), menorVence: menorVence.checked, semPlacar: semPlacar.checked };
     if (await enviar(salvarJogo, document.getElementById('aviso-jogo'), 'cadastrarJogo', dados)) {
-      jogoEscolhido = estado.jogos.at(-1)?.id || '';
+      jogoEscolhido = id;
       formJogo.reset();
       menorVence.disabled = false;
       formJogo.hidden = true;
@@ -780,16 +979,15 @@ function ligarNovaPartida() {
     evento.preventDefault();
     const jogo = jogoSelecionado();
     if (!jogo || selecao.length < 3) return;
-    const dados = { jogo: jogo.id, participantes: selecao, ordem: jogo.semPlacar ? selecao : undefined };
-    const abriu = await enviar(formPartida.querySelector('.botao'), document.getElementById('aviso-partida'), 'abrirPartida', dados, jogo.semPlacar ? 'partidaFechada' : 'confirmar');
+    const id = novoId('partidas');
+    const abriu = await enviar(formPartida.querySelector('.botao'), document.getElementById('aviso-partida'), 'abrirPartida', { id, jogo: jogo.id, participantes: selecao }, jogo.semPlacar ? 'partidaFechada' : 'confirmar');
     if (!abriu) {
       desenharFichas();
       return;
     }
-    const nova = estado.partidas.filter(p => p.abertaPor === estado.eu.id).at(-1);
     selecao = null;
     jogoEscolhido = '';
-    irPara(nova ? 'partida' : 'inicio', nova?.id);
+    irPara('partida', id);
   });
 }
 
@@ -1137,13 +1335,14 @@ function ligarApelido() {
   });
 }
 
-function sairDaConta() {
-  guardarToken(null);
-  estado = null;
-  conviteDeFraseFeito = false;
+async function sairDaConta() {
+  pararEscutas();
   history.replaceState(null, '', location.pathname);
-  window.google?.accounts.id.disableAutoSelect();
-  mostrarEntrada('Entre com a conta Google que o administrador liberou.', 'google');
+  mostrarEntrada('Saindo…');
+  await signOut(auth).catch(() => {});
+  await terminate(banco).catch(() => {});
+  await clearIndexedDbPersistence(banco).catch(() => {});
+  location.reload();
 }
 
 function ligarMenu() {
@@ -1189,26 +1388,6 @@ function ligarMenu() {
   });
 }
 
-function iniciarGoogle() {
-  google.accounts.id.initialize({
-    client_id: CLIENTE_GOOGLE,
-    callback: ({ credential }) => {
-      guardarToken(credential);
-      if (esperaDaRenovacao) esperaDaRenovacao(true);
-      else carregar();
-    },
-    auto_select: true,
-    use_fedcm_for_prompt: true,
-  });
-  google.accounts.id.renderButton(document.getElementById('botao-google'), {
-    theme: 'filled_black', size: 'large', text: 'signin_with', locale: 'pt-BR',
-  });
-  if (!token) {
-    mostrarEntrada('Entre com a conta Google que o administrador liberou.', 'google');
-    google.accounts.id.prompt();
-  }
-}
-
 function iniciar() {
   mostrarItemDeSom();
   ligarMenu();
@@ -1217,23 +1396,13 @@ function iniciar() {
   ligarNovaPartida();
   ligarPerfil();
   ligarAdministracao();
-  document.getElementById('tentar-de-novo').addEventListener('click', () => {
-    if (window.google?.accounts?.id) carregar();
-    else location.reload();
-  });
+  document.getElementById('botao-google').addEventListener('click', entrarComGoogle);
   window.addEventListener('hashchange', renderizar);
-
-  token = tokenGuardado();
-  if (token) carregar();
-  else mostrarEntrada('Abrindo o ginásio…');
-
-  setTimeout(() => {
-    if (window.google?.accounts?.id || estado) return;
-    mostrarEntrada('Não consegui carregar a entrada do Google. Se usar bloqueador de anúncios, libere este site e tente de novo.', 'tentar');
-  }, ESPERA_DO_GOOGLE);
-
-  if (window.google?.accounts?.id) iniciarGoogle();
-  else window.onGoogleLibraryLoad = iniciarGoogle;
+  document.addEventListener('focusout', () => setTimeout(() => {
+    if (!digitando()) aplicarEstadoEmEspera();
+  }));
+  try { localStorage.removeItem('ginasio.token'); } catch {}
+  onAuthStateChanged(auth, acompanharConta);
 }
 
 iniciar();
