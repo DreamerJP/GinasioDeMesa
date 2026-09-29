@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=13">
-<script type="module" src="app.js?v=13" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=14">
+<script type="module" src="app.js?v=14" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -107,7 +107,7 @@
         <p class="detalhe" id="total-partidas"></p>
       </div>
       <ol class="ranking" id="ranking"></ol>
-      <p class="rodape">Nota de 0 a 1. Cada noite de jogo vale o mesmo, e dentro da noite cada partida vale uma fatia dela. Quem faltou leva 0 naquela partida.</p>
+      <p class="rodape">Nota de 0 a 1: soma das notas de cada partida dividida pelas partidas do grupo no mês. Quem faltou leva metade da nota do último colocado daquela partida.</p>
     </section>
 
     <section class="caixa">
@@ -261,8 +261,8 @@
 
     <section class="caixa">
       <h2 class="rotulo">Nota do mês</h2>
-      <div class="formula" data-formula="G_i = \frac{1}{K}\sum_{n=1}^{K} \frac{1}{M_n}\sum_{j \in n} P_{i,j}"></div>
-      <p class="detalhe">Cada noite de jogo vale o mesmo. Dentro da noite, cada partida vale uma fatia dela. Quem faltou a uma partida leva 0 nela. Partida jogada depois da meia-noite conta na mesma noite.</p>
+      <div class="formula" data-formula="G_i = \frac{1}{M}\sum_{j=1}^{M} P_{i,j}"></div>
+      <p class="detalhe">Quem faltou a uma partida leva nela <span data-formula-linha="\tfrac{1}{2}\min_k P_{k,j}"></span>, metade da nota do último colocado. Quem não jogou nenhuma partida no mês fica com 0.</p>
     </section>
 
     <section class="caixa">
@@ -272,22 +272,20 @@
         <dt data-formula-linha="r">r</dt><dd>colocação na partida, 1 é o vencedor</dd>
         <dt data-formula-linha="x">x</dt><dd>placar do jogador na partida</dd>
         <dt data-formula-linha="\bar{x}">x̄</dt><dd>média dos placares da mesa naquela partida</dd>
-        <dt data-formula-linha="K">K</dt><dd>noites de jogo do grupo no mês</dd>
-        <dt data-formula-linha="M_n">M</dt><dd>partidas jogadas naquela noite</dd>
+        <dt data-formula-linha="M">M</dt><dd>partidas do grupo no mês</dd>
         <dt data-formula-linha="P">P</dt><dd>nota da partida, de 0 a 1</dd>
         <dt data-formula-linha="G">G</dt><dd>nota do mês, de 0 a 1</dd>
       </dl>
     </section>
 
     <section class="caixa">
-      <h2 class="rotulo">O que a fórmula garante</h2>
+      <h2 class="titulo-caixa">A conta pesa as duas coisas que importam num ranking entre amigos: jogar bem e comparecer.</h2>
       <ul class="garantias">
         <li>Cada partida dá pontos a quem jogou. Quem soma mais no mês vence.</li>
-        <li>Quem vai e fica em último sempre leva mais do que quem faltou.</li>
-        <li>Quem jogou pouco não fica no alto. Quem vai a 1 de 4 noites chega no máximo a 0,25.</li>
-        <li>Cada noite de jogo vale o mesmo, tenha ela 1 partida longa ou 6 rápidas.</li>
-        <li>Faltar uma noite custa só aquela noite. Num mês de 4 noites, é 1/4.</li>
-        <li>Não jogar um dos jogos da noite custa só a fatia daquele jogo.</li>
+        <li>Quem vai e fica em último sempre leva mais do que quem faltou. Quem falta leva metade da nota do último colocado.</li>
+        <li>Faltar algumas partidas não tira ninguém da disputa. Quem joga bem continua na frente.</li>
+        <li>Quanto mais partidas a pessoa perde, mais difícil fica passar quem foi a todas.</li>
+        <li>Quem jogou pouco não fica no alto. Quem vai a 1 de 11 partidas e vence fica perto de 0,23.</li>
         <li>Não importa se o jogo dá poucos ou muitos pontos. O que conta é quanto você fez comparado com os outros da mesa: 5 pontos no Saboteur podem valer tanto quanto 200 no Fantasy Realms.</li>
         <li>Vencer com folga vale mais que vencer apertado.</li>
         <li>Empate no fim do mês divide o prêmio.</li>

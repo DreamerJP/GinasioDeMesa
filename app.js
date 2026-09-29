@@ -47,6 +47,7 @@ const INSIGNIAS = [
 ].map((insignia, i) => ({ ...insignia, imagem: `midia/insignia-${String(i + 1).padStart(2, '0')}.webp` }));
 
 const CASAS_DA_NOTA = 3;
+const FRACAO_DA_FALTA = 0.5;
 const formatoNota = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: CASAS_DA_NOTA, maximumFractionDigits: CASAS_DA_NOTA });
 const formatoPlacar = new Intl.NumberFormat('pt-BR');
 
@@ -121,20 +122,16 @@ function notasDaPartida({ resultados, menorVence, semPlacar }) {
 }
 
 function rankingDoMes(jogadores, partidas) {
-  const noites = new Map();
+  const acumulado = new Map(jogadores.map(id => [id, { soma: 0, faltas: 0, partidas: 0 }]));
   for (const partida of partidas) {
-    if (!noites.has(partida.noite)) noites.set(partida.noite, []);
-    noites.get(partida.noite).push(partida);
-  }
-
-  const acumulado = new Map(jogadores.map(id => [id, { soma: 0, partidas: 0 }]));
-  for (const daNoite of noites.values()) {
-    for (const partida of daNoite) {
-      for (const [id, nota] of notasDaPartida(partida)) {
-        const jogador = acumulado.get(id);
-        if (!jogador) continue;
-        jogador.soma += nota / daNoite.length;
+    const notas = new Map(notasDaPartida(partida));
+    const notaDaFalta = Math.min(...notas.values()) * FRACAO_DA_FALTA;
+    for (const [id, jogador] of acumulado) {
+      if (notas.has(id)) {
+        jogador.soma += notas.get(id);
         jogador.partidas++;
+      } else {
+        jogador.faltas += notaDaFalta;
       }
     }
   }
@@ -142,8 +139,8 @@ function rankingDoMes(jogadores, partidas) {
   const total = partidas.length;
   const linhas = jogadores
     .map(id => {
-      const { soma, partidas: jogadas } = acumulado.get(id);
-      return { id, nota: noites.size ? soma / noites.size : 0, partidas: jogadas };
+      const { soma, faltas, partidas: jogadas } = acumulado.get(id);
+      return { id, nota: jogadas ? (soma + faltas) / total : 0, partidas: jogadas };
     })
     .sort((a, b) => b.nota - a.nota);
 
@@ -163,13 +160,9 @@ function jogador(id) {
   return estado.jogadores.find(j => j.id === id);
 }
 
-function noiteDe(momento) {
-  return formatoNoite.format(new Date(momento.getTime() - HORAS_DA_MADRUGADA * 3600000));
-}
-
 function partidaParaFormula(partida) {
   const { menorVence, semPlacar } = jogoDe(partida);
-  return { menorVence, semPlacar, noite: noiteDe(partida.abertaEm), resultados: Object.fromEntries(partida.placares.map(s => [s.jogador, s.valor])) };
+  return { menorVence, semPlacar, resultados: Object.fromEntries(partida.placares.map(s => [s.jogador, s.valor])) };
 }
 
 function lugaresDaPartida(partida) {
@@ -218,8 +211,6 @@ function nomeDoMes(mes) {
   return `${MESES[indiceDoMes(mes)]} de ${mes.slice(0, 4)}`;
 }
 
-const HORAS_DA_MADRUGADA = 6;
-const formatoNoite = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO, year: 'numeric', month: '2-digit', day: '2-digit' });
 const formatoData = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
 function dataCurta(momento) {
