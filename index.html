@@ -20,12 +20,12 @@
 
   <nav class="caixa menu" id="menu" role="menu" hidden>
     <button role="menuitem" data-item="ranking">Ranking</button>
-    <button role="menuitem" data-item="nova-partida" disabled>Nova partida</button>
-    <button role="menuitem" data-item="perfil" disabled>Perfil</button>
-    <button role="menuitem" data-item="insignias" disabled>Insígnias</button>
-    <button role="menuitem" data-item="campeoes" disabled>Campeões</button>
-    <button role="menuitem" data-item="regras" disabled>Regras</button>
-    <button role="menuitem" data-item="administracao" disabled>Administração</button>
+    <button role="menuitem" data-item="nova-partida">Nova partida</button>
+    <button role="menuitem" data-item="perfil">Perfil</button>
+    <button role="menuitem" data-item="insignias">Insígnias</button>
+    <button role="menuitem" data-item="campeoes">Campeões</button>
+    <button role="menuitem" data-item="regras">Regras</button>
+    <button role="menuitem" data-item="administracao" hidden>Administração</button>
     <button role="menuitem" data-item="sair">Sair da conta</button>
     <button role="menuitem" data-item="fechar">Fechar</button>
   </nav>
@@ -56,8 +56,8 @@
 
   <main class="conteudo" data-tela="ranking" hidden>
     <section class="caixa premio">
-      <div class="insignia-vaga" aria-hidden="true"></div>
-      <div class="premio-dados">
+      <div id="premio-insignia-imagem"></div>
+      <div>
         <p class="rotulo">Prêmio de <span data-mes></span></p>
         <p class="premio-texto" id="premio-texto"></p>
         <p class="detalhe">Vale a <span id="premio-insignia"></span></p>
@@ -68,7 +68,7 @@
     <section class="caixa pendente" id="pendente" hidden>
       <p><strong id="pendente-autor"></strong> abriu <strong id="pendente-jogo"></strong>. Falta o seu placar.</p>
       <p class="detalhe" id="pendente-progresso"></p>
-      <button class="botao">Lançar meu placar</button>
+      <button class="botao" id="pendente-botao">Lançar meu placar</button>
     </section>
 
     <section class="caixa">
@@ -79,19 +79,207 @@
       <ol class="ranking" id="ranking"></ol>
       <p class="rodape">Nota de 0 a 1: soma das notas de cada partida dividida pelas partidas do grupo no mês. Quem faltou leva 0 naquela partida.</p>
     </section>
+
+    <section class="caixa">
+      <div class="cabecalho">
+        <h2 class="rotulo">Partidas de <span data-mes></span></h2>
+        <button class="botao-texto" data-ir="nova-partida">Nova partida</button>
+      </div>
+      <ul class="lista-partidas" id="lista-partidas"></ul>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="partida" hidden>
+    <section class="caixa">
+      <h2 class="titulo-caixa" id="partida-jogo"></h2>
+      <p class="detalhe" id="partida-situacao"></p>
+      <ol class="lista-jogadores" id="partida-jogadores"></ol>
+      <p class="rodape" id="partida-rodape"></p>
+    </section>
+
+    <form class="caixa formulario" id="form-placar" hidden>
+      <label class="rotulo" for="campo-placar">Seu placar</label>
+      <div class="linha-campo">
+        <input class="campo campo-texto" id="campo-placar" inputmode="decimal" autocomplete="off">
+        <button class="botao" disabled>Confirmar</button>
+      </div>
+      <p class="aviso" id="aviso-placar" role="alert"></p>
+    </form>
+
+    <section class="caixa formulario" id="caixa-cancelar" hidden>
+      <button class="botao botao-perigo" id="cancelar-partida" type="button">Cancelar partida</button>
+      <p class="aviso" id="aviso-cancelar" role="alert"></p>
+      <p class="rodape">Partida cancelada sai do ranking e não volta.</p>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="nova-partida" hidden>
+    <section class="caixa formulario">
+      <label class="rotulo" for="campo-jogo">Jogo</label>
+      <select class="campo campo-texto" id="campo-jogo"></select>
+      <button class="botao-texto" id="alternar-jogo-novo" type="button">Jogo novo? Cadastrar</button>
+    </section>
+
+    <form class="caixa formulario" id="form-jogo" hidden>
+      <label class="rotulo" for="campo-nome-jogo">Nome do jogo novo</label>
+      <div class="linha-campo">
+        <input class="campo campo-texto" id="campo-nome-jogo" maxlength="40" autocomplete="off">
+        <button class="botao" disabled>Salvar</button>
+      </div>
+      <label class="opcao"><input type="checkbox" id="jogo-menor-vence"> Menor placar vence</label>
+      <label class="opcao"><input type="checkbox" id="jogo-sem-placar"> Não tem placar, só ordem de chegada</label>
+      <p class="aviso" id="aviso-jogo" role="alert"></p>
+    </form>
+
+    <form class="caixa formulario" id="form-partida">
+      <div class="cabecalho">
+        <p class="rotulo">Quem jogou</p>
+        <p class="detalhe" id="contagem-jogadores"></p>
+      </div>
+      <p class="detalhe" id="instrucao-jogadores"></p>
+      <div class="escolha-jogadores" id="escolha-jogadores"></div>
+      <button class="botao" disabled>Abrir partida</button>
+      <p class="aviso" id="aviso-partida" role="alert"></p>
+      <p class="rodape" id="rodape-partida"></p>
+    </form>
+  </main>
+
+  <main class="conteudo" data-tela="perfil" hidden>
+    <section class="caixa perfil">
+      <img class="foto-grande" id="perfil-foto" alt="" referrerpolicy="no-referrer">
+      <div>
+        <h2 class="perfil-apelido" id="perfil-apelido"></h2>
+        <p class="detalhe" id="perfil-mes"></p>
+      </div>
+    </section>
+
+    <section class="caixa">
+      <h2 class="rotulo">Insígnias</h2>
+      <div class="quadro-insignias" id="perfil-insignias"></div>
+      <p class="rodape">Uma insígnia por mês vencido. Vencer o mesmo mês em outro ano vira ×2, ×3.</p>
+    </section>
+
+    <section class="caixa formulario" id="perfil-edicao" hidden>
+      <form class="formulario" id="form-novo-apelido">
+        <label class="rotulo" for="campo-novo-apelido">Trocar apelido</label>
+        <div class="linha-campo">
+          <input class="campo" id="campo-novo-apelido" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          <button class="botao" disabled>Salvar</button>
+        </div>
+      </form>
+      <p class="rotulo">Trocar foto</p>
+      <div class="linha-botoes">
+        <button class="botao" id="foto-google" type="button">Usar a do Google</button>
+        <label class="botao" for="foto-arquivo">Enviar do celular</label>
+        <input type="file" id="foto-arquivo" accept="image/*" hidden>
+      </div>
+      <p class="aviso" id="aviso-perfil" role="alert"></p>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="insignias" hidden>
+    <section class="caixa">
+      <h2 class="rotulo">Insígnias do Ginásio</h2>
+      <div class="grade-insignias" id="grade-insignias"></div>
+      <p class="rodape">As coloridas são as suas. Toque numa para ver quem já tem.</p>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="insignia" hidden>
+    <section class="caixa detalhe-insignia">
+      <div id="insignia-imagem"></div>
+      <h2 class="titulo-caixa" id="insignia-nome"></h2>
+      <p class="detalhe" id="insignia-bicho"></p>
+      <p id="insignia-texto"></p>
+      <p class="rodape" id="insignia-donos"></p>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="campeoes" hidden>
+    <div class="conteudo" id="lista-campeoes"></div>
+  </main>
+
+  <main class="conteudo" data-tela="regras" hidden>
+    <section class="caixa">
+      <h2 class="rotulo">Nota do jogador na partida</h2>
+      <div class="formula" data-formula="P_{i,j} = \frac{1}{2}\left[\frac{N - r_i + 1}{N} + \min\left(1,\ \frac{x_i}{2\,\bar{x}}\right)\right]"></div>
+      <p class="detalhe">Jogo em que menor placar vence: a fração do placar vira <span data-formula-linha="\dfrac{\bar{x}}{2\,x_i}"></span>. Jogo sem placar ou empate geral: vale só a colocação, <span data-formula-linha="\dfrac{N - r_i + 1}{N}"></span>.</p>
+    </section>
+
+    <section class="caixa">
+      <h2 class="rotulo">Nota do mês</h2>
+      <div class="formula" data-formula="G_i = \frac{1}{M}\sum_j P_{i,j}"></div>
+      <p class="detalhe">Quem faltou a uma partida leva 0 nela.</p>
+    </section>
+
+    <section class="caixa">
+      <h2 class="rotulo">Símbolos</h2>
+      <dl class="simbolos">
+        <dt data-formula-linha="N">N</dt><dd>jogadores na partida</dd>
+        <dt data-formula-linha="r">r</dt><dd>colocação na partida, 1 é o vencedor</dd>
+        <dt data-formula-linha="x">x</dt><dd>placar do jogador na partida</dd>
+        <dt data-formula-linha="\bar{x}">x̄</dt><dd>média dos placares da mesa naquela partida</dd>
+        <dt data-formula-linha="M">M</dt><dd>partidas do grupo no mês</dd>
+        <dt data-formula-linha="P">P</dt><dd>nota da partida, de 0 a 1</dd>
+        <dt data-formula-linha="G">G</dt><dd>nota do mês, de 0 a 1</dd>
+      </dl>
+    </section>
+
+    <section class="caixa">
+      <h2 class="rotulo">O que a fórmula garante</h2>
+      <ul class="garantias">
+        <li>Jogo de 3 pontos e jogo de 2.000 pontos valem o mesmo, porque o placar é comparado com a média da própria mesa.</li>
+        <li>Vencer com folga vale mais que vencer apertado.</li>
+        <li>Quem vai e fica em último sempre leva mais do que quem faltou.</li>
+        <li>Faltar a uma partida não tira a chance de ninguém.</li>
+        <li>Uma partida só não coloca ninguém no topo.</li>
+        <li>Empate no fim do mês divide o prêmio.</li>
+        <li>A partida conta no mês em que foi aberta. Partida incompleta no fim do mês não conta.</li>
+      </ul>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="administracao" hidden>
+    <form class="caixa formulario" id="form-premio">
+      <label class="rotulo" for="campo-premio">Prêmio de <span data-mes></span></label>
+      <div class="linha-campo">
+        <input class="campo campo-texto" id="campo-premio" maxlength="80" autocomplete="off">
+        <button class="botao" disabled>Salvar</button>
+      </div>
+      <p class="aviso" id="aviso-premio" role="alert"></p>
+    </form>
+
+    <form class="caixa formulario" id="form-liberar">
+      <label class="rotulo" for="campo-vinculo">Liberar acesso para</label>
+      <select class="campo campo-texto" id="campo-vinculo"></select>
+      <div class="linha-campo">
+        <input class="campo campo-texto" id="campo-email" type="email" autocomplete="off" placeholder="amigo@gmail.com">
+        <button class="botao" disabled>Liberar</button>
+      </div>
+      <p class="aviso" id="aviso-liberar" role="alert"></p>
+      <p class="rodape">Jogador novo escolhe o apelido quando entrar. Escolher um nome da lista dá a ele as partidas que já estão nesse nome.</p>
+    </form>
+
+    <section class="caixa">
+      <h2 class="rotulo">Com acesso</h2>
+      <ul class="lista-acessos" id="lista-acessos"></ul>
+      <p class="rodape">Para tirar o acesso de alguém, apague o e&#8209;mail dele na aba Jogadores da planilha.</p>
+    </section>
   </main>
 </div>
 
 <template id="modelo-linha">
-  <li class="linha">
-    <span class="posicao"></span>
-    <img class="foto" alt="" width="40" height="40" referrerpolicy="no-referrer">
-    <div class="dados">
-      <span class="apelido"></span>
-      <span class="nota"></span>
-      <div class="barra" role="meter" aria-valuemin="0" aria-valuemax="1"><span></span></div>
-      <span class="partidas"></span>
-    </div>
+  <li>
+    <button class="linha" type="button">
+      <span class="posicao"></span>
+      <img class="foto" alt="" width="40" height="40" referrerpolicy="no-referrer">
+      <span class="dados">
+        <span class="apelido"></span>
+        <span class="nota"></span>
+        <span class="barra" role="meter" aria-valuemin="0" aria-valuemax="1"><span></span></span>
+        <span class="partidas"></span>
+      </span>
+    </button>
   </li>
 </template>
 </body>
