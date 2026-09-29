@@ -902,6 +902,7 @@ function mostrarPartida(id) {
   const notas = aberta ? new Map() : new Map(notasDaPartida(partidaParaFormula(partida)));
   const lugares = aberta ? new Map() : lugaresDaPartida(partida);
   const placares = aberta ? partida.placares : [...partida.placares].sort((a, b) => lugares.get(a.jogador) - lugares.get(b.jogador));
+  document.getElementById('partida-jogadores').classList.toggle('aberta', aberta);
   document.getElementById('partida-jogadores').replaceChildren(...placares.map(s => {
     const alguem = jogador(s.jogador);
     const linha = criar('li', 'jogador-linha');

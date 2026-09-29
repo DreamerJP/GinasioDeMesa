@@ -333,6 +333,8 @@ select.campo {
 }
 
 .jogador-linha:first-child { border-top: 0; }
+.lista-jogadores.aberta .jogador-linha { grid-template-columns: 32px 1fr auto; }
+.lista-jogadores.aberta .posicao { display: none; }
 .jogador-linha .foto { width: 32px; height: 32px; }
 .valor { display: grid; justify-items: end; }
 
