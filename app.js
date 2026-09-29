@@ -1391,7 +1391,7 @@ function mostrarAdministracao() {
     const item = criar('li');
     const escolha = criar('select', 'campo campo-texto');
     const aprovar = criar('button', 'botao', 'Aprovar');
-    const recusar = criar('button', 'botao-texto', 'Recusar pedido');
+    const recusar = criar('button', 'botao-menu voltar', 'Recusar pedido');
     const aviso = criar('p', 'aviso');
     const linhaCampo = criar('div', 'linha-campo');
     escolha.setAttribute('aria-label', `De quem é a conta ${pedido.email}`);
@@ -1399,14 +1399,14 @@ function mostrarAdministracao() {
     aprovar.addEventListener('click', () => enviar(aprovar, aviso, 'aprovarPedido', { pedido: pedido.id, jogador: escolha.value || undefined }));
     recusar.addEventListener('click', () => enviar(recusar, aviso, 'recusarPedido', { pedido: pedido.id }));
     linhaCampo.append(escolha, aprovar);
-    item.append(criar('span', '', pedido.nome || pedido.email), criar('span', 'detalhe', pedido.email), linhaCampo, recusar, aviso);
+    item.append(criar('span', '', pedido.nome || pedido.email), criar('span', 'detalhe email', pedido.email), linhaCampo, recusar, aviso);
     return item;
   }));
 
   const ordenados = [...liberados].sort((a, b) => Boolean(b.email) - Boolean(a.email));
   document.getElementById('lista-acessos').replaceChildren(...ordenados.map(l => {
     const item = criar('li');
-    item.append(criar('span', l.email ? '' : 'detalhe', l.email || 'sem e-mail'), criar('span', l.apelido ? '' : 'detalhe', l.apelido || 'ainda não entrou'));
+    item.append(criar('span', l.email ? 'email' : 'detalhe', l.email || 'sem e-mail'), criar('span', l.apelido ? '' : 'detalhe', l.apelido || 'ainda não entrou'));
     return item;
   }));
 }

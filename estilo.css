@@ -195,7 +195,7 @@ select.campo {
 
 .disputa { display: grid; justify-items: center; gap: 4px; text-align: center; }
 .disputa .cabecalho { justify-self: stretch; }
-.disputa .botao-texto { justify-self: center; margin-top: 8px; }
+.disputa .botao-menu { justify-self: center; margin-top: 10px; }
 
 .premio-texto { font-size: 20px; }
 
@@ -461,11 +461,12 @@ select.campo {
   gap: 8px;
   padding: 8px 0;
   border-top: 2px solid var(--caixa-funda);
-  font-size: 14px;
+  font-size: 16px;
   overflow-wrap: anywhere;
 }
 
 .lista-acessos li:first-child { border-top: 0; }
+.email, #campo-email { font-family: 'Pixelify Sans', monospace; font-weight: 400; letter-spacing: 0; }
 
 .lista-pedidos { padding: 0; list-style: none; }
 

@@ -8,9 +8,9 @@
 <link rel="apple-touch-icon" href="midia/icone-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=17">
-<script type="module" src="app.js?v=17" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="estilo.css?v=18">
+<script type="module" src="app.js?v=18" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -79,7 +79,7 @@
         <div class="podio-lugar" data-degrau="3"></div>
       </div>
       <p class="detalhe" id="podio-vazio" hidden>Nenhuma partida neste mês ainda.</p>
-      <button class="botao-texto" data-ir="ranking">Ver ranking completo</button>
+      <button class="botao-menu" data-ir="ranking">Ver ranking completo</button>
     </section>
 
     <section class="caixa pendente" id="aviso-pedidos" hidden>
@@ -113,7 +113,7 @@
     <section class="caixa">
       <div class="cabecalho">
         <h2 class="rotulo">Partidas de <span data-mes></span></h2>
-        <button class="botao-texto" data-ir="nova-partida">Nova partida</button>
+        <button class="botao-menu" data-ir="nova-partida">+ Nova partida</button>
       </div>
       <ul class="lista-partidas" id="lista-partidas"></ul>
     </section>
@@ -155,7 +155,7 @@
           <p class="aviso" id="aviso-capa" role="alert"></p>
         </div>
       </div>
-      <button class="botao-texto" id="alternar-jogo-novo" type="button">Jogo novo? Cadastrar</button>
+      <button class="botao-menu voltar" id="alternar-jogo-novo" type="button" aria-label="Cadastrar jogo novo">+ Jogo novo</button>
     </section>
 
     <form class="caixa formulario" id="form-jogo" hidden>
