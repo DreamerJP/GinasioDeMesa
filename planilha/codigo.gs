@@ -281,7 +281,7 @@ function fotoValida(foto, atual, fotoGoogle) {
   if (foto === 'google') return fotoGoogle;
   if (/^midia\/[\w-]+\.(png|jpe?g|webp)$/.test(foto)) return foto;
   if (foto.length <= LIMITE_FOTO && /^data:image\/(jpeg|png|webp);base64,[\w+/=]+$/.test(foto)) return foto;
-  throw recusa('Foto inválida ou grande demais.');
+  if (/^https:\/\/[^\s"'<>]{4,500}$/.test(foto)) return foto; throw recusa('Foto inválida ou grande demais.');
 }
 
 function textoLivre(valor, minimo, maximo, rotulo) {

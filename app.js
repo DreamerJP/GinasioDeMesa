@@ -8,7 +8,7 @@ const ESPERA_DA_PLANILHA = 20000;
 const ESPERA_DO_GOOGLE = 10000;
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const LIMITE_FOTO = 45000;
-const LADO_FOTO = 160;
+const LADO_FOTO = 320;
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const SONS = {
@@ -233,11 +233,19 @@ function fotoDe(alguem) {
   return alguem?.foto || avatarPadrao(alguem?.apelido || '?');
 }
 
+function mostrarFoto(imagem, alguem) {
+  imagem.onerror = () => {
+    imagem.onerror = null;
+    imagem.src = avatarPadrao(alguem?.apelido || '?');
+  };
+  imagem.src = fotoDe(alguem);
+}
+
 function imagemDe(alguem, classe) {
   const imagem = criar('img', classe);
   imagem.alt = '';
   imagem.referrerPolicy = 'no-referrer';
-  imagem.src = fotoDe(alguem);
+  mostrarFoto(imagem, alguem);
   return imagem;
 }
 
@@ -472,7 +480,7 @@ function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
   if (id === estado.eu.id) botao.dataset.eu = '';
   botao.addEventListener('click', () => irPara('perfil', id));
   item.querySelector('.posicao').textContent = `${posicao}º`;
-  item.querySelector('.foto').src = fotoDe(alguem);
+  mostrarFoto(item.querySelector('.foto'), alguem);
   item.querySelector('.apelido').textContent = alguem.apelido;
   item.querySelector('.nota').textContent = principal;
   item.querySelector('.partidas').textContent = secundario;
@@ -793,7 +801,7 @@ function mostrarPerfil(id) {
   }
   const { mesAtual, eu } = estado;
   const indice = indiceDoMes(mesAtual);
-  document.getElementById('perfil-foto').src = fotoDe(alguem);
+  mostrarFoto(document.getElementById('perfil-foto'), alguem);
   document.getElementById('perfil-apelido').textContent = alguem.apelido;
 
   const { linhas, total } = rankingDe(mesAtual);
@@ -830,9 +838,11 @@ async function fotoReduzida(arquivo) {
   quadro.width = LADO_FOTO;
   quadro.height = LADO_FOTO;
   quadro.getContext('2d').drawImage(imagem, (imagem.width - lado) / 2, (imagem.height - lado) / 2, lado, lado, 0, 0, LADO_FOTO, LADO_FOTO);
-  for (const qualidade of [0.85, 0.7, 0.55, 0.4]) {
-    const dados = quadro.toDataURL('image/jpeg', qualidade);
-    if (dados.length <= LIMITE_FOTO) return dados;
+  for (const qualidade of [0.85, 0.75, 0.65, 0.55, 0.45]) {
+    for (const formato of ['image/webp', 'image/jpeg']) {
+      const dados = quadro.toDataURL(formato, qualidade);
+      if (dados.startsWith(`data:${formato}`) && dados.length <= LIMITE_FOTO) return dados;
+    }
   }
   throw new Error('Essa foto ficou grande demais. Tente outra.');
 }
@@ -857,6 +867,18 @@ function ligarPerfil() {
 
   const google = document.getElementById('foto-google');
   google.addEventListener('click', () => enviar(google, aviso, 'definirPerfil', { foto: 'google' }));
+
+  const formLink = document.getElementById('form-foto-link');
+  const campoLink = document.getElementById('campo-foto-link');
+  const usarLink = formLink.querySelector('button');
+  const linkValido = () => /^https:\/\/[^\s"'<>]{4,500}$/.test(campoLink.value.trim());
+  campoLink.addEventListener('input', () => { usarLink.disabled = !linkValido(); });
+  formLink.addEventListener('submit', async evento => {
+    evento.preventDefault();
+    if (!linkValido()) return;
+    if (await enviar(usarLink, aviso, 'definirPerfil', { foto: campoLink.value.trim() })) campoLink.value = '';
+    usarLink.disabled = !linkValido();
+  });
 
   const arquivo = document.getElementById('foto-arquivo');
   const rotulo = document.querySelector('label[for="foto-arquivo"]');
