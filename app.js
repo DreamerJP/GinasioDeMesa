@@ -392,13 +392,59 @@ function convidarParaFrase() {
   if (conviteDeFraseFeito) return false;
   conviteDeFraseFeito = true;
   const [ultimo] = mesesFechados();
-  const venceu = ultimo && campeoesDe(ultimo).some(l => l.id === estado.eu.id);
-  const escreveu = estado.frases.some(f => f.mes === ultimo && f.jogador === estado.eu.id);
-  if (!venceu || escreveu) return false;
+  if (!ultimo) return false;
+  const campeoes = campeoesDe(ultimo);
+  if (!campeoes.length) return false;
+
+  const chave = `ginasio.celebracao.${ultimo}`;
+  let jaViu = false;
+  try { jaViu = localStorage.getItem(chave) === '1'; } catch {}
+  if (jaViu) {
+    const euVenci = campeoes.some(l => l.id === estado.eu.id);
+    const escreveu = estado.frases.some(f => f.mes === ultimo && f.jogador === estado.eu.id);
+    if (euVenci && !escreveu) { tocar('campeao'); irPara('campeoes'); return true; }
+    return false;
+  }
+  try { localStorage.setItem(chave, '1'); } catch {}
   tocar('campeao');
-  irPara('campeoes');
+  mostrarCelebracao(ultimo, campeoes);
   return true;
 }
+
+function mostrarCelebracao(mes, campeoes) {
+  const indice = indiceDoMes(mes);
+  const insignia = INSIGNIAS[indice];
+  const euVenci = campeoes.some(l => l.id === estado.eu.id);
+  const nomesVencedores = campeoes.map(l => jogador(l.id)?.apelido || '?').join(' e ');
+
+  const overlay = document.getElementById('celebracao');
+  const imgEl = document.getElementById('celebracao-insignia');
+  const titulo = document.getElementById('celebracao-titulo');
+  const subtitulo = document.getElementById('celebracao-subtitulo');
+  const botao = document.getElementById('celebracao-fechar');
+
+  imgEl.replaceChildren(desenhoDaInsignia(indice, 1, true));
+  if (euVenci) {
+    overlay.dataset.campeao = '';
+    titulo.textContent = `Parabéns, ${estado.eu.apelido}!`;
+    subtitulo.textContent = `Você venceu ${nomeDoMes(mes)} e ganhou a ${insignia.nome}.`;
+  } else {
+    delete overlay.dataset.campeao;
+    titulo.textContent = `${nomesVencedores} venceu${campeoes.length > 1 ? 'ram' : ''} ${nomeDoMes(mes)}!`;
+    subtitulo.textContent = `A ${insignia.nome} foi para ${campeoes.length > 1 ? 'eles' : 'ele'}.`;
+  }
+
+  const fechar = () => {
+    overlay.hidden = true;
+    const escreveu = estado.frases.some(f => f.mes === mes && f.jogador === estado.eu.id);
+    if (euVenci && !escreveu) irPara('campeoes');
+    else renderizar();
+  };
+  botao.onclick = fechar;
+  overlay.onclick = e => { if (e.target === overlay) fechar(); };
+  overlay.hidden = false;
+}
+
 
 async function carregar() {
   mostrarEntrada('Abrindo o ginásio…');
