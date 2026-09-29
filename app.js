@@ -4,6 +4,8 @@ const CHAVE_TOKEN = 'ginasio.token';
 const CHAVE_SOM = 'ginasio.som';
 const MARGEM_DA_ENTRADA = 5 * 60000;
 const ESPERA_DA_RENOVACAO = 15000;
+const ESPERA_DA_PLANILHA = 20000;
+const ESPERA_DO_GOOGLE = 10000;
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const LIMITE_FOTO = 45000;
 const LADO_FOTO = 160;
@@ -261,11 +263,18 @@ function limparApelido(texto) {
 async function chamar(acao, dados, repeticao = false) {
   if (token && expiracaoDoToken(token) - Date.now() < MARGEM_DA_ENTRADA) await renovarEntrada().catch(() => {});
   let corpo;
+  const limite = new AbortController();
+  const relogio = setTimeout(() => limite.abort(), ESPERA_DA_PLANILHA);
   try {
-    const resposta = await fetch(SERVIDOR, { method: 'POST', body: JSON.stringify({ acao, token, dados }) });
+    const resposta = await fetch(SERVIDOR, { method: 'POST', body: JSON.stringify({ acao, token, dados }), signal: limite.signal });
     corpo = await resposta.json();
   } catch {
-    throw Object.assign(new Error('Não consegui falar com a planilha. Confira a internet e tente de novo.'), { codigo: 'rede' });
+    const mensagem = limite.signal.aborted
+      ? 'A planilha demorou demais para responder. Confira a internet e tente de novo.'
+      : 'Não consegui falar com a planilha. Confira a internet e tente de novo.';
+    throw Object.assign(new Error(mensagem), { codigo: 'rede' });
+  } finally {
+    clearTimeout(relogio);
   }
   if (!corpo.ok && corpo.codigo === 'token' && !repeticao) {
     const renovou = await renovarEntrada().then(() => true, () => false);
@@ -1186,12 +1195,20 @@ function iniciar() {
   ligarNovaPartida();
   ligarPerfil();
   ligarAdministracao();
-  document.getElementById('tentar-de-novo').addEventListener('click', carregar);
+  document.getElementById('tentar-de-novo').addEventListener('click', () => {
+    if (window.google?.accounts?.id) carregar();
+    else location.reload();
+  });
   window.addEventListener('hashchange', renderizar);
 
   token = tokenGuardado();
   if (token) carregar();
   else mostrarEntrada('Abrindo o ginásio…');
+
+  setTimeout(() => {
+    if (window.google?.accounts?.id || estado) return;
+    mostrarEntrada('Não consegui carregar a entrada do Google. Se usar bloqueador de anúncios, libere este site e tente de novo.', 'tentar');
+  }, ESPERA_DO_GOOGLE);
 
   if (window.google?.accounts?.id) iniciarGoogle();
   else window.onGoogleLibraryLoad = iniciarGoogle;
