@@ -363,7 +363,7 @@ function capaValida(capa) {
   const texto = String(capa).trim();
   if (texto.length <= LIMITE_FOTO && /^data:image\/(jpeg|png|webp);base64,[\w+/=]+$/.test(texto)) return texto;
   if (linkDeFoto(texto)) return texto;
-  throw recusa('Capa inválida. Use uma foto ou um link que abra direto a imagem.');
+  throw recusa('Foto do jogo inválida. Use uma foto ou um link que abra direto a imagem.');
 }
 
 function exigirEmailLivre(endereco) {
@@ -773,6 +773,8 @@ function mostrarInicio() {
   document.getElementById('premio-insignia').textContent = INSIGNIAS[indice].nome;
   document.getElementById('premio-fecha').textContent = textoFechamento(mesAtual);
   document.getElementById('premio-insignia-imagem').replaceChildren(desenhoDaInsignia(indice, 1, true));
+  document.getElementById('premio-insignia-imagem').onclick = () => irPara('insignia', indice + 1);
+  document.getElementById('premio-insignia').onclick = () => irPara('insignia', indice + 1);
 
   const doMes = partidas.filter(p => p.mes === mesAtual);
   const pedidos = estado.pedidos || [];

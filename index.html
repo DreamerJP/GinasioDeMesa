@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=18">
-<script type="module" src="app.js?v=18" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=19">
+<script type="module" src="app.js?v=19" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -69,9 +69,9 @@
         <h2 class="rotulo">Disputa de <span data-mes></span></h2>
         <p class="detalhe" id="premio-fecha"></p>
       </div>
-      <div id="premio-insignia-imagem"></div>
+      <button class="botao-limpo" id="premio-insignia-imagem" type="button" aria-label="Ver a insígnia do mês"></button>
       <p class="premio-texto" id="premio-texto"></p>
-      <p class="detalhe">e a <span id="premio-insignia"></span></p>
+      <p class="detalhe">e a <button class="botao-limpo" id="premio-insignia" type="button"></button></p>
       <div class="podio">
         <img class="podio-base" src="midia/podio.png" alt="">
         <div class="podio-lugar" data-degrau="1"></div>
@@ -150,7 +150,7 @@
       <div class="escolha-capa" id="capa-do-jogo" hidden>
         <img class="capa" id="capa-atual" alt="">
         <div class="formulario">
-          <label class="botao" for="capa-troca-arquivo">Trocar capa</label>
+          <label class="botao" for="capa-troca-arquivo">Trocar foto do jogo</label>
           <input type="file" id="capa-troca-arquivo" accept="image/*" hidden>
           <p class="aviso" id="aviso-capa" role="alert"></p>
         </div>
@@ -166,13 +166,13 @@
       </div>
       <label class="opcao"><input type="checkbox" id="jogo-menor-vence"> Menor placar vence</label>
       <label class="opcao"><input type="checkbox" id="jogo-sem-placar"> Não tem placar, só ordem de chegada</label>
-      <p class="rotulo">Capa da caixa (opcional)</p>
+      <p class="rotulo">Foto do jogo (opcional)</p>
       <div class="escolha-capa">
         <img class="capa" id="capa-nova" alt="">
         <div class="formulario">
           <label class="botao" for="capa-nova-arquivo">Tirar ou escolher foto</label>
           <input type="file" id="capa-nova-arquivo" accept="image/*" hidden>
-          <input class="campo campo-texto" id="capa-nova-link" type="url" inputmode="url" autocomplete="off" placeholder="ou cole o link da imagem" aria-label="Link da capa">
+          <input class="campo campo-texto" id="capa-nova-link" type="url" inputmode="url" autocomplete="off" placeholder="ou cole o link da imagem" aria-label="Link da foto do jogo">
         </div>
       </div>
       <p class="aviso" id="aviso-jogo" role="alert"></p>
