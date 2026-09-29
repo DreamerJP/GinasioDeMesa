@@ -2,6 +2,8 @@ const SERVIDOR = 'https://script.google.com/macros/s/AKfycbzYLpiPppzfMLWMTQuQ7R5
 const CLIENTE_GOOGLE = '777149850301-ht36a0eodiaqs0398l5qgoaoeglteajg.apps.googleusercontent.com';
 const CHAVE_TOKEN = 'ginasio.token';
 const CHAVE_SOM = 'ginasio.som';
+const MARGEM_DA_ENTRADA = 5 * 60000;
+const ESPERA_DA_RENOVACAO = 15000;
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const LIMITE_FOTO = 45000;
 const LADO_FOTO = 160;
@@ -45,6 +47,8 @@ let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
 let carregamentoKatex = null;
+let renovacaoPendente = null;
+let esperaDaRenovacao = null;
 const tocadores = {};
 let somLigado = lerPreferenciaDeSom();
 
@@ -254,7 +258,8 @@ function limparApelido(texto) {
   return texto.toUpperCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 8);
 }
 
-async function chamar(acao, dados) {
+async function chamar(acao, dados, repeticao = false) {
+  if (token && expiracaoDoToken(token) - Date.now() < MARGEM_DA_ENTRADA) await renovarEntrada().catch(() => {});
   let corpo;
   try {
     const resposta = await fetch(SERVIDOR, { method: 'POST', body: JSON.stringify({ acao, token, dados }) });
@@ -262,8 +267,36 @@ async function chamar(acao, dados) {
   } catch {
     throw Object.assign(new Error('Não consegui falar com a planilha. Confira a internet e tente de novo.'), { codigo: 'rede' });
   }
+  if (!corpo.ok && corpo.codigo === 'token' && !repeticao) {
+    const renovou = await renovarEntrada().then(() => true, () => false);
+    if (renovou) return chamar(acao, dados, true);
+  }
   if (!corpo.ok) throw Object.assign(new Error(corpo.erro), { codigo: corpo.codigo });
   return corpo.dados;
+}
+
+function renovarEntrada() {
+  if (!window.google?.accounts?.id) return Promise.reject(new Error('Entrada do Google indisponível.'));
+  renovacaoPendente ??= new Promise((resolver, rejeitar) => {
+    let terminou = false;
+    const encerrar = sucesso => {
+      if (terminou) return;
+      terminou = true;
+      clearTimeout(limite);
+      renovacaoPendente = null;
+      esperaDaRenovacao = null;
+      if (sucesso) resolver();
+      else rejeitar(new Error('A entrada não foi renovada.'));
+    };
+    const limite = setTimeout(() => encerrar(false), ESPERA_DA_RENOVACAO);
+    esperaDaRenovacao = encerrar;
+    google.accounts.id.prompt(momento => {
+      const pulou = momento.isSkippedMoment?.();
+      const fechou = momento.isDismissedMoment?.() && momento.getDismissedReason?.() !== 'credential_returned';
+      if (pulou || fechou) encerrar(false);
+    });
+  });
+  return renovacaoPendente;
 }
 
 async function enviar(botao, aviso, acao, dados, somDoSucesso = 'confirmar') {
@@ -329,7 +362,7 @@ function mostrarEntrada(mensagem, saida = null) {
 function tratarFalha(erro, avisar) {
   if (erro.codigo === 'token' || erro.codigo === 'nao-liberado') {
     guardarToken(null);
-    window.google?.accounts.id.disableAutoSelect();
+    if (erro.codigo === 'nao-liberado') window.google?.accounts.id.disableAutoSelect();
     mostrarEntrada(erro.message, 'google');
   } else if (erro.codigo === 'sem-apelido') {
     mostrarTela('apelido');
@@ -372,7 +405,55 @@ async function carregar() {
   }
 }
 
-function mostrarRanking() {
+function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
+  const alguem = jogador(id);
+  const item = document.getElementById('modelo-linha').content.firstElementChild.cloneNode(true);
+  const botao = item.querySelector('.linha');
+  const barra = item.querySelector('.barra');
+  botao.dataset.posicao = posicao;
+  if (id === estado.eu.id) botao.dataset.eu = '';
+  botao.addEventListener('click', () => irPara('perfil', id));
+  item.querySelector('.posicao').textContent = `${posicao}º`;
+  item.querySelector('.foto').src = fotoDe(alguem);
+  item.querySelector('.apelido').textContent = alguem.apelido;
+  item.querySelector('.nota').textContent = principal;
+  item.querySelector('.partidas').textContent = secundario;
+  if (nota === null) {
+    barra.remove();
+  } else {
+    barra.setAttribute('aria-valuenow', nota.toFixed(CASAS_DA_NOTA));
+    barra.firstElementChild.style.width = `${nota * 100}%`;
+  }
+  return item;
+}
+
+function linhaDoMes(linha, total) {
+  return linhaDoRanking(linha.id, linha.posicao, formatoNota.format(linha.nota), `${linha.partidas} de ${total} partidas`, linha.nota);
+}
+
+function rankingGeral() {
+  const contagem = new Map(estado.jogadores.map(j => [j.id, { insignias: 0, podios: 0 }]));
+  for (const mes of mesesFechados()) {
+    for (const linha of rankingDe(mes).linhas) {
+      if (linha.nota <= 0) continue;
+      const jogadorDoMes = contagem.get(linha.id);
+      if (linha.posicao === 1) jogadorDoMes.insignias++;
+      if (linha.posicao <= 3) jogadorDoMes.podios++;
+    }
+  }
+  const linhas = [...contagem]
+    .map(([id, total]) => ({ id, ...total }))
+    .filter(l => l.podios > 0)
+    .sort((a, b) => b.insignias - a.insignias || b.podios - a.podios);
+  linhas.forEach((linha, i) => {
+    const anterior = linhas[i - 1];
+    const empatado = anterior && anterior.insignias === linha.insignias && anterior.podios === linha.podios;
+    linha.posicao = empatado ? anterior.posicao : i + 1;
+  });
+  return linhas;
+}
+
+function mostrarInicio() {
   const { mesAtual, eu, premios, partidas } = estado;
   const indice = indiceDoMes(mesAtual);
   document.getElementById('premio-texto').textContent = premios[mesAtual] || 'O administrador ainda não definiu.';
@@ -394,25 +475,27 @@ function mostrarRanking() {
   }
 
   const { linhas, total } = rankingDe(mesAtual);
+  const podio = total ? linhas.filter(l => l.posicao <= 3).map(l => linhaDoMes(l, total)) : [criar('li', 'detalhe', 'Nenhuma partida neste mês ainda.')];
+  document.getElementById('inicio-podio').replaceChildren(...podio);
+
+  const geral = rankingGeral();
+  const proximo = MESES[(indice + 1) % 12];
+  document.getElementById('ranking-geral').replaceChildren(...(geral.length
+    ? geral.map(l => linhaDoRanking(
+      l.id,
+      l.posicao,
+      `${l.insignias} ${l.insignias === 1 ? 'insígnia' : 'insígnias'}`,
+      `${l.podios} ${l.podios === 1 ? 'vez' : 'vezes'} entre os 3 primeiros`,
+    ))
+    : [criar('li', 'detalhe', `Nenhum mês fechou ainda. O primeiro entra aqui em 1º de ${proximo}.`)]));
+}
+
+function mostrarRanking() {
+  const { mesAtual, partidas } = estado;
+  const doMes = partidas.filter(p => p.mes === mesAtual);
+  const { linhas, total } = rankingDe(mesAtual);
   document.getElementById('total-partidas').textContent = `${total} ${total === 1 ? 'partida' : 'partidas'} no mês`;
-  const modelo = document.getElementById('modelo-linha').content.firstElementChild;
-  document.getElementById('ranking').replaceChildren(...linhas.map(linha => {
-    const alguem = jogador(linha.id);
-    const item = modelo.cloneNode(true);
-    const botao = item.querySelector('.linha');
-    const barra = item.querySelector('.barra');
-    botao.dataset.posicao = linha.posicao;
-    if (linha.id === eu.id) botao.dataset.eu = '';
-    botao.addEventListener('click', () => irPara('perfil', linha.id));
-    item.querySelector('.posicao').textContent = `${linha.posicao}º`;
-    item.querySelector('.foto').src = fotoDe(alguem);
-    item.querySelector('.apelido').textContent = alguem.apelido;
-    item.querySelector('.nota').textContent = formatoNota.format(linha.nota);
-    barra.setAttribute('aria-valuenow', linha.nota.toFixed(CASAS_DA_NOTA));
-    barra.firstElementChild.style.width = `${linha.nota * 100}%`;
-    item.querySelector('.partidas').textContent = `${linha.partidas} de ${total} partidas`;
-    return item;
-  }));
+  document.getElementById('ranking').replaceChildren(...linhas.map(l => linhaDoMes(l, total)));
 
   const itens = [...doMes].reverse().map(partida => {
     const botao = criar('button', 'item-partida');
@@ -443,9 +526,10 @@ function resumoDaPartida(partida) {
 function mostrarPartida(id) {
   const partida = estado.partidas.find(p => p.id === id);
   if (!partida) {
-    irPara('ranking');
+    irPara('inicio');
     return;
   }
+  const mesmaPartida = partidaAberta === id;
   partidaAberta = id;
   const { eu, mesAtual } = estado;
   const jogo = jogoDe(partida);
@@ -489,7 +573,7 @@ function mostrarPartida(id) {
   formulario.hidden = !(aberta && valeNoMes && meu);
   if (!formulario.hidden) {
     const campo = document.getElementById('campo-placar');
-    campo.value = meu.valor === null ? '' : String(meu.valor).replace('.', ',');
+    if (!mesmaPartida || !campo.value) campo.value = meu.valor === null ? '' : String(meu.valor).replace('.', ',');
     formulario.querySelector('button').textContent = meu.valor === null ? 'Confirmar' : 'Corrigir';
     validarPlacar();
   }
@@ -534,7 +618,7 @@ function ligarPartida() {
     }
     clearTimeout(confirmando);
     confirmando = null;
-    if (await enviar(cancelar, document.getElementById('aviso-cancelar'), 'cancelarPartida', { partida: partidaAberta })) irPara('ranking');
+    if (await enviar(cancelar, document.getElementById('aviso-cancelar'), 'cancelarPartida', { partida: partidaAberta })) irPara('inicio');
   });
 }
 
@@ -633,14 +717,14 @@ function ligarNovaPartida() {
     const nova = estado.partidas.filter(p => p.abertaPor === estado.eu.id).at(-1);
     selecao = null;
     jogoEscolhido = '';
-    irPara(nova ? 'partida' : 'ranking', nova?.id);
+    irPara(nova ? 'partida' : 'inicio', nova?.id);
   });
 }
 
 function mostrarPerfil(id) {
   const alguem = jogador(id || estado.eu.id);
   if (!alguem) {
-    irPara('ranking');
+    irPara('inicio');
     return;
   }
   const { mesAtual, eu } = estado;
@@ -901,6 +985,7 @@ function ligarAdministracao() {
 }
 
 const TELAS = {
+  inicio: mostrarInicio,
   ranking: mostrarRanking,
   partida: mostrarPartida,
   'nova-partida': mostrarNovaPartida,
@@ -914,7 +999,7 @@ const TELAS = {
 
 function rotaAtual() {
   const [tela, parametro = ''] = location.hash.slice(1).split('/');
-  if (!TELAS[tela] || (tela === 'administracao' && !estado.eu.admin)) return { tela: 'ranking', parametro: '' };
+  if (!TELAS[tela] || (tela === 'administracao' && !estado.eu.admin)) return { tela: 'inicio', parametro: '' };
   return { tela, parametro: decodeURIComponent(parametro) };
 }
 
@@ -1007,7 +1092,8 @@ function iniciarGoogle() {
     client_id: CLIENTE_GOOGLE,
     callback: ({ credential }) => {
       guardarToken(credential);
-      carregar();
+      if (esperaDaRenovacao) esperaDaRenovacao(true);
+      else carregar();
     },
     auto_select: true,
     use_fedcm_for_prompt: true,

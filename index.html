@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@600&display=swap">
-<link rel="stylesheet" href="estilo.css">
+<link rel="stylesheet" href="estilo.css?v=2">
 <script src="https://accounts.google.com/gsi/client" async></script>
-<script src="app.js" defer></script>
+<script src="app.js?v=2" defer></script>
 </head>
 <body>
 <div class="tela">
@@ -19,6 +19,7 @@
   </header>
 
   <nav class="caixa menu" id="menu" role="menu" hidden>
+    <button role="menuitem" data-item="inicio">Início</button>
     <button role="menuitem" data-item="ranking">Ranking</button>
     <button role="menuitem" data-item="nova-partida">Nova partida</button>
     <button role="menuitem" data-item="perfil">Perfil</button>
@@ -55,7 +56,7 @@
     </form>
   </main>
 
-  <main class="conteudo" data-tela="ranking" hidden>
+  <main class="conteudo" data-tela="inicio" hidden>
     <section class="caixa premio">
       <div id="premio-insignia-imagem"></div>
       <div>
@@ -72,6 +73,22 @@
       <button class="botao" id="pendente-botao">Lançar meu placar</button>
     </section>
 
+    <section class="caixa">
+      <div class="cabecalho">
+        <h2 class="rotulo">Ranking de <span data-mes></span></h2>
+        <button class="botao-texto" data-ir="ranking">Ver completo</button>
+      </div>
+      <ol class="ranking" id="inicio-podio"></ol>
+    </section>
+
+    <section class="caixa">
+      <h2 class="rotulo">Ranking geral</h2>
+      <ol class="ranking" id="ranking-geral"></ol>
+      <p class="rodape">Conta as insígnias de cada um. Empate: quem ficou mais vezes entre os 3 primeiros de um mês.</p>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="ranking" hidden>
     <section class="caixa">
       <div class="cabecalho">
         <h2 class="rotulo">Ranking de <span data-mes></span></h2>
