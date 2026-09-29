@@ -25,14 +25,14 @@ const INSIGNIAS = [
   { nome: 'Insígnia do Trovão', trecho: 'Tempestade de verão', lore: 'Uma tempestade varre o mar de verão. Quem resiste sai mais forte do que entrou.' },
   { nome: 'Insígnia da Maré', trecho: 'Praia no fim do verão', lore: 'O verão chega ao fim. A maré leva o que ficou para trás e prepara a virada.' },
   { nome: 'Insígnia do Vento', trecho: 'Planície dos ventos', lore: 'O outono começa nas planícies abertas. O vento não deixa nada parado por muito tempo.' },
-  { nome: 'Insígnia da Teia', trecho: 'Bosque das teias', lore: 'No bosque, cada movimento deixa uma marca. A teia conecta o grupo — e guarda segredos.' },
+  { nome: 'Insígnia da Teia', trecho: 'Bosque das teias', lore: 'No bosque, cada movimento deixa uma marca. A teia conecta o grupo e guarda segredos.' },
   { nome: 'Insígnia da Lã', trecho: 'Pasto de nuvens', lore: 'O outono termina entre nuvens baixas e pasto macio. A jornada descansa antes do frio.' },
   { nome: 'Insígnia da Geada', trecho: 'Campos de gelo', lore: 'O inverno chega com força. Os campos de gelo testam quem teve coragem de ir até aqui.' },
-  { nome: 'Insígnia do Cume', trecho: 'Pico da montanha', lore: 'O ponto mais alto da travessia. Daqui se vê toda a jornada — e o caminho que ainda falta.' },
+  { nome: 'Insígnia do Cume', trecho: 'Pico da montanha', lore: 'O ponto mais alto da travessia. Daqui se vê toda a jornada e o caminho que ainda falta.' },
   { nome: 'Insígnia do Leque', trecho: 'Vale do canto', lore: 'O inverno amena no vale. Entre ecos e ventos suaves, a primavera já se anuncia.' },
   { nome: 'Insígnia da Flor', trecho: 'Jardim de espinhos', lore: 'A primavera floresceu, mas o jardim guarda seus espinhos. Beleza e perigo andam juntos.' },
   { nome: 'Insígnia da Estrela', trecho: 'Árvore das estrelas', lore: 'A árvore mais alta da terra do ginásio. Suas folhas brilham como estrelas na noite da primavera.' },
-  { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa', lore: 'O fim da travessia. Além daqui o mapa está em branco — até o ginásio recomeçar no próximo ano.' },
+  { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa', lore: 'O fim da travessia. Além daqui, o mapa está em branco. Até o ginásio recomeçar no próximo ano.' },
 ].map((insignia, i) => ({ ...insignia, imagem: `midia/insignia-${String(i + 1).padStart(2, '0')}.webp` }));
 
 const CASAS_DA_NOTA = 3;
