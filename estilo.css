@@ -603,6 +603,11 @@ select.campo {
 .celebracao-frases:empty { display: none; }
 .balao-centro::before { left: calc(50% - 12px); }
 .balao-centro::after { left: calc(50% - 7px); }
+.balao + .balao { margin-top: 0; }
+.campeao:has(.campeao-pessoa + .campeao-pessoa) .balao::before,
+.campeao:has(.campeao-pessoa + .campeao-pessoa) .balao::after { display: none; }
+.balao + .balao::before,
+.balao + .balao::after { display: none; }
 .celebracao-entrega { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; }
 .celebracao-subtitulo { font-size: 16px; }
 .celebracao-fechar { justify-self: center; margin-top: 6px; }

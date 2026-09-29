@@ -721,7 +721,7 @@ function mostrarCelebracao(mes, campeoes) {
   }));
   document.getElementById('celebracao-insignia').replaceChildren(desenhoDaInsignia(indice, 1));
   let entrega = `${nomes} ${varios ? 'levam' : 'leva'} a ${insignia.nome}.`;
-  if (premio) entrega = `${nomes} ${varios ? 'dividem' : 'leva'}: ${premio} e ${insignia.nome}.`;
+  if (premio) entrega = varios ? `${nomes} dividem: ${premio}. Cada um leva a ${insignia.nome}.` : `${nomes} leva: ${premio} e ${insignia.nome}.`;
   document.getElementById('celebracao-subtitulo').textContent = entrega;
   botao.textContent = euVenci && !escreveu ? 'Escrever minha frase' : 'Continuar';
 
