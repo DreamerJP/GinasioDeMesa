@@ -405,7 +405,7 @@ select.campo {
   margin-top: 10px;
 }
 
-.historia { margin-top: 8px; font-size: 15px; }
+.historia { display: grid; gap: 10px; margin-top: 8px; font-size: 15px; }
 
 .grade-insignias { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 4px; margin-top: 10px; align-items: start; }
 .grade-insignias .botao-insignia { gap: 2px; padding: 6px 2px; }
@@ -426,6 +426,11 @@ select.campo {
 }
 
 .detalhe-insignia { display: grid; justify-items: center; gap: 8px; text-align: center; }
+.lore-insignia { font-size: 15px; }
+.donos-insignia { justify-self: stretch; display: grid; gap: 8px; margin-top: 4px; padding-top: 12px; border-top: 2px solid var(--caixa-funda); text-align: left; }
+.lista-donos { display: grid; gap: 6px; padding: 0; list-style: none; }
+.lista-donos li { display: flex; align-items: center; gap: 10px; }
+.lista-donos .foto { width: 32px; height: 32px; }
 
 .campeao { display: grid; gap: 10px; }
 

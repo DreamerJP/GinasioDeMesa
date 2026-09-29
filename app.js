@@ -1264,7 +1264,7 @@ function mostrarInsignia(numero) {
     irPara('insignias');
     return;
   }
-  const { trecho, nome } = INSIGNIAS[indice];
+  const { trecho, nome, lore } = INSIGNIAS[indice];
   const todas = conquistas();
   const minhas = vezesPorInsignia(todas.get(estado.eu.id))[indice];
   const donos = [...todas]
@@ -1275,11 +1275,15 @@ function mostrarInsignia(numero) {
   document.getElementById('insignia-minha').hidden = !minhas;
   document.getElementById('insignia-minha').textContent = minhas > 1 ? `Você tem esta insígnia ×${minhas}` : 'Você tem esta insígnia';
   document.getElementById('insignia-nome').textContent = nome;
-  document.getElementById('insignia-trecho').textContent = `${trecho}, ${MESES[indice]}`;
-  document.getElementById('insignia-texto').textContent = `${nome}. Entregue a quem fecha ${MESES[indice]} no topo do Ginásio.`;
-  document.getElementById('insignia-donos').textContent = donos.length
-    ? `Quem tem: ${donos.map(([alguem, anos]) => `${alguem.apelido} (${anos.join(', ')})`).join(', ')}`
-    : 'Ninguém tem esta insígnia ainda.';
+  document.getElementById('insignia-trecho').textContent = `${MESES[indice]} · ${trecho}`;
+  document.getElementById('insignia-texto').textContent = lore;
+  document.getElementById('insignia-donos').replaceChildren(...(donos.length
+    ? donos.map(([alguem, anos]) => {
+      const item = criar('li');
+      item.append(imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido), criar('span', 'detalhe', anos.join(', ')));
+      return item;
+    })
+    : [criar('li', 'detalhe', `Ninguém ganhou ainda. Fica com ela quem fechar ${MESES[indice]} no topo.`)]));
 }
 
 function mostrarCampeoes() {

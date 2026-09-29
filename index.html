@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=16">
-<script type="module" src="app.js?v=16" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=17">
+<script type="module" src="app.js?v=17" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -232,7 +232,11 @@
   <main class="conteudo" data-tela="insignias" hidden>
     <section class="caixa">
       <h2 class="rotulo">Insígnias do Ginásio</h2>
-      <p class="historia">Todo ano, o Ginásio faz uma travessia pelas quatro estações de uma terra só dele. Começa no mar do verão, passa pelos ventos do outono, sobe as montanhas geladas do inverno, floresce na primavera e chega aos confins do mapa em dezembro. Cada mês é um trecho da travessia, e quem fecha o mês no topo leva a insígnia daquele trecho.</p>
+      <div class="historia">
+        <p>Todo ano, o Ginásio parte em viagem.</p>
+        <p>Sai do mar no calor do verão, atravessa os ventos do outono, sobe as montanhas geladas do inverno e floresce na primavera, até chegar aos confins do mapa em dezembro.</p>
+        <p>Cada mês é um trecho do caminho. Quem fecha o mês no topo guarda a insígnia daquele trecho.</p>
+      </div>
       <div class="grade-insignias" id="grade-insignias"></div>
       <p class="rodape">Toque numa insígnia para ver os detalhes.</p>
     </section>
@@ -245,8 +249,11 @@
       <h2 class="titulo-caixa" id="insignia-nome"></h2>
       <p class="detalhe" id="insignia-trecho"></p>
       <p id="insignia-minha" hidden></p>
-      <p id="insignia-texto"></p>
-      <p class="rodape" id="insignia-donos"></p>
+      <p class="lore-insignia" id="insignia-texto"></p>
+      <div class="donos-insignia">
+        <p class="rotulo">Quem tem</p>
+        <ul class="lista-donos" id="insignia-donos"></ul>
+      </div>
     </section>
   </main>
 
