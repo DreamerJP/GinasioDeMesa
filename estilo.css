@@ -442,6 +442,13 @@ select.campo {
 .menu button:focus { outline: none; }
 .menu button:focus::before { content: '▶'; position: absolute; left: 8px; }
 
+.menu-grupo::after { content: '▸'; position: absolute; right: 8px; }
+.menu-grupo[aria-expanded="true"]::after { content: '▾'; }
+
+.menu-itens { display: grid; }
+.menu-itens button { padding-left: 44px; }
+.menu-itens button:focus::before { left: 24px; }
+
 .celebracao {
   position: fixed;
   inset: 0;

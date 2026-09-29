@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=9">
-<script type="module" src="app.js?v=9" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=10">
+<script type="module" src="app.js?v=10" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -21,15 +21,21 @@
 
   <nav class="caixa menu" id="menu" role="menu" hidden>
     <button role="menuitem" data-item="inicio">Início</button>
-    <button role="menuitem" data-item="ranking">Ranking</button>
     <button role="menuitem" data-item="nova-partida">Nova partida</button>
-    <button role="menuitem" data-item="perfil">Perfil</button>
-    <button role="menuitem" data-item="insignias">Insígnias</button>
-    <button role="menuitem" data-item="campeoes">Campeões</button>
-    <button role="menuitem" data-item="regras">Regras</button>
+    <button role="menuitem" class="menu-grupo" data-grupo="disputa" aria-expanded="false" aria-controls="grupo-disputa">Disputa</button>
+    <div class="menu-itens" id="grupo-disputa" role="group" hidden>
+      <button role="menuitem" data-item="ranking">Ranking</button>
+      <button role="menuitem" data-item="campeoes">Campeões</button>
+      <button role="menuitem" data-item="insignias">Insígnias</button>
+      <button role="menuitem" data-item="regras">Regras</button>
+    </div>
+    <button role="menuitem" class="menu-grupo" data-grupo="conta" aria-expanded="false" aria-controls="grupo-conta">Minha conta</button>
+    <div class="menu-itens" id="grupo-conta" role="group" hidden>
+      <button role="menuitem" data-item="perfil">Perfil</button>
+      <button role="menuitem" data-item="som">Som: ligado</button>
+      <button role="menuitem" data-item="sair">Sair da conta</button>
+    </div>
     <button role="menuitem" data-item="administracao" hidden>Administração</button>
-    <button role="menuitem" data-item="som">Som: ligado</button>
-    <button role="menuitem" data-item="sair">Sair da conta</button>
     <button role="menuitem" data-item="fechar">Fechar</button>
   </nav>
 

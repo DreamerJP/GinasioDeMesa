@@ -1348,14 +1348,23 @@ async function sairDaConta() {
 function ligarMenu() {
   const botao = document.getElementById('abrir-menu');
   const menu = document.getElementById('menu');
-  const itensAtivos = () => [...menu.querySelectorAll('button:not([hidden])')];
+  const itensAtivos = () => [...menu.querySelectorAll('button:not([hidden])')].filter(b => !b.parentElement.hidden);
   const acoes = { som: alternarSom, sair: sairDaConta, fechar: () => {} };
+
+  const expandirGrupo = cabecalho => {
+    menu.querySelectorAll('[data-grupo]').forEach(g => {
+      const aberto = g === cabecalho;
+      g.setAttribute('aria-expanded', aberto);
+      document.getElementById(g.getAttribute('aria-controls')).hidden = !aberto;
+    });
+  };
 
   const alternar = aberto => {
     if (aberto) tocar('mover');
+    const atual = menu.querySelector(`[data-item="${telaVisivel === 'insignia' ? 'insignias' : telaVisivel}"]`);
+    if (aberto) expandirGrupo(menu.querySelector(`[aria-controls="${atual?.parentElement.id}"]`));
     menu.hidden = !aberto;
     botao.setAttribute('aria-expanded', aberto);
-    const atual = menu.querySelector(`[data-item="${telaVisivel === 'insignia' ? 'insignias' : telaVisivel}"]`);
     (aberto ? atual || itensAtivos()[0] : botao).focus();
   };
 
@@ -1363,6 +1372,12 @@ function ligarMenu() {
   menu.addEventListener('click', e => {
     const item = e.target.closest('button');
     if (!item) return;
+    if (item.dataset.grupo) {
+      tocar('mover');
+      expandirGrupo(item.getAttribute('aria-expanded') === 'true' ? null : item);
+      item.focus();
+      return;
+    }
     alternar(false);
     if (item.dataset.item !== 'som') tocar('escolher');
     if (acoes[item.dataset.item]) acoes[item.dataset.item]();
