@@ -474,14 +474,14 @@ select.campo {
 }
 
 #celebracao-insignia .insignia {
-  width: 140px;
-  height: 140px;
-  filter: drop-shadow(0 0 12px var(--ouro)) drop-shadow(0 0 28px var(--ouro));
+  width: 180px;
+  height: 180px;
+  filter: drop-shadow(0 0 6px var(--ouro)) drop-shadow(0 0 14px var(--ouro));
   animation: cel-brilho 2s ease-in-out 0.8s infinite;
 }
 
 .celebracao[data-campeao] #celebracao-insignia .insignia {
-  filter: drop-shadow(0 0 20px var(--ouro)) drop-shadow(0 0 50px var(--ouro));
+  filter: drop-shadow(0 0 10px var(--ouro)) drop-shadow(0 0 24px var(--ouro));
 }
 
 @keyframes cel-pop {
@@ -490,8 +490,8 @@ select.campo {
 }
 
 @keyframes cel-brilho {
-  0%, 100% { filter: drop-shadow(0 0 12px var(--ouro)) drop-shadow(0 0 28px var(--ouro)); }
-  50%       { filter: drop-shadow(0 0 24px var(--ouro)) drop-shadow(0 0 60px var(--ouro-fundo)); }
+  0%, 100% { filter: drop-shadow(0 0 6px var(--ouro)) drop-shadow(0 0 14px var(--ouro)); }
+  50%       { filter: drop-shadow(0 0 12px var(--ouro)) drop-shadow(0 0 28px var(--ouro-fundo)); }
 }
 
 .celebracao-titulo {
@@ -510,8 +510,17 @@ select.campo {
   animation: cel-sobe 0.4s ease 0.85s both;
 }
 
+.celebracao-lore {
+  font-size: 13px;
+  color: var(--caixa);
+  opacity: 0.6;
+  font-style: italic;
+  line-height: 1.5;
+  animation: cel-sobe 0.4s ease 0.95s both;
+}
+
 .celebracao-fechar {
-  animation: cel-sobe 0.4s ease 1s both;
+  animation: cel-sobe 0.4s ease 1.1s both;
   background: var(--ouro);
   color: var(--tinta);
 }
