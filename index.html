@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=11">
-<script type="module" src="app.js?v=11" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=12">
+<script type="module" src="app.js?v=12" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -147,6 +147,14 @@
     <section class="caixa formulario">
       <label class="rotulo" for="campo-jogo">Jogo</label>
       <select class="campo campo-texto" id="campo-jogo"></select>
+      <div class="escolha-capa" id="capa-do-jogo" hidden>
+        <img class="capa" id="capa-atual" alt="">
+        <div class="formulario">
+          <label class="botao" for="capa-troca-arquivo">Trocar capa</label>
+          <input type="file" id="capa-troca-arquivo" accept="image/*" hidden>
+          <p class="aviso" id="aviso-capa" role="alert"></p>
+        </div>
+      </div>
       <button class="botao-texto" id="alternar-jogo-novo" type="button">Jogo novo? Cadastrar</button>
     </section>
 
@@ -158,6 +166,15 @@
       </div>
       <label class="opcao"><input type="checkbox" id="jogo-menor-vence"> Menor placar vence</label>
       <label class="opcao"><input type="checkbox" id="jogo-sem-placar"> Não tem placar, só ordem de chegada</label>
+      <p class="rotulo">Capa da caixa (opcional)</p>
+      <div class="escolha-capa">
+        <img class="capa" id="capa-nova" alt="">
+        <div class="formulario">
+          <label class="botao" for="capa-nova-arquivo">Tirar ou escolher foto</label>
+          <input type="file" id="capa-nova-arquivo" accept="image/*" hidden>
+          <input class="campo campo-texto" id="capa-nova-link" type="url" inputmode="url" autocomplete="off" placeholder="ou cole o link da imagem" aria-label="Link da capa">
+        </div>
+      </div>
       <p class="aviso" id="aviso-jogo" role="alert"></p>
     </form>
 

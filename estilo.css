@@ -284,19 +284,39 @@ select.campo {
 
 .item-partida {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 10px;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
   width: 100%;
   padding: 10px 0;
   border: 0;
   border-top: 2px solid var(--caixa-funda);
   background: none;
+  color: var(--tinta);
   text-align: left;
   cursor: pointer;
 }
 
 .lista-partidas li:first-child .item-partida { border-top: 0; }
-.item-resumo { grid-column: 1 / -1; }
+.item-partida.aberta { padding: 10px 8px; background: var(--caixa-marcada); box-shadow: inset 0 0 0 var(--px) var(--ouro); }
+.item-corpo { display: grid; gap: 2px; }
+.item-topo { display: flex; justify-content: space-between; gap: 10px; }
+.item-jogadores { display: flex; flex-wrap: wrap; align-items: end; gap: 2px; margin-top: 4px; }
+.item-jogadores .foto { width: 20px; height: 20px; }
+.item-jogadores .foto.vencedor { width: 28px; height: 28px; }
+.item-jogadores .mais { align-self: center; color: var(--tinta-suave); }
+.item-partida .capa { width: 104px; height: 70px; object-position: top; }
+
+.escolha-capa { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; }
+
+.capa {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  object-position: top;
+  background: var(--caixa-funda);
+  clip-path: var(--canto);
+}
 
 .jogador-linha {
   display: grid;

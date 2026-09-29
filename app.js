@@ -17,6 +17,7 @@ const AGUARDANDO = 'Seu pedido de entrada foi enviado. Assim que o administrador
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const LIMITE_FOTO = 45000;
 const LADO_FOTO = 320;
+const MAXIMO_DE_ROSTOS = 8;
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const SONS = {
@@ -250,6 +251,36 @@ function avatarPadrao(apelido) {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
+const MEEPLE = ['..###..', '..###..', '#######', '.#####.', '..###..', '.##.##.', '.##.##.'];
+
+function capaPadrao(nome) {
+  let semente = 0;
+  for (const letra of nome) semente = (semente * 31 + letra.charCodeAt(0)) >>> 0;
+  const cores = ['#d9604a', '#4a86d9', '#3aa865', '#a95fd0', '#d99a33', '#3a9fa0'];
+  let pixels = '';
+  MEEPLE.forEach((linha, y) => [...linha].forEach((ponto, x) => {
+    if (ponto === '#') pixels += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+  }));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 11 11" shape-rendering="crispEdges"><rect x="-2" y="-2" width="11" height="11" fill="#e2dac0"/><g fill="${cores[semente % cores.length]}">${pixels}</g></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+function imagemDaCapa(jogo, classe = 'capa') {
+  const imagem = criar('img', classe);
+  imagem.alt = '';
+  imagem.referrerPolicy = 'no-referrer';
+  mostrarCapa(imagem, jogo);
+  return imagem;
+}
+
+function mostrarCapa(imagem, jogo) {
+  imagem.onerror = () => {
+    imagem.onerror = null;
+    imagem.src = capaPadrao(jogo.nome);
+  };
+  imagem.src = jogo.capa || capaPadrao(jogo.nome);
+}
+
 function fotoDe(alguem) {
   return alguem?.foto || avatarPadrao(alguem?.apelido || '?');
 }
@@ -323,6 +354,13 @@ function fotoValida(foto) {
   throw recusa('Foto inválida ou grande demais.');
 }
 
+function capaValida(capa) {
+  const texto = String(capa).trim();
+  if (texto.length <= LIMITE_FOTO && /^data:image\/(jpeg|png|webp);base64,[\w+/=]+$/.test(texto)) return texto;
+  if (linkDeFoto(texto)) return texto;
+  throw recusa('Capa inválida. Use uma foto ou um link que abra direto a imagem.');
+}
+
 function exigirEmailLivre(endereco) {
   if (lidos.acessos.some(a => a.id === endereco)) throw recusa('Esse e-mail já está liberado.');
   if (lidos.pedidos.some(p => p.id === endereco)) throw recusa('Esse e-mail já pediu entrada. Aprove na lista de pedidos.');
@@ -351,12 +389,18 @@ const ACOES = {
     return setDoc(doc(banco, 'jogadores', eu.id), { apelido: nome, foto: novaFoto });
   },
 
-  cadastrarJogo({ id, nome, menorVence, semPlacar }) {
+  cadastrarJogo({ id, nome, menorVence, semPlacar, capa }) {
     const titulo = textoLivre(nome, 2, 40, 'O nome do jogo');
     if (estado.jogos.some(j => j.nome.toLowerCase() === titulo.toLowerCase())) throw recusa('Esse jogo já está cadastrado.');
     return setDoc(doc(banco, 'jogos', id), {
       nome: titulo, menorVence: Boolean(menorVence && !semPlacar), semPlacar: Boolean(semPlacar), criadoPor: estado.eu.id, criadoEm: serverTimestamp(),
+      capa: capa ? capaValida(capa) : '',
     });
+  },
+
+  definirCapa({ jogo, capa }) {
+    if (!estado.jogos.some(j => j.id === jogo)) throw recusa('Jogo não encontrado.');
+    return updateDoc(doc(banco, 'jogos', jogo), { capa: capaValida(capa) });
   },
 
   abrirPartida({ id, jogo, participantes }) {
@@ -528,7 +572,7 @@ function montarEstado() {
     mesAtual: mesDeHoje(),
     eu: { id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', admin: conta.admin },
     jogadores,
-    jogos: lidos.jogos.map(({ id, nome, menorVence, semPlacar }) => ({ id, nome, menorVence, semPlacar })),
+    jogos: lidos.jogos.map(({ id, nome, menorVence, semPlacar, capa }) => ({ id, nome, menorVence, semPlacar, capa: capa || '' })),
     partidas: lidos.partidas.map(comoPartida).sort((a, b) => a.abertaEm - b.abertaEm),
     premios: Object.fromEntries(lidos.premios.map(p => [p.id, p.texto])),
     frases: lidos.frases.map(({ mes, jogador: id, texto }) => ({ mes, jogador: id, texto })),
@@ -789,13 +833,24 @@ function mostrarRanking() {
   document.getElementById('ranking').replaceChildren(...linhas.map(l => linhaDoMes(l, total)));
 
   const itens = [...doMes].reverse().map(partida => {
-    const botao = criar('button', 'item-partida');
+    const jogo = jogoDe(partida);
+    const aberta = partida.estado === 'aberta';
+    const botao = criar('button', `item-partida${aberta ? ' aberta' : ''}`);
     botao.type = 'button';
-    botao.append(
-      criar('span', '', jogoDe(partida).nome),
-      criar('span', 'detalhe', partida.abertaPor ? dataCurta(partida.abertaEm) : ''),
-      criar('span', 'detalhe item-resumo', resumoDaPartida(partida)),
-    );
+    const topo = criar('span', 'item-topo');
+    topo.append(criar('span', '', jogo.nome), criar('span', 'detalhe', partida.abertaPor ? dataCurta(partida.abertaEm) : ''));
+    const lugares = aberta ? null : lugaresDaPartida(partida);
+    const ordem = aberta ? partida.placares : [...partida.placares].sort((a, b) => lugares.get(a.jogador) - lugares.get(b.jogador));
+    const rostos = criar('span', 'item-jogadores');
+    rostos.append(...ordem.slice(0, MAXIMO_DE_ROSTOS).map(s => {
+      const foto = imagemDe(jogador(s.jogador), 'foto');
+      if (!aberta && lugares.get(s.jogador) === 1) foto.classList.add('vencedor');
+      return foto;
+    }));
+    if (ordem.length > MAXIMO_DE_ROSTOS) rostos.append(criar('span', 'mais', '…'));
+    const corpo = criar('span', 'item-corpo');
+    corpo.append(topo, criar('span', 'detalhe', resumoDaPartida(partida)), rostos);
+    botao.append(imagemDaCapa(jogo), corpo);
     botao.addEventListener('click', () => irPara('partida', partida.id));
     const item = criar('li');
     item.append(botao);
@@ -929,7 +984,10 @@ function mostrarNovaPartida() {
 }
 
 function desenharFichas() {
-  const semPlacar = jogoSelecionado()?.semPlacar;
+  const escolhido = jogoSelecionado();
+  const semPlacar = escolhido?.semPlacar;
+  document.getElementById('capa-do-jogo').hidden = !escolhido;
+  if (escolhido) mostrarCapa(document.getElementById('capa-atual'), escolhido);
   document.getElementById('instrucao-jogadores').textContent = semPlacar
     ? 'Toque na ordem de chegada, começando pelo vencedor.'
     : 'Toque em quem jogou.';
@@ -975,24 +1033,70 @@ function ligarNovaPartida() {
     if (!formJogo.hidden) nome.focus();
   });
 
-  nome.addEventListener('input', () => { salvarJogo.disabled = nome.value.trim().length < 2; });
+  const avisoJogo = document.getElementById('aviso-jogo');
+  const previa = document.getElementById('capa-nova');
+  const arquivoNovo = document.getElementById('capa-nova-arquivo');
+  const linkNovo = document.getElementById('capa-nova-link');
+  let capaNova = '';
+  const mostrarPrevia = () => mostrarCapa(previa, { nome: nome.value.trim() || '?', capa: capaNova });
+  mostrarPrevia();
+
+  nome.addEventListener('input', () => {
+    salvarJogo.disabled = nome.value.trim().length < 2;
+    mostrarPrevia();
+  });
   semPlacar.addEventListener('change', () => {
     menorVence.disabled = semPlacar.checked;
     if (semPlacar.checked) menorVence.checked = false;
   });
 
+  arquivoNovo.addEventListener('change', async () => {
+    const [escolhido] = arquivoNovo.files;
+    arquivoNovo.value = '';
+    if (!escolhido) return;
+    avisoJogo.textContent = '';
+    try {
+      capaNova = await fotoReduzida(escolhido, { inteira: true });
+      linkNovo.value = '';
+      mostrarPrevia();
+    } catch (erro) {
+      avisoJogo.textContent = erro.message;
+    }
+  });
+  linkNovo.addEventListener('input', () => {
+    capaNova = linkDeFoto(linkNovo.value.trim()) ? linkNovo.value.trim() : '';
+    mostrarPrevia();
+  });
+
   formJogo.addEventListener('submit', async evento => {
     evento.preventDefault();
     const id = novoId('jogos');
-    const dados = { id, nome: nome.value.trim(), menorVence: menorVence.checked, semPlacar: semPlacar.checked };
-    if (await enviar(salvarJogo, document.getElementById('aviso-jogo'), 'cadastrarJogo', dados)) {
+    const dados = { id, nome: nome.value.trim(), menorVence: menorVence.checked, semPlacar: semPlacar.checked, capa: capaNova };
+    if (await enviar(salvarJogo, avisoJogo, 'cadastrarJogo', dados)) {
       jogoEscolhido = id;
       formJogo.reset();
+      capaNova = '';
+      mostrarPrevia();
       menorVence.disabled = false;
       formJogo.hidden = true;
       mostrarNovaPartida();
     }
     salvarJogo.disabled = nome.value.trim().length < 2;
+  });
+
+  const arquivoTroca = document.getElementById('capa-troca-arquivo');
+  const rotuloTroca = document.querySelector('label[for="capa-troca-arquivo"]');
+  arquivoTroca.addEventListener('change', async () => {
+    const [escolhido] = arquivoTroca.files;
+    arquivoTroca.value = '';
+    const aviso = document.getElementById('aviso-capa');
+    if (!escolhido || !jogoEscolhido) return;
+    aviso.textContent = '';
+    try {
+      await enviar(rotuloTroca, aviso, 'definirCapa', { jogo: jogoEscolhido, capa: await fotoReduzida(escolhido, { inteira: true }) });
+    } catch (erro) {
+      aviso.textContent = erro.message;
+    }
   });
 
   const formPartida = document.getElementById('form-partida');
@@ -1045,18 +1149,25 @@ function mostrarPerfil(id) {
   if (proprio) document.getElementById('campo-novo-apelido').placeholder = alguem.apelido;
 }
 
-async function fotoReduzida(arquivo) {
+async function fotoReduzida(arquivo, { inteira = false } = {}) {
   let imagem;
   try {
     imagem = await createImageBitmap(arquivo);
   } catch {
     throw new Error('Não consegui abrir essa imagem. Tente uma foto JPG ou PNG.');
   }
-  const lado = Math.min(imagem.width, imagem.height);
   const quadro = document.createElement('canvas');
-  quadro.width = LADO_FOTO;
-  quadro.height = LADO_FOTO;
-  quadro.getContext('2d').drawImage(imagem, (imagem.width - lado) / 2, (imagem.height - lado) / 2, lado, lado, 0, 0, LADO_FOTO, LADO_FOTO);
+  if (inteira) {
+    const escala = Math.min(1, LADO_FOTO / Math.max(imagem.width, imagem.height));
+    quadro.width = Math.round(imagem.width * escala);
+    quadro.height = Math.round(imagem.height * escala);
+    quadro.getContext('2d').drawImage(imagem, 0, 0, quadro.width, quadro.height);
+  } else {
+    const lado = Math.min(imagem.width, imagem.height);
+    quadro.width = LADO_FOTO;
+    quadro.height = LADO_FOTO;
+    quadro.getContext('2d').drawImage(imagem, (imagem.width - lado) / 2, (imagem.height - lado) / 2, lado, lado, 0, 0, LADO_FOTO, LADO_FOTO);
+  }
   for (const qualidade of [0.85, 0.75, 0.65, 0.55, 0.45]) {
     for (const formato of ['image/webp', 'image/jpeg']) {
       const dados = quadro.toDataURL(formato, qualidade);

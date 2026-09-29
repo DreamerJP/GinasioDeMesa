@@ -86,13 +86,17 @@ service cloud.firestore {
     match /jogos/{id} {
       allow read: if membro();
       allow create: if temApelido()
-        && request.resource.data.keys().hasOnly(['nome', 'menorVence', 'semPlacar', 'criadoPor', 'criadoEm'])
+        && request.resource.data.keys().hasOnly(['nome', 'menorVence', 'semPlacar', 'criadoPor', 'criadoEm', 'capa'])
+        && fotoValida(request.resource.data.get('capa', ''))
         && texto(request.resource.data.nome, 2, 40)
         && request.resource.data.menorVence is bool
         && request.resource.data.semPlacar is bool
         && !(request.resource.data.menorVence && request.resource.data.semPlacar)
         && request.resource.data.criadoPor == meuId()
         && request.resource.data.criadoEm == request.time;
+      allow update: if temApelido()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['capa'])
+        && fotoValida(request.resource.data.capa);
       allow write: if admin();
     }
 
