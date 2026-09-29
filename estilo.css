@@ -403,6 +403,19 @@ select.campo {
 
 .lista-acessos li:first-child { border-top: 0; }
 
+.lista-pedidos { padding: 0; list-style: none; }
+
+.lista-pedidos li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 2px solid var(--caixa-funda);
+  overflow-wrap: anywhere;
+}
+
+.lista-pedidos li:first-child { border-top: 0; }
+
 .menu {
   position: absolute;
   z-index: 2;

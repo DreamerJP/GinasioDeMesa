@@ -69,6 +69,11 @@
       </div>
     </section>
 
+    <section class="caixa pendente" id="aviso-pedidos" hidden>
+      <p id="aviso-pedidos-texto"></p>
+      <button class="botao" data-ir="administracao">Ver pedidos</button>
+    </section>
+
     <section class="caixa pendente" id="pendente" hidden>
       <p><strong id="pendente-autor"></strong> abriu <strong id="pendente-jogo"></strong>. Falta o seu placar.</p>
       <p class="detalhe" id="pendente-progresso"></p>
@@ -261,6 +266,12 @@
   </main>
 
   <main class="conteudo" data-tela="administracao" hidden>
+    <section class="caixa" id="caixa-pedidos" hidden>
+      <h2 class="rotulo">Pedidos de entrada</h2>
+      <ul class="lista-pedidos" id="lista-pedidos"></ul>
+      <p class="rodape">Escolha de quem é cada conta antes de aprovar. Jogador novo escolhe o apelido quando entrar.</p>
+    </section>
+
     <form class="caixa formulario" id="form-premio">
       <label class="rotulo" for="campo-premio">Prêmio de <span data-mes></span></label>
       <div class="linha-campo">

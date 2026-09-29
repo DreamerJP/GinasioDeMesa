@@ -7,7 +7,7 @@ const FUSO = 'America/Sao_Paulo';
 const LIMITE_FOTO = 45000;
 
 const ABAS = {
-  Jogadores: ['id', 'email', 'apelido', 'foto', 'admin', 'criadoEm'],
+  Jogadores: ['id', 'email', 'apelido', 'foto', 'admin', 'criadoEm', 'nomeGoogle', 'situacao'],
   Jogos: ['id', 'nome', 'menorVence', 'semPlacar', 'criadoPor', 'criadoEm'],
   Partidas: ['id', 'mes', 'jogo', 'abertaPor', 'estado', 'abertaEm', 'fechadaEm'],
   Placares: ['partida', 'jogador', 'valor', 'lancadoEm'],
@@ -16,6 +16,7 @@ const ABAS = {
 };
 
 const ACOES_SEM_APELIDO = ['estado', 'definirPerfil'];
+const AGUARDANDO = 'Seu pedido de entrada foi enviado. Assim que o administrador aprovar, é só entrar de novo.';
 
 const ACOES = {
   estado() {},
@@ -28,7 +29,7 @@ const ACOES = {
       const dono = ler('Jogadores').find(j => j.id !== eu.id && j.apelido.toUpperCase() === nome);
       if (dono && !dono.email && !eu.apelido && ehSim(eu.admin)) {
         atualizar('Jogadores', dono, { email: eu.email, admin: 'sim', foto: fotoValida(foto, dono.foto, conta.foto) });
-        SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Jogadores').deleteRow(eu._linha);
+        apagarLinha('Jogadores', eu);
         return;
       }
       if (dono) throw recusa('Esse apelido já é de outro jogador.');
@@ -102,7 +103,9 @@ const ACOES = {
     const endereco = String(email || '').trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(endereco)) throw recusa('E-mail inválido.');
     const jogadores = ler('Jogadores');
-    if (jogadores.some(j => j.email === endereco)) throw recusa('Esse e-mail já está liberado.');
+    const existente = jogadores.find(j => j.email === endereco);
+    if (existente && existente.situacao === 'pendente') throw recusa('Esse e-mail já pediu entrada. Aprove na lista de pedidos.');
+    if (existente) throw recusa('Esse e-mail já está liberado.');
     if (!jogador) {
       acrescentar('Jogadores', [{ id: novoId('J'), email: endereco, criadoEm: agora() }]);
       return;
@@ -110,6 +113,28 @@ const ACOES = {
     const registro = jogadores.find(j => j.id === jogador);
     if (!registro || registro.email) throw recusa('Esse jogador já tem e-mail.');
     atualizar('Jogadores', registro, { email: endereco });
+  },
+
+  aprovarPedido(eu, { pedido, jogador }) {
+    exigirAdmin(eu);
+    const jogadores = ler('Jogadores');
+    const registro = jogadores.find(j => j.id === pedido && j.situacao === 'pendente');
+    if (!registro) throw recusa('Esse pedido não existe mais.');
+    if (!jogador) {
+      atualizar('Jogadores', registro, { situacao: '' });
+      return;
+    }
+    const destino = jogadores.find(j => j.id === jogador);
+    if (!destino || destino.email) throw recusa('Esse jogador já tem e-mail.');
+    atualizar('Jogadores', destino, { email: registro.email, nomeGoogle: registro.nomeGoogle });
+    apagarLinha('Jogadores', registro);
+  },
+
+  recusarPedido(eu, { pedido }) {
+    exigirAdmin(eu);
+    const registro = ler('Jogadores').find(j => j.id === pedido && j.situacao === 'pendente');
+    if (!registro) throw recusa('Esse pedido não existe mais.');
+    apagarLinha('Jogadores', registro);
   },
 
   salvarFrase(eu, { mes, texto }) {
@@ -137,7 +162,12 @@ function doPost(e) {
     trava.waitLock(15000);
     try {
       const eu = ler('Jogadores').find(j => j.email === conta.email);
-      if (!eu) throw recusa('Seu e-mail ainda não foi liberado. Peça ao administrador.', 'nao-liberado');
+      if (!eu) {
+        const nomeGoogle = String(conta.nome || '').replace(/^[=+\-@]+/, '').slice(0, 60);
+        acrescentar('Jogadores', [{ id: novoId('J'), email: conta.email, nomeGoogle, situacao: 'pendente', criadoEm: agora() }]);
+        throw recusa(AGUARDANDO, 'pendente');
+      }
+      if (eu.situacao === 'pendente') throw recusa(AGUARDANDO, 'pendente');
       if (!eu.apelido && !ACOES_SEM_APELIDO.includes(pedido.acao)) throw recusa('Escolha seu apelido primeiro.', 'sem-apelido');
       if (!eu.foto && conta.foto) {
         atualizar('Jogadores', eu, { foto: conta.foto });
@@ -192,7 +222,8 @@ function montarEstado(email) {
       .map(p => ({ id: p.id, mes: p.mes.slice(0, 7), jogo: p.jogo, abertaPor: p.abertaPor, estado: p.estado, abertaEm: p.abertaEm, placares: placaresPorPartida[p.id] || [] })),
     premios: Object.fromEntries(ler('Premios').map(p => [p.mes.slice(0, 7), p.texto])),
     frases: ler('Frases').map(f => ({ mes: f.mes.slice(0, 7), jogador: f.jogador, texto: f.texto })),
-    liberados: admin ? jogadores.map(j => ({ id: j.id, email: j.email, apelido: j.apelido })) : [],
+    liberados: admin ? jogadores.filter(j => j.situacao !== 'pendente').map(j => ({ id: j.id, email: j.email, apelido: j.apelido })) : [],
+    pedidos: admin ? jogadores.filter(j => j.situacao === 'pendente').map(j => ({ id: j.id, email: j.email, nome: j.nomeGoogle })) : [],
   };
 }
 
@@ -209,7 +240,7 @@ function contaDoToken(token) {
   const restante = Number(info.exp) - Math.floor(Date.now() / 1000);
   if (info.aud !== CLIENTE_GOOGLE || String(info.email_verified) !== 'true' || restante <= 0) throw recusa('Entrada inválida. Entre de novo.', 'token');
 
-  const conta = { email: info.email.toLowerCase(), foto: info.picture || '' };
+  const conta = { email: info.email.toLowerCase(), foto: info.picture || '', nome: info.name || '' };
   cache.put(chave, JSON.stringify(conta), Math.min(restante, 21600));
   return conta;
 }
@@ -239,6 +270,10 @@ function atualizar(nome, registro, campos) {
   for (const [campo, valor] of Object.entries(campos)) {
     aba.getRange(registro._linha, cabecalho.indexOf(campo) + 1).setValue(valor);
   }
+}
+
+function apagarLinha(nome, registro) {
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName(nome).deleteRow(registro._linha);
 }
 
 function fotoValida(foto, atual, fotoGoogle) {

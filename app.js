@@ -360,9 +360,9 @@ function mostrarEntrada(mensagem, saida = null) {
 }
 
 function tratarFalha(erro, avisar) {
-  if (erro.codigo === 'token' || erro.codigo === 'nao-liberado') {
+  if (['token', 'nao-liberado', 'pendente'].includes(erro.codigo)) {
     guardarToken(null);
-    if (erro.codigo === 'nao-liberado') window.google?.accounts.id.disableAutoSelect();
+    if (erro.codigo !== 'token') window.google?.accounts.id.disableAutoSelect();
     mostrarEntrada(erro.message, 'google');
   } else if (erro.codigo === 'sem-apelido') {
     mostrarTela('apelido');
@@ -462,6 +462,12 @@ function mostrarInicio() {
   document.getElementById('premio-insignia-imagem').replaceChildren(desenhoDaInsignia(indice, 1));
 
   const doMes = partidas.filter(p => p.mes === mesAtual);
+  const pedidos = estado.pedidos || [];
+  document.getElementById('aviso-pedidos').hidden = !pedidos.length;
+  document.getElementById('aviso-pedidos-texto').textContent = pedidos.length === 1
+    ? '1 pedido de entrada esperando a sua aprovação.'
+    : `${pedidos.length} pedidos de entrada esperando a sua aprovação.`;
+
   const pendentes = doMes.filter(p => p.estado === 'aberta' && p.placares.some(s => s.jogador === eu.id && s.valor === null));
   document.getElementById('pendente').hidden = !pendentes.length;
   if (pendentes.length) {
@@ -940,10 +946,26 @@ function mostrarAdministracao() {
 
   const vinculo = document.getElementById('campo-vinculo');
   const semEmail = liberados.filter(l => !l.email && l.apelido);
-  vinculo.replaceChildren(
-    new Option('Jogador novo', ''),
-    ...semEmail.map(l => new Option(l.apelido, l.id)),
-  );
+  const opcoesDeVinculo = () => [new Option('Jogador novo', ''), ...semEmail.map(l => new Option(l.apelido, l.id))];
+  vinculo.replaceChildren(...opcoesDeVinculo());
+
+  const pedidos = estado.pedidos || [];
+  document.getElementById('caixa-pedidos').hidden = !pedidos.length;
+  document.getElementById('lista-pedidos').replaceChildren(...pedidos.map(pedido => {
+    const item = criar('li');
+    const escolha = criar('select', 'campo campo-texto');
+    const aprovar = criar('button', 'botao', 'Aprovar');
+    const recusar = criar('button', 'botao-texto', 'Recusar pedido');
+    const aviso = criar('p', 'aviso');
+    const linhaCampo = criar('div', 'linha-campo');
+    escolha.setAttribute('aria-label', `De quem é a conta ${pedido.email}`);
+    escolha.append(...opcoesDeVinculo());
+    aprovar.addEventListener('click', () => enviar(aprovar, aviso, 'aprovarPedido', { pedido: pedido.id, jogador: escolha.value || undefined }));
+    recusar.addEventListener('click', () => enviar(recusar, aviso, 'recusarPedido', { pedido: pedido.id }));
+    linhaCampo.append(escolha, aprovar);
+    item.append(criar('span', '', pedido.nome || pedido.email), criar('span', 'detalhe', pedido.email), linhaCampo, recusar, aviso);
+    return item;
+  }));
 
   const ordenados = [...liberados].sort((a, b) => Boolean(b.email) - Boolean(a.email));
   document.getElementById('lista-acessos').replaceChildren(...ordenados.map(l => {
