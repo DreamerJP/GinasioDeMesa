@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=26">
-<script type="module" src="app.js?v=26" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=27">
+<script type="module" src="app.js?v=27" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -197,9 +197,31 @@
   <main class="conteudo" data-tela="perfil" hidden>
     <section class="caixa perfil">
       <img class="foto-grande" id="perfil-foto" alt="" referrerpolicy="no-referrer">
-      <div>
+      <div class="perfil-dados">
         <h2 class="perfil-apelido" id="perfil-apelido"></h2>
         <p class="detalhe" id="perfil-mes"></p>
+        <button class="botao-menu" id="trocar-foto" type="button" aria-expanded="false" aria-controls="menu-foto" hidden>Editar perfil</button>
+      </div>
+      <div class="menu-foto" id="menu-foto" hidden>
+        <form class="formulario" id="form-novo-apelido">
+          <label class="rotulo" for="campo-novo-apelido">Apelido</label>
+          <div class="linha-campo">
+            <input class="campo" id="campo-novo-apelido" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false">
+            <button class="botao" disabled>Salvar</button>
+          </div>
+          <p class="aviso" id="aviso-perfil" role="alert"></p>
+        </form>
+        <p class="rotulo rotulo-foto">Foto</p>
+        <label class="botao-menu item-foto" for="foto-arquivo">Escolher do celular</label>
+        <input type="file" id="foto-arquivo" accept="image/*" hidden>
+        <button class="botao-menu item-foto" id="foto-google" type="button">Usar a foto do Google</button>
+        <button class="botao-menu item-foto" id="abrir-foto-link" type="button">Colar link de imagem</button>
+        <form class="linha-campo" id="form-foto-link" hidden>
+          <input class="campo campo-texto" id="campo-foto-link" type="url" inputmode="url" autocomplete="off" placeholder="https://…" aria-label="Link da imagem">
+          <button class="botao" disabled>Usar</button>
+        </form>
+        <p class="detalhe" id="dica-foto-link" hidden>O link precisa abrir direto a imagem.</p>
+        <p class="aviso" id="aviso-foto" role="alert"></p>
       </div>
     </section>
 
@@ -209,27 +231,6 @@
       <p class="rodape">Uma insígnia por mês vencido. Vencer o mesmo mês em outro ano vira ×2, ×3.</p>
     </section>
 
-    <section class="caixa formulario" id="perfil-edicao" hidden>
-      <form class="formulario" id="form-novo-apelido">
-        <label class="rotulo" for="campo-novo-apelido">Trocar apelido</label>
-        <div class="linha-campo">
-          <input class="campo" id="campo-novo-apelido" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false">
-          <button class="botao" disabled>Salvar</button>
-        </div>
-      </form>
-      <p class="rotulo">Trocar foto</p>
-      <div class="linha-botoes metades">
-        <button class="botao" id="foto-google" type="button">Usar a do Google</button>
-        <label class="botao" for="foto-arquivo">Enviar do celular</label>
-        <input type="file" id="foto-arquivo" accept="image/*" hidden>
-      </div>
-      <form class="linha-campo" id="form-foto-link">
-        <input class="campo campo-texto" id="campo-foto-link" type="url" inputmode="url" autocomplete="off" placeholder="https://… link da foto" aria-label="Link da foto">
-        <button class="botao" disabled>Usar link</button>
-      </form>
-      <p class="aviso" id="aviso-perfil" role="alert"></p>
-      <p class="rodape">O link precisa abrir direto a imagem. Se ele parar de funcionar, o site mostra a imagem padrão até você trocar.</p>
-    </section>
   </main>
 
   <main class="conteudo" data-tela="insignias" hidden>

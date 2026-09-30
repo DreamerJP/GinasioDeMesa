@@ -135,8 +135,20 @@ body {
 }
 
 .linha-botoes { display: flex; flex-wrap: wrap; gap: 8px; }
-.linha-botoes.metades { display: grid; grid-template-columns: 1fr 1fr; }
-.metades .botao { display: grid; place-items: center; text-align: center; }
+.perfil-dados { display: grid; justify-items: start; gap: 4px; }
+.perfil-dados .botao-menu { margin-top: 6px; }
+
+.menu-foto {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 2px;
+  padding-top: 10px;
+  border-top: 2px solid var(--caixa-funda);
+}
+
+.menu-foto .item-foto { justify-self: start; margin-top: 6px; }
+#form-foto-link { margin-top: 6px; }
+.rotulo-foto { margin-top: 10px; }
 
 .formulario { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .linha-campo { display: flex; gap: 8px; }

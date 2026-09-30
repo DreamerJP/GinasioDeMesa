@@ -1165,7 +1165,8 @@ function mostrarPerfil(id) {
   }));
 
   const proprio = alguem.id === eu.id;
-  document.getElementById('perfil-edicao').hidden = !proprio;
+  document.getElementById('trocar-foto').hidden = !proprio;
+  if (!proprio) document.getElementById('menu-foto').hidden = true;
   if (proprio) document.getElementById('campo-novo-apelido').placeholder = alguem.apelido;
 }
 
@@ -1211,23 +1212,49 @@ function ligarPerfil() {
 
   formulario.addEventListener('submit', async evento => {
     evento.preventDefault();
-    if (await enviar(salvar, aviso, 'definirPerfil', { apelido: campo.value })) campo.value = '';
+    if (await enviar(salvar, aviso, 'definirPerfil', { apelido: campo.value })) {
+      campo.value = '';
+      abrirMenuFoto(false);
+    }
     salvar.disabled = !campo.value;
   });
 
-  const google = document.getElementById('foto-google');
-  google.addEventListener('click', () => enviar(google, aviso, 'definirPerfil', { foto: 'google' }));
-
+  const trocar = document.getElementById('trocar-foto');
+  const menuFoto = document.getElementById('menu-foto');
+  const avisoFoto = document.getElementById('aviso-foto');
   const formLink = document.getElementById('form-foto-link');
+  const dicaLink = document.getElementById('dica-foto-link');
   const campoLink = document.getElementById('campo-foto-link');
   const usarLink = formLink.querySelector('button');
+
+  const abrirMenuFoto = aberto => {
+    menuFoto.hidden = !aberto;
+    trocar.setAttribute('aria-expanded', aberto);
+    formLink.hidden = true;
+    dicaLink.hidden = true;
+    avisoFoto.textContent = '';
+    aviso.textContent = '';
+  };
+  const trocou = sucesso => { if (sucesso) abrirMenuFoto(false); };
+  trocar.addEventListener('click', () => abrirMenuFoto(menuFoto.hidden));
+
+  const google = document.getElementById('foto-google');
+  google.addEventListener('click', async () => trocou(await enviar(google, avisoFoto, 'definirPerfil', { foto: 'google' })));
+
+  document.getElementById('abrir-foto-link').addEventListener('click', () => {
+    formLink.hidden = false;
+    dicaLink.hidden = false;
+    campoLink.focus();
+  });
   const linkValido = () => /^https:\/\/[^\s"'<>]{4,500}$/.test(campoLink.value.trim());
   campoLink.addEventListener('input', () => { usarLink.disabled = !linkValido(); });
   formLink.addEventListener('submit', async evento => {
     evento.preventDefault();
     if (!linkValido()) return;
-    if (await enviar(usarLink, aviso, 'definirPerfil', { foto: campoLink.value.trim() })) campoLink.value = '';
+    const sucesso = await enviar(usarLink, avisoFoto, 'definirPerfil', { foto: campoLink.value.trim() });
+    if (sucesso) campoLink.value = '';
     usarLink.disabled = !linkValido();
+    trocou(sucesso);
   });
 
   const arquivo = document.getElementById('foto-arquivo');
@@ -1238,11 +1265,11 @@ function ligarPerfil() {
     if (!escolhido) return;
     rotulo.textContent = 'Enviando…';
     try {
-      await enviar(google, aviso, 'definirPerfil', { foto: await fotoReduzida(escolhido) });
+      trocou(await enviar(google, avisoFoto, 'definirPerfil', { foto: await fotoReduzida(escolhido) }));
     } catch (erro) {
-      aviso.textContent = erro.message;
+      avisoFoto.textContent = erro.message;
     } finally {
-      rotulo.textContent = 'Enviar do celular';
+      rotulo.textContent = 'Escolher do celular';
     }
   });
 }
