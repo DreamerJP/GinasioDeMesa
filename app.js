@@ -1331,12 +1331,7 @@ function mostrarInicio() {
   const donos = conquistas();
   const proximo = MESES[(indice + 1) % 12];
   document.getElementById('ranking-geral').replaceChildren(...(geral.length
-    ? geral.map(l => linhaDoRanking(
-      l.id,
-      l.posicao,
-      insigniasEmMiniatura(donos.get(l.id), l.insignias),
-      `${l.podios} ${l.podios === 1 ? 'vez' : 'vezes'} entre os 3 primeiros`,
-    ))
+    ? geral.map(l => linhaDoRanking(l.id, l.posicao, insigniasEmMiniatura(donos.get(l.id), l.insignias), ''))
     : [criar('li', 'detalhe', `Nenhum mês fechou ainda. O primeiro entra aqui em 1º de ${proximo}.`)]));
 }
 

@@ -303,6 +303,7 @@ select.campo {
 }
 
 .partidas { grid-column: 1 / -1; font-size: 12px; color: var(--tinta-suave); }
+.partidas:empty { display: none; }
 
 .item-partida {
   display: grid;

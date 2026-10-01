@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=30">
-<script type="module" src="app.js?v=31" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=32">
+<script type="module" src="app.js?v=32" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -97,7 +97,6 @@
     <section class="caixa">
       <h2 class="rotulo">Ranking geral</h2>
       <ol class="ranking" id="ranking-geral"></ol>
-      <p class="rodape">Conta as insígnias de cada um. Empate: quem ficou mais vezes entre os 3 primeiros de um mês.</p>
     </section>
   </main>
 
@@ -323,6 +322,11 @@
       <h2 class="rotulo">Nota do mês</h2>
       <div class="formula" data-formula="G_i = \frac{1}{M}\sum_{j=1}^{M} P_{i,j}"></div>
       <p class="detalhe">Quem faltou a uma partida leva nela <span data-formula-linha="\tfrac{1}{2}\min_k P_{k,j}"></span>, metade da nota do último colocado. Quem não jogou nenhuma partida no mês fica com 0.</p>
+    </section>
+
+    <section class="caixa">
+      <h2 class="rotulo">Ranking geral</h2>
+      <p class="detalhe">Conta as insígnias de cada um. Empate: fica na frente quem terminou mais meses entre os 3 primeiros.</p>
     </section>
 
     <section class="caixa">
