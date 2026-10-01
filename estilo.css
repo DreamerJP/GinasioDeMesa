@@ -666,33 +666,35 @@ select.campo {
 .nivel-platina { --nivel-claro: #f2fdff; --nivel: #a6e3ea; --nivel-escuro: #5aa7b5; --nivel-letra: #123a44; --nivel-realce: #e4f8fb; --nivel-texto: #2c7584; }
 .nivel-lendario { --nivel-claro: #e8ccff; --nivel: #a45ee0; --nivel-escuro: #6a2fa6; --nivel-letra: #fff6ff; --nivel-realce: #3a145e; --nivel-texto: #6f35b0; }
 
-.faixa { --u: 2px; display: inline-flex; align-items: flex-start; max-width: 100%; padding-top: calc(2.5 * var(--u)); vertical-align: top; }
-.faixa-ponta { flex: none; width: calc(12 * var(--u)); height: calc(16 * var(--u)); }
+.faixa { --e: 1; display: inline-flex; align-items: center; gap: calc(4px * var(--e)); max-width: 100%; vertical-align: top; }
+.faixa.nivel-unico { --fita: url(midia/faixa-unico.png); --letra-da-faixa: #1c1e3b; }
+.faixa.nivel-bronze { --fita: url(midia/faixa-bronze.png); --letra-da-faixa: #3a1a08; }
+.faixa.nivel-prata { --fita: url(midia/faixa-prata.png); --letra-da-faixa: #1c1e3b; }
+.faixa.nivel-ouro { --fita: url(midia/faixa-ouro.png); --letra-da-faixa: #4a2c00; }
+.faixa.nivel-platina { --fita: url(midia/faixa-platina.png); --letra-da-faixa: #0f3a40; }
+.faixa.nivel-lendario { --fita: url(midia/faixa-lendario.png); --letra-da-faixa: #ffffff; }
 
 .faixa-meio {
+  display: block;
+  box-sizing: border-box;
   min-width: 0;
-  height: calc(13 * var(--u));
-  padding: 0 calc(2 * var(--u));
+  height: calc(20px * var(--e));
+  padding: calc(2px * var(--e)) calc(3px * var(--e));
+  border-style: solid;
+  border-width: 0 calc(4px * var(--e));
+  border-image: var(--fita) 0 4 fill / 0 calc(4px * var(--e)) stretch;
+  image-rendering: pixelated;
   overflow: hidden;
-  font: 600 calc(6.5 * var(--u)) / calc(13 * var(--u)) 'Pixelify Sans', monospace;
-  letter-spacing: calc(0.5 * var(--u));
+  font: 600 calc(12px * var(--e)) / calc(16px * var(--e)) 'Pixelify Sans', monospace;
+  letter-spacing: calc(1px * var(--e));
   text-transform: uppercase;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--nivel-letra);
-  text-shadow: 1px 1px 0 var(--nivel-realce);
-  background:
-    linear-gradient(var(--tinta), var(--tinta)) 0 0 / 100% var(--u) no-repeat,
-    linear-gradient(var(--nivel-claro), var(--nivel-claro)) 0 var(--u) / 100% var(--u) no-repeat,
-    repeating-linear-gradient(90deg, transparent 0 var(--u), var(--nivel-escuro) var(--u) calc(2 * var(--u))) 0 calc(2 * var(--u)) / 100% var(--u) no-repeat,
-    repeating-linear-gradient(90deg, transparent 0 var(--u), var(--nivel-escuro) var(--u) calc(2 * var(--u))) 0 calc(10 * var(--u)) / 100% var(--u) no-repeat,
-    linear-gradient(var(--nivel-escuro), var(--nivel-escuro)) 0 calc(11 * var(--u)) / 100% var(--u) no-repeat,
-    linear-gradient(var(--tinta), var(--tinta)) 0 calc(12 * var(--u)) / 100% var(--u) no-repeat,
-    var(--nivel);
+  color: var(--letra-da-faixa);
 }
 
-.faixa .icone-titulo { position: relative; z-index: 1; flex: none; width: 39px; height: 39px; margin: -6px 0 0 -4px; }
-.faixa .capa-titulo { flex: none; width: 30px; height: 30px; margin: -2px 4px 0 0; object-fit: cover; object-position: top; outline: 2px solid var(--tinta); }
+.faixa .icone-titulo { flex: none; width: calc(39px * var(--e)); height: calc(39px * var(--e)); margin: calc(-6px * var(--e)) calc(-4px * var(--e)) calc(-6px * var(--e)) calc(-4px * var(--e)); }
+.faixa .capa-titulo { flex: none; width: calc(30px * var(--e)); height: calc(30px * var(--e)); object-fit: cover; object-position: top; outline: 2px solid var(--tinta); }
 
 .titulo-linha {
   display: flex;
@@ -717,21 +719,19 @@ select.campo {
   flex: none;
   width: 64px;
   height: 64px;
-  background: conic-gradient(#4d5299 25%, #474c90 0 50%, #4d5299 0 75%, #474c90 0) 0 0 / 6px 6px;
-  box-shadow: inset 0 0 0 3px var(--nivel), inset 0 0 0 5px var(--nivel-escuro), inset 0 0 12px 5px rgb(10 10 40 / 0.35);
-  clip-path: var(--canto);
 }
 
+.quadro-titulo::before { content: ''; position: absolute; inset: 4px; background: conic-gradient(#4d5299 25%, #474c90 0 50%, #4d5299 0 75%, #474c90 0) 0 0 / 6px 6px; }
+.quadro-titulo > * { position: relative; }
+.quadro-titulo .moldura-titulo { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
 .quadro-titulo .icone-titulo { width: 52px; height: 52px; }
-.quadro-titulo .capa-titulo { width: 40px; height: 40px; object-fit: cover; object-position: top; outline: 2px solid var(--tinta); }
-.quadro-titulo .coroa-mestre { position: absolute; top: 1px; right: 1px; width: 26px; height: 26px; }
-.quadro-titulo.grande { width: 120px; height: 120px; box-shadow: inset 0 0 0 4px var(--nivel), inset 0 0 0 7px var(--nivel-escuro), inset 0 0 20px 8px rgb(10 10 40 / 0.35); }
+.quadro-titulo .capa-titulo { width: 54px; height: 54px; object-fit: cover; object-position: top; }
+.quadro-titulo.grande { width: 128px; height: 128px; }
+.quadro-titulo.grande::before { inset: 8px; }
 .quadro-titulo.grande .icone-titulo { width: 104px; height: 104px; }
-.quadro-titulo.grande .capa-titulo { width: 76px; height: 76px; outline-width: 3px; }
-.quadro-titulo.grande .coroa-mestre { top: 2px; right: 2px; width: 52px; height: 52px; }
-.quadro-titulo.apagado { background: var(--caixa-funda); box-shadow: inset 0 0 0 3px #cfc6a6; }
+.quadro-titulo.grande .capa-titulo { width: 108px; height: 108px; }
+.quadro-titulo.apagado::before { background: var(--caixa-funda); }
 .quadro-titulo.apagado img { filter: brightness(0) opacity(0.25); }
-.quadro-titulo.apagado .capa-titulo { outline-color: transparent; }
 
 .colecao-titulos { display: grid; gap: 8px; margin-top: 10px; }
 
@@ -803,7 +803,8 @@ select.campo {
 
 .detalhe-titulo { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 10px; text-align: center; }
 .faixa-do-detalhe { max-width: 100%; font-size: inherit; font-weight: 400; }
-.faixa-do-detalhe .faixa { --u: 3px; }
+.faixa-do-detalhe .faixa, .conquista-faixa .faixa { --e: 2; }
+.faixa-do-detalhe .faixa.compacta, .conquista-faixa .faixa.compacta { --e: 1; }
 .meu-titulo { display: grid; justify-items: center; gap: 4px; width: 100%; }
 .meu-titulo .progresso { width: 100%; max-width: 280px; }
 .dono-titulo { display: flex; align-items: center; gap: 10px; text-align: left; }
@@ -832,7 +833,7 @@ select.campo {
 .marcador { width: 14px; height: 14px; box-shadow: inset 0 0 0 2px var(--tinta); }
 .opcao-titulo[aria-checked="true"] .marcador { background: var(--tinta); box-shadow: inset 0 0 0 2px var(--tinta), inset 0 0 0 4px var(--caixa-marcada); }
 
-.conquista { gap: 8px; }
+.conquista { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .conquista-topo { font: 600 18px/1 'Pixelify Sans', monospace; letter-spacing: 2px; text-transform: uppercase; color: var(--ouro-fundo); }
 .conquista-palco { position: relative; display: grid; place-items: center; width: 100%; min-height: 150px; }
 .conquista-faixa { max-width: 100%; }
@@ -848,7 +849,7 @@ select.campo {
 .conquista:not(.pronta) .conquista-depois { visibility: hidden; }
 .conquista.animando .degrau.acendendo { animation: degrau-acende 300ms steps(3, end) var(--atraso) both; }
 
-.quadro-titulo.clarao::after { content: ''; position: absolute; inset: 0; background: #fff; animation: clarao 420ms steps(4, end) both; }
+.quadro-titulo.clarao::after { content: ''; position: absolute; inset: 0; z-index: 4; background: #fff; animation: clarao 420ms steps(4, end) both; }
 
 .brilho-pixel {
   position: absolute;

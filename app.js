@@ -181,15 +181,6 @@ const DESENHOS_DOS_TITULOS = {
 
 const LADO_DO_ICONE = 26;
 
-const CORES_DA_FAIXA = {
-  ouro: { claro: '#fff0a8', meio: '#f2c14e', escuro: '#c48a1c', pontaClara: '#e8b447', ponta: '#d69a2a', pontaEscura: '#9a6a12', dobra: '#6b4608' },
-  prata: { claro: '#ffffff', meio: '#c9cde2', escuro: '#8d93b5', pontaClara: '#b9bed6', ponta: '#a3a9c8', pontaEscura: '#6f7596', dobra: '#4a4f6e' },
-  bronze: { claro: '#f3b67a', meio: '#d0823f', escuro: '#9a5423', pontaClara: '#c47a40', ponta: '#b0662f', pontaEscura: '#7a3f18', dobra: '#532808' },
-  unico: { claro: '#c9cff5', meio: '#7b86d6', escuro: '#4a539e', pontaClara: '#6a75c4', ponta: '#5e68b5', pontaEscura: '#3d4588', dobra: '#2a2f63' },
-  platina: { claro: '#f2fdff', meio: '#a6e3ea', escuro: '#5aa7b5', pontaClara: '#93d3dc', ponta: '#7cc0cb', pontaEscura: '#4a8a96', dobra: '#2e5e68' },
-  lendario: { claro: '#e8ccff', meio: '#a45ee0', escuro: '#6a2fa6', pontaClara: '#9450d0', ponta: '#8243bd', pontaEscura: '#57248c', dobra: '#3a145e' },
-};
-
 const CASAS_DA_NOTA = 3;
 const FRACAO_DA_FALTA = 0.5;
 const formatoNota = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: CASAS_DA_NOTA, maximumFractionDigits: CASAS_DA_NOTA });
@@ -216,7 +207,6 @@ let mesDoCampeaoAberto = '';
 let carregamentoKatex = null;
 let titulosCalculados = { estado: null, valor: null };
 const imagensDosIcones = new Map();
-const pontasDaFaixa = new Map();
 const tocadores = {};
 let somLigado = lerPreferenciaDeSom();
 
@@ -684,40 +674,6 @@ function imagemDoIcone(nome) {
   return imagensDosIcones.get(nome);
 }
 
-function imagemDaPonta(nivel, lado) {
-  const chave = `${nivel}-${lado}`;
-  if (pontasDaFaixa.has(chave)) return pontasDaFaixa.get(chave);
-  const c = CORES_DA_FAIXA[nivel];
-  const tinta = CORES_DOS_ICONES.k;
-  const LARGURA = 12, ALTURA = 16, INICIO = 7, FAIXA = 13;
-  const pontos = Array.from({ length: ALTURA }, (_, y) => Array.from({ length: LARGURA }, (__, x) => {
-    if (y < FAIXA && x >= INICIO) {
-      if (x === INICIO || y === 0 || y === FAIXA - 1) return tinta;
-      if (y === 1) return c.claro;
-      if (y === FAIXA - 2) return c.escuro;
-      if ((y === 2 || y === FAIXA - 3) && x % 2 === 1) return c.escuro;
-      return c.meio;
-    }
-    if (y >= 3 && x < INICIO) {
-      const recorte = Math.max(0, 4 - Math.abs(y - 9));
-      if (x < recorte) return '';
-      if (x === recorte || y === 3 || y === ALTURA - 1) return tinta;
-      if (y === 4) return c.pontaClara;
-      if (y === ALTURA - 2) return c.pontaEscura;
-      return c.ponta;
-    }
-    if (y >= FAIXA && x >= INICIO) {
-      const limite = ALTURA - 1 - y;
-      if (x - INICIO < limite) return c.dobra;
-      if (x - INICIO === limite) return tinta;
-    }
-    return '';
-  }));
-  if (lado === 'direita') pontos.forEach(linha => linha.reverse());
-  pontasDaFaixa.set(chave, svgEmImagem(LARGURA, ALTURA, pontos));
-  return pontasDaFaixa.get(chave);
-}
-
 function figuraDoTitulo(titulo, classe = '') {
   if (titulo.jogo) return imagemDaCapa(titulo.jogo, `capa-titulo ${classe}`);
   const figura = criar('img', `icone-titulo ${classe}`);
@@ -729,30 +685,26 @@ function figuraDoTitulo(titulo, classe = '') {
 function quadroDoTitulo(situacao, grande = false) {
   const { titulo, nivel, alcancados } = situacao;
   const quadro = criar('span', `quadro-titulo nivel-${nivel}${alcancados ? '' : ' apagado'}${grande ? ' grande' : ''}`);
-  quadro.append(figuraDoTitulo(titulo));
-  if (titulo.jogo) {
-    const coroa = criar('img', 'coroa-mestre');
-    coroa.alt = '';
-    coroa.src = imagemDoIcone('coroa');
-    quadro.append(coroa);
-  }
+  const moldura = criar('img', 'moldura-titulo');
+  moldura.alt = '';
+  moldura.src = `midia/moldura-${nivel}.png`;
+  quadro.append(figuraDoTitulo(titulo), moldura);
   return quadro;
 }
 
 function faixaDoTitulo({ titulo, nivel }, comFigura = true) {
   const faixa = criar('span', `faixa nivel-${nivel}`);
   if (comFigura) faixa.append(figuraDoTitulo(titulo, 'faixa-figura'));
-  for (const [classe, lado] of [['faixa-ponta', 'esquerda'], ['faixa-meio', ''], ['faixa-ponta', 'direita']]) {
-    if (lado) {
-      const ponta = criar('img', classe);
-      ponta.alt = '';
-      ponta.src = imagemDaPonta(nivel, lado);
-      faixa.append(ponta);
-    } else {
-      faixa.append(criar('span', classe, titulo.nome));
-    }
-  }
+  faixa.append(criar('span', 'faixa-meio', comFigura && titulo.jogo ? titulo.jogo.nome : titulo.nome));
   return faixa;
+}
+
+function encaixarFaixa(lugar) {
+  const meio = lugar.querySelector('.faixa-meio');
+  if (!meio) return;
+  document.fonts.ready.then(() => {
+    if (meio.scrollWidth > meio.clientWidth) meio.parentElement.classList.add('compacta');
+  });
 }
 
 function linhaDoTitulo({ titulo, nivel }) {
@@ -1378,6 +1330,7 @@ function abrirConquista({ topo, palco, faixa, degraus, texto, detalhe, botaoVer,
   clearTimeout(relogioDaConquista);
   relogioDaConquista = setTimeout(() => caixa.classList.add('pronta'), espera);
   tela.hidden = false;
+  encaixarFaixa(document.getElementById('conquista-faixa'));
   setTimeout(() => tocar('campeao'), POUCO_MOVIMENTO.matches ? 0 : 380);
 }
 
@@ -1385,13 +1338,17 @@ function mostrarConquista(situacao) {
   const { titulo, nivel, alcancados, antes } = situacao;
   const sobe = antes > 0;
   const quadro = quadroDoTitulo(sobe ? { ...situacao, nivel: NIVEIS[antes - 1] } : situacao, true);
+  const subir = () => {
+    quadro.classList.replace(`nivel-${NIVEIS[antes - 1]}`, `nivel-${nivel}`);
+    quadro.querySelector('.moldura-titulo').src = `midia/moldura-${nivel}.png`;
+  };
   if (sobe && !POUCO_MOVIMENTO.matches) {
     setTimeout(() => {
-      quadro.classList.replace(`nivel-${NIVEIS[antes - 1]}`, `nivel-${nivel}`);
+      subir();
       quadro.classList.add('clarao');
     }, 520);
   } else if (sobe) {
-    quadro.classList.replace(`nivel-${NIVEIS[antes - 1]}`, `nivel-${nivel}`);
+    subir();
   }
 
   let degraus = null;
@@ -1891,6 +1848,7 @@ function mostrarTitulo(id) {
   const vitrine = meu.alcancados ? meu : { titulo, nivel: nivelInicial(titulo), alcancados: 1 };
   document.getElementById('titulo-quadro').replaceChildren(quadroDoTitulo(vitrine, true));
   document.getElementById('titulo-faixa').replaceChildren(faixaDoTitulo(vitrine, false));
+  encaixarFaixa(document.getElementById('titulo-faixa'));
   document.getElementById('titulo-medida').textContent = titulo.medida;
 
   const situacao = document.getElementById('titulo-meu');
