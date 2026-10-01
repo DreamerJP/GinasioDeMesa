@@ -508,7 +508,6 @@ function textoDoProgresso(situacao) {
 
 // A gravação no servidor demora a voltar; sem esta lista o mesmo aviso abriria de novo nesse meio-tempo.
 const vistosNestaSessao = new Set();
-let vistosDoAparelhoLevados = false;
 
 function avisosVistos() {
   return [...new Set([...estado.eu.vistos, ...vistosNestaSessao])];
@@ -518,20 +517,6 @@ function marcarComoVisto(chaves) {
   const novas = chaves.filter(c => !estado.eu.vistos.includes(c));
   novas.forEach(c => vistosNestaSessao.add(c));
   if (novas.length) updateDoc(doc(banco, 'jogadores', estado.eu.id), { vistos: arrayUnion(...novas) }).catch(() => {});
-}
-
-function levarVistosDoAparelho() {
-  if (vistosDoAparelhoLevados) return;
-  vistosDoAparelhoLevados = true;
-  const chaves = [];
-  try {
-    chaves.push(...JSON.parse(localStorage.getItem(`ginasio.titulos-vistos.${estado.eu.id}`) || '[]'));
-    for (const chave of Object.keys(localStorage)) {
-      if (chave.startsWith('ginasio.celebracao.')) chaves.push(`celebracao:${chave.slice('ginasio.celebracao.'.length)}`);
-    }
-    Object.keys(localStorage).filter(k => k.startsWith('ginasio.titulos') || k.startsWith('ginasio.celebracao.')).forEach(k => localStorage.removeItem(k));
-  } catch {}
-  marcarComoVisto(chaves.filter(c => typeof c === 'string'));
 }
 
 function titulosNovos() {
@@ -1004,7 +989,6 @@ function pararEscutas() {
   estado = null;
   estadoEmEspera = null;
   vistosNestaSessao.clear();
-  vistosDoAparelhoLevados = false;
 }
 
 function acompanharConta(usuario) {
@@ -1161,7 +1145,6 @@ function aplicarEstado(novo) {
   document.querySelectorAll('[data-mes]').forEach(el => { el.textContent = MESES[indiceDoMes(estado.mesAtual)]; });
   document.querySelector('[data-item="perfil"]').textContent = estado.eu.apelido;
   document.querySelector('[data-item="administracao"]').hidden = !estado.eu.admin;
-  levarVistosDoAparelho();
   if (convidarParaFrase()) return;
   renderizar();
 }
