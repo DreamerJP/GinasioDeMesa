@@ -1,7 +1,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import {
-  initializeFirestore, persistentLocalCache, persistentMultipleTabManager, terminate, clearIndexedDbPersistence,
+  initializeFirestore, memoryLocalCache, terminate, clearIndexedDbPersistence,
   collection, doc, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
@@ -196,7 +196,8 @@ const formatoPlacar = new Intl.NumberFormat('pt-BR');
 
 const app = initializeApp(FIREBASE);
 const auth = getAuth(app);
-const banco = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+// Sem cópia do banco no aparelho: uma cópia guardada por versões antigas deixava o site parado em "Abrindo o ginásio…".
+const banco = initializeFirestore(app, { localCache: memoryLocalCache() });
 
 let conta = null;
 let lidos = {};
@@ -211,7 +212,6 @@ let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
 let mesDoCampeaoAberto = '';
-let rolarParaTitulos = false;
 let carregamentoKatex = null;
 let titulosCalculados = { estado: null, valor: null };
 const imagensDosIcones = new Map();
@@ -509,8 +509,7 @@ let semMemoriaDeTitulos = false;
 
 function titulosVistos() {
   try {
-    const guardado = localStorage.getItem(`ginasio.titulos.${estado.eu.id}`);
-    return guardado === null ? null : JSON.parse(guardado);
+    return JSON.parse(localStorage.getItem(`ginasio.titulos-vistos.${estado.eu.id}`) || '[]');
   } catch {
     semMemoriaDeTitulos = true;
     return [];
@@ -518,7 +517,7 @@ function titulosVistos() {
 }
 
 function titulosNovos() {
-  const vistos = titulosVistos() || [];
+  const vistos = titulosVistos();
   if (semMemoriaDeTitulos) return [];
   return titulosGanhos(estado.eu.id)
     .filter(s => !vistos.includes(s.chave))
@@ -530,9 +529,9 @@ function titulosNovos() {
 }
 
 function marcarTitulosVistos(chaves) {
-  const vistos = new Set([...(titulosVistos() || []), ...chaves]);
+  const vistos = new Set([...titulosVistos(), ...chaves]);
   try {
-    localStorage.setItem(`ginasio.titulos.${estado.eu.id}`, JSON.stringify([...vistos]));
+    localStorage.setItem(`ginasio.titulos-vistos.${estado.eu.id}`, JSON.stringify([...vistos]));
   } catch {
     semMemoriaDeTitulos = true;
   }
@@ -1339,8 +1338,7 @@ function verificarTitulosNovos() {
   if (!document.getElementById('celebracao').hidden || !document.getElementById('conquista').hidden) return;
   const novos = titulosNovos();
   if (!novos.length) return;
-  if (titulosVistos() === null && novos.length > 1) mostrarChegadaDosTitulos(novos);
-  else mostrarConquista(novos[0], novos.length);
+  mostrarConquista(novos[0], novos.length);
 }
 
 function imagemDoBrilho() {
@@ -1436,29 +1434,6 @@ function mostrarConquista(situacao, total) {
   });
 }
 
-function mostrarChegadaDosTitulos(novos) {
-  const quadros = novos.slice(0, 6).map((s, i) => {
-    const quadro = quadroDoTitulo(s);
-    quadro.style.setProperty('--atraso', `${i * 110}ms`);
-    return quadro;
-  });
-  const grade = criar('div', 'chegada-quadros');
-  grade.append(...quadros);
-  abrirConquista({
-    topo: 'Chegaram os títulos!',
-    palco: [grade],
-    texto: `Você já tem ${quantidade(novos.length, ['título', 'títulos'])}. Eles sobem de nível, de Bronze até Lendário, conforme você joga.`,
-    fila: '',
-    botaoVer: 'Meus títulos',
-    aoConcluir: indoVer => {
-      marcarTitulosVistos(novos.map(s => s.chave));
-      if (indoVer) {
-        rolarParaTitulos = true;
-        irPara('perfil');
-      }
-    },
-  });
-}
 
 function insigniasEmMiniatura(meses, total) {
   const miniaturas = criar('span', 'insignias-miniatura');
@@ -1799,10 +1774,6 @@ function mostrarPerfil(id) {
   if (proprio) {
     document.getElementById('campo-novo-apelido').placeholder = alguem.apelido;
     mostrarEscolhaDeTitulo();
-  }
-  if (rolarParaTitulos) {
-    rolarParaTitulos = false;
-    document.getElementById('caixa-titulos').scrollIntoView({ block: 'start' });
   }
 }
 
@@ -2490,6 +2461,7 @@ function iniciar() {
     if (!digitando()) aplicarEstadoEmEspera();
   }));
   try { localStorage.removeItem('ginasio.token'); } catch {}
+  try { indexedDB.deleteDatabase(`firestore/[DEFAULT]/${FIREBASE.projectId}/main`); } catch {}
   onAuthStateChanged(auth, acompanharConta);
 }
 

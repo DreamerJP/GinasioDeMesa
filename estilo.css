@@ -834,10 +834,8 @@ select.campo {
 .conquista-botoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; margin-top: 4px; }
 .conquista-botoes .botao { justify-self: stretch; padding-inline: 8px; text-align: center; }
 
-.chegada-quadros { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 
 .conquista.animando .conquista-palco > .quadro-titulo { animation: quadro-chega 480ms steps(6, end) both; }
-.conquista.animando .chegada-quadros .quadro-titulo { animation: quadro-chega 420ms steps(5, end) var(--atraso) both; }
 .conquista.animando .conquista-faixa .faixa { animation: faixa-abre 450ms steps(9, end) 650ms both; }
 .conquista:not(.pronta) .conquista-depois { visibility: hidden; }
 .conquista.animando .degrau.acendendo { animation: degrau-acende 300ms steps(3, end) var(--atraso) both; }
