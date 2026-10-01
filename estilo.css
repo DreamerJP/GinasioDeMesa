@@ -374,10 +374,16 @@ select.campo {
 
 .perfil {
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 16px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
 }
+
+.perfil .perfil-dados { grid-template-columns: minmax(0, 1fr); justify-items: center; width: 100%; }
+.perfil .menu-foto { justify-self: stretch; text-align: left; }
+.perfil-titulo { max-width: 100%; }
+.perfil-titulo:empty { display: none; }
 
 .perfil-apelido { font-size: 26px; font-weight: 400; }
 
@@ -644,4 +650,242 @@ select.campo {
 .celebracao-entrega { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; }
 .celebracao-subtitulo { font-size: 16px; }
 .celebracao-fechar { justify-self: center; margin-top: 6px; }
+
+.nivel-ouro { --nivel-claro: #fff0a8; --nivel: #f2c14e; --nivel-escuro: #c48a1c; --nivel-letra: #4a2c00; --nivel-realce: #fbd97a; --nivel-texto: #8a5a08; }
+.nivel-prata { --nivel-claro: #ffffff; --nivel: #c9cde2; --nivel-escuro: #8d93b5; --nivel-letra: #23264a; --nivel-realce: #eef0f8; --nivel-texto: #535a80; }
+.nivel-bronze { --nivel-claro: #f3b67a; --nivel: #d0823f; --nivel-escuro: #9a5423; --nivel-letra: #fff4e4; --nivel-realce: #6a3312; --nivel-texto: #8f4a1a; }
+.nivel-unico { --nivel-claro: #c9cff5; --nivel: #7b86d6; --nivel-escuro: #4a539e; --nivel-letra: #ffffff; --nivel-realce: #2c3270; --nivel-texto: #4a539e; }
+.nivel-platina { --nivel-claro: #f2fdff; --nivel: #a6e3ea; --nivel-escuro: #5aa7b5; --nivel-letra: #123a44; --nivel-realce: #e4f8fb; --nivel-texto: #2c7584; }
+.nivel-lendario { --nivel-claro: #e8ccff; --nivel: #a45ee0; --nivel-escuro: #6a2fa6; --nivel-letra: #fff6ff; --nivel-realce: #3a145e; --nivel-texto: #6f35b0; }
+
+.faixa { --u: 2px; display: inline-flex; align-items: flex-start; max-width: 100%; padding-top: calc(2.5 * var(--u)); vertical-align: top; }
+.faixa-ponta { flex: none; width: calc(12 * var(--u)); height: calc(16 * var(--u)); }
+
+.faixa-meio {
+  min-width: 0;
+  height: calc(13 * var(--u));
+  padding: 0 calc(2 * var(--u));
+  overflow: hidden;
+  font: 600 calc(6.5 * var(--u)) / calc(13 * var(--u)) 'Pixelify Sans', monospace;
+  letter-spacing: calc(0.5 * var(--u));
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nivel-letra);
+  text-shadow: 1px 1px 0 var(--nivel-realce);
+  background:
+    linear-gradient(var(--tinta), var(--tinta)) 0 0 / 100% var(--u) no-repeat,
+    linear-gradient(var(--nivel-claro), var(--nivel-claro)) 0 var(--u) / 100% var(--u) no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 var(--u), var(--nivel-escuro) var(--u) calc(2 * var(--u))) 0 calc(2 * var(--u)) / 100% var(--u) no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 var(--u), var(--nivel-escuro) var(--u) calc(2 * var(--u))) 0 calc(10 * var(--u)) / 100% var(--u) no-repeat,
+    linear-gradient(var(--nivel-escuro), var(--nivel-escuro)) 0 calc(11 * var(--u)) / 100% var(--u) no-repeat,
+    linear-gradient(var(--tinta), var(--tinta)) 0 calc(12 * var(--u)) / 100% var(--u) no-repeat,
+    var(--nivel);
+}
+
+.faixa .icone-titulo { position: relative; z-index: 1; flex: none; width: 39px; height: 39px; margin: -6px 0 0 -4px; }
+.faixa .capa-titulo { flex: none; width: 30px; height: 30px; margin: -2px 4px 0 0; object-fit: cover; object-position: top; outline: 2px solid var(--tinta); }
+
+.titulo-linha {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  font: 400 12px/1.2 'Pixelify Sans', monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--nivel-texto);
+}
+
+.titulo-linha .icone-titulo { flex: none; width: 26px; height: 26px; margin: -4px 1px -4px -4px; }
+.titulo-linha .capa-titulo { flex: none; width: 16px; height: 16px; margin-right: 4px; object-fit: cover; object-position: top; outline: 1px solid var(--tinta); }
+.titulo-linha-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dados .titulo-linha { grid-column: 1; margin-top: -2px; }
+
+.quadro-titulo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  background: conic-gradient(#4d5299 25%, #474c90 0 50%, #4d5299 0 75%, #474c90 0) 0 0 / 6px 6px;
+  box-shadow: inset 0 0 0 3px var(--nivel), inset 0 0 0 5px var(--nivel-escuro), inset 0 0 12px 5px rgb(10 10 40 / 0.35);
+  clip-path: var(--canto);
+}
+
+.quadro-titulo .icone-titulo { width: 52px; height: 52px; }
+.quadro-titulo .capa-titulo { width: 40px; height: 40px; object-fit: cover; object-position: top; outline: 2px solid var(--tinta); }
+.quadro-titulo .coroa-mestre { position: absolute; top: 1px; right: 1px; width: 26px; height: 26px; }
+.quadro-titulo.grande { width: 120px; height: 120px; box-shadow: inset 0 0 0 4px var(--nivel), inset 0 0 0 7px var(--nivel-escuro), inset 0 0 20px 8px rgb(10 10 40 / 0.35); }
+.quadro-titulo.grande .icone-titulo { width: 104px; height: 104px; }
+.quadro-titulo.grande .capa-titulo { width: 76px; height: 76px; outline-width: 3px; }
+.quadro-titulo.grande .coroa-mestre { top: 2px; right: 2px; width: 52px; height: 52px; }
+.quadro-titulo.apagado { background: var(--caixa-funda); box-shadow: inset 0 0 0 3px #cfc6a6; }
+.quadro-titulo.apagado img { filter: brightness(0) opacity(0.25); }
+.quadro-titulo.apagado .capa-titulo { outline-color: transparent; }
+
+.colecao-titulos { display: grid; gap: 8px; margin-top: 10px; }
+
+.cartao-titulo {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px 8px 8px;
+  border: 0;
+  background: var(--caixa-marcada);
+  color: var(--tinta);
+  text-align: left;
+  box-shadow: inset 0 0 0 2px var(--nivel);
+  clip-path: var(--canto);
+  cursor: pointer;
+}
+
+.cartao-titulo.falta { background: var(--caixa); box-shadow: inset 0 0 0 2px var(--caixa-funda); }
+.cartao-texto { display: grid; gap: 2px; min-width: 0; }
+.cartao-nome { font: 600 16px/1.15 'Pixelify Sans', monospace; letter-spacing: 1px; text-transform: uppercase; overflow-wrap: anywhere; }
+.falta .cartao-nome { color: var(--tinta-suave); }
+.cartao-regra { font-size: 13px; color: var(--tinta-suave); }
+
+.etiquetas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.etiquetas:empty { display: none; }
+.etiqueta-nivel, .etiqueta-escura { padding: 1px 6px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+.etiqueta-nivel { background: var(--nivel); color: var(--nivel-letra); }
+.etiqueta-nivel.apagada { background: var(--caixa-funda); color: var(--tinta-suave); }
+.etiqueta-escura { background: var(--tinta); color: var(--caixa); }
+
+.progresso { display: grid; gap: 3px; margin-top: 2px; }
+.progresso .barra { border-color: var(--tinta-apagada); background: var(--caixa-funda); }
+.progresso .detalhe { font-size: 12px; }
+
+.degraus { display: inline-flex; align-items: center; gap: 2px; }
+.degrau { width: 10px; height: 10px; box-shadow: inset 0 0 0 2px var(--caixa-funda); }
+.degrau.alcancado { background: var(--nivel); box-shadow: inset 0 0 0 2px var(--tinta); }
+
+.escada-niveis { display: grid; gap: 6px; width: 100%; max-width: 300px; margin: 6px auto 0; padding: 0; list-style: none; text-align: left; }
+.escada-niveis li { display: grid; grid-template-columns: 76px auto 1fr; gap: 10px; align-items: center; color: var(--tinta-suave); }
+.escada-niveis li.alcancado { color: var(--tinta); }
+.escada-niveis .etiqueta-nivel { text-align: center; }
+.escada-niveis .detalhe { text-align: right; }
+
+.rosto-nivel { display: grid; gap: 2px; }
+.rosto-nivel::after { content: ''; height: 3px; background: var(--nivel); box-shadow: inset 0 -1px 0 var(--nivel-escuro); }
+
+.lista-titulos { display: grid; margin-top: 4px; padding: 0; list-style: none; }
+.lista-titulos > li { border-top: 2px solid var(--caixa-funda); }
+.lista-titulos > li:first-child { border-top: 0; }
+
+.linha-titulo {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  background: none;
+  color: var(--tinta);
+  text-align: left;
+  cursor: pointer;
+}
+
+.linha-titulo .item-jogadores .foto { width: 24px; height: 24px; }
+
+.detalhe-titulo { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 10px; text-align: center; }
+.faixa-do-detalhe { max-width: 100%; font-size: inherit; font-weight: 400; }
+.faixa-do-detalhe .faixa { --u: 3px; }
+.meu-titulo { display: grid; justify-items: center; gap: 4px; width: 100%; }
+.meu-titulo .progresso { width: 100%; max-width: 280px; }
+.dono-titulo { display: flex; align-items: center; gap: 10px; text-align: left; }
+.dono-titulo .etiqueta-nivel { margin-left: auto; }
+
+.escolha-titulo { display: grid; gap: 6px; margin-top: 6px; }
+
+.opcao-titulo {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 2px solid var(--caixa-funda);
+  background: var(--caixa);
+  color: var(--tinta);
+  text-align: left;
+  clip-path: var(--canto);
+  cursor: pointer;
+}
+
+.opcao-titulo[aria-checked="true"] { border-color: var(--tinta); background: var(--caixa-marcada); }
+.opcao-automatica { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
+.opcao-titulo:disabled { cursor: default; }
+.marcador { width: 14px; height: 14px; box-shadow: inset 0 0 0 2px var(--tinta); }
+.opcao-titulo[aria-checked="true"] .marcador { background: var(--tinta); box-shadow: inset 0 0 0 2px var(--tinta), inset 0 0 0 4px var(--caixa-marcada); }
+
+.conquista { gap: 8px; }
+.conquista-topo { font: 600 18px/1 'Pixelify Sans', monospace; letter-spacing: 2px; text-transform: uppercase; color: var(--ouro-fundo); }
+.conquista-palco { position: relative; display: grid; place-items: center; width: 100%; min-height: 150px; }
+.conquista-faixa { max-width: 100%; }
+.conquista-faixa:empty, .conquista-degraus:empty, .conquista-depois:empty { display: none; }
+.conquista-degraus .degraus { gap: 4px; }
+.conquista-degraus .degrau { width: 14px; height: 14px; }
+.conquista-botoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; margin-top: 4px; }
+.conquista-botoes .botao { justify-self: stretch; padding-inline: 8px; text-align: center; }
+
+.chegada-quadros { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
+.conquista.animando .conquista-palco > .quadro-titulo { animation: quadro-chega 480ms steps(6, end) both; }
+.conquista.animando .chegada-quadros .quadro-titulo { animation: quadro-chega 420ms steps(5, end) var(--atraso) both; }
+.conquista.animando .conquista-faixa .faixa { animation: faixa-abre 450ms steps(9, end) 650ms both; }
+.conquista:not(.pronta) .conquista-depois { visibility: hidden; }
+.conquista.animando .degrau.acendendo { animation: degrau-acende 300ms steps(3, end) var(--atraso) both; }
+
+.quadro-titulo.clarao::after { content: ''; position: absolute; inset: 0; background: #fff; animation: clarao 420ms steps(4, end) both; }
+
+.brilho-pixel {
+  position: absolute;
+  left: calc(50% + var(--x) - 10px);
+  top: calc(50% + var(--y) - 10px);
+  width: 21px;
+  height: 21px;
+  opacity: 0;
+  animation: brilho-pixel 2400ms steps(1, end) var(--atraso) infinite;
+}
+
+@keyframes quadro-chega {
+  0% { opacity: 0; transform: translateY(-40px) scale(0.4); }
+  60% { opacity: 1; transform: translateY(6px) scale(1.08); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes faixa-abre {
+  from { clip-path: inset(0 50%); }
+  to { clip-path: inset(0 0); }
+}
+
+@keyframes degrau-acende {
+  0% { background: none; box-shadow: inset 0 0 0 2px var(--caixa-funda); transform: scale(1); }
+  50% { background: #fff; box-shadow: inset 0 0 0 2px var(--tinta); transform: scale(1.6); }
+  100% { background: var(--nivel); box-shadow: inset 0 0 0 2px var(--tinta); transform: scale(1); }
+}
+
+@keyframes clarao {
+  from { opacity: 0.95; }
+  to { opacity: 0; }
+}
+
+@keyframes brilho-pixel {
+  0% { opacity: 0; transform: scale(0.5); }
+  4% { opacity: 1; transform: scale(0.6); }
+  9% { transform: scale(1); }
+  14% { transform: scale(0.6); }
+  19%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conquista *, .conquista *::after { animation: none !important; }
+  .brilho-pixel { display: none; }
+}
 

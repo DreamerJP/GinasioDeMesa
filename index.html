@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=27">
-<script type="module" src="app.js?v=27" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=28">
+<script type="module" src="app.js?v=28" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -27,6 +27,7 @@
       <button role="menuitem" data-item="ranking">Ranking</button>
       <button role="menuitem" data-item="campeoes">Campeões</button>
       <button role="menuitem" data-item="insignias">Insígnias</button>
+      <button role="menuitem" data-item="titulos">Títulos</button>
       <button role="menuitem" data-item="regras">Regras</button>
     </div>
     <button role="menuitem" class="menu-grupo" data-grupo="conta" aria-expanded="false" aria-controls="grupo-conta">Minha conta</button>
@@ -199,6 +200,7 @@
       <img class="foto-grande" id="perfil-foto" alt="" referrerpolicy="no-referrer">
       <div class="perfil-dados">
         <h2 class="perfil-apelido" id="perfil-apelido"></h2>
+        <div class="perfil-titulo" id="perfil-titulo"></div>
         <p class="detalhe" id="perfil-mes"></p>
         <button class="botao-menu" id="trocar-foto" type="button" aria-expanded="false" aria-controls="menu-foto" hidden>Editar perfil</button>
       </div>
@@ -222,6 +224,11 @@
         </form>
         <p class="detalhe" id="dica-foto-link" hidden>O link precisa abrir direto a imagem.</p>
         <p class="aviso" id="aviso-foto" role="alert"></p>
+        <p class="rotulo rotulo-foto">Título embaixo do nome</p>
+        <div class="escolha-titulo" id="escolha-titulo" role="radiogroup" aria-label="Título embaixo do nome"></div>
+        <p class="detalhe" id="sem-titulo" hidden>Você ainda não tem título. O primeiro vem com a primeira partida fechada.</p>
+        <p class="aviso" id="aviso-titulo" role="alert"></p>
+        <p class="detalhe" id="rodape-titulo">Automático mostra o seu título que menos gente do grupo tem.</p>
       </div>
     </section>
 
@@ -229,6 +236,18 @@
       <h2 class="rotulo">Insígnias</h2>
       <div class="quadro-insignias" id="perfil-insignias"></div>
       <p class="rodape">Uma insígnia por mês vencido. Vencer o mesmo mês em outro ano vira ×2, ×3.</p>
+    </section>
+
+    <section class="caixa" id="caixa-titulos">
+      <div class="cabecalho">
+        <h2 class="rotulo">Títulos</h2>
+        <p class="detalhe" id="perfil-titulos-conta"></p>
+      </div>
+      <div class="colecao-titulos" id="perfil-titulos"></div>
+      <div class="rodape linha-rodape">
+        <span>Nível ganho não se perde.</span>
+        <button class="botao-menu" data-ir="titulos">Todos os títulos</button>
+      </div>
     </section>
 
   </main>
@@ -257,6 +276,34 @@
       <div class="donos-insignia">
         <p class="rotulo">Quem tem</p>
         <ul class="lista-donos" id="insignia-donos"></ul>
+      </div>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="titulos" hidden>
+    <section class="caixa">
+      <h2 class="rotulo">Títulos do Ginásio</h2>
+      <p class="historia">Cada título conta um jeito de jogar e sobe de nível, de Bronze até Lendário. Ele sai sozinho das partidas lançadas, e nível ganho não se perde.</p>
+      <ul class="lista-titulos" id="lista-titulos"></ul>
+    </section>
+
+    <section class="caixa">
+      <h2 class="rotulo">Mestres de jogo</h2>
+      <ul class="lista-titulos" id="lista-mestres"></ul>
+      <p class="rodape" id="rodape-mestres"></p>
+    </section>
+  </main>
+
+  <main class="conteudo" data-tela="titulo" hidden>
+    <section class="caixa detalhe-titulo">
+      <button class="botao-menu voltar" data-ir="titulos" aria-label="Voltar aos títulos">◀ Títulos</button>
+      <div id="titulo-quadro"></div>
+      <h2 class="faixa-do-detalhe" id="titulo-faixa"></h2>
+      <p class="lore-insignia" id="titulo-medida"></p>
+      <div class="meu-titulo" id="titulo-meu"></div>
+      <div class="donos-insignia">
+        <p class="rotulo">Quem tem</p>
+        <ul class="lista-donos" id="titulo-donos"></ul>
       </div>
     </section>
   </main>
@@ -357,6 +404,21 @@
       <p class="celebracao-subtitulo" id="celebracao-subtitulo"></p>
     </div>
     <button class="botao celebracao-fechar" id="celebracao-fechar">Continuar</button>
+  </div>
+</div>
+
+<div class="celebracao" id="conquista" hidden>
+  <div class="caixa celebracao-centro conquista" role="dialog" aria-modal="true" aria-labelledby="conquista-topo">
+    <p class="conquista-topo" id="conquista-topo"></p>
+    <div class="conquista-palco" id="conquista-palco"></div>
+    <div class="conquista-faixa" id="conquista-faixa"></div>
+    <div class="conquista-degraus" id="conquista-degraus"></div>
+    <p class="celebracao-subtitulo conquista-depois" id="conquista-texto"></p>
+    <p class="detalhe conquista-depois" id="conquista-fila"></p>
+    <div class="linha-botoes conquista-botoes conquista-depois">
+      <button class="botao" id="conquista-continuar" type="button">Continuar</button>
+      <button class="botao" id="conquista-ver" type="button">Ver título</button>
+    </div>
   </div>
 </div>
 

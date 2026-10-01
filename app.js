@@ -46,6 +46,149 @@ const INSIGNIAS = [
   { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa', lore: 'O fim da travessia. Além daqui, o mapa está em branco. Até o Ginásio recomeçar no próximo ano.' },
 ].map((insignia, i) => ({ ...insignia, imagem: `midia/insignia-${String(i + 1).padStart(2, '0')}.webp` }));
 
+const FOLGA_DO_ATROPELO = 1.5;
+const METAS_DE_MESTRE = [5, 10, 15, 20, 25];
+const NIVEIS = ['bronze', 'prata', 'ouro', 'platina', 'lendario'];
+const NOME_DO_NIVEL = { bronze: 'Bronze', prata: 'Prata', ouro: 'Ouro', platina: 'Platina', lendario: 'Lendário' };
+
+// Metas só podem baixar: subir uma tiraria de alguém um nível já ganho.
+const TITULOS = [
+  { id: 'campeao', nome: 'Campeão', desenho: 'coroa', metas: [1, 2, 3, 6, 12], medida: 'Meses fechados em 1º.', unidade: ['mês em 1º', 'meses em 1º'] },
+  { id: 'podio', nome: 'Figurinha do Pódio', desenho: 'podio', metas: [1, 3, 6, 9, 12], medida: 'Meses fechados entre os 3 primeiros.', unidade: ['mês no pódio', 'meses no pódio'] },
+  { id: 'embalado', nome: 'Embalado', desenho: 'embalado', metas: [3, 4, 5, 6, 8], medida: 'Maior sequência de vitórias seguidas.', unidade: ['vitória seguida', 'vitórias seguidas'] },
+  {
+    id: 'atropelo', nome: 'Atropelo', desenho: 'atropelo', metas: [1, 3, 6, 10, 20],
+    medida: `Vitórias com ${Math.round((FOLGA_DO_ATROPELO - 1) * 100)}% a mais que a média da mesa.`, unidade: ['vitória com folga', 'vitórias com folga'],
+  },
+  { id: 'trave', nome: 'Na Trave', desenho: 'trave', metas: [1, 3, 6, 10, 20], medida: 'Vezes em 2º a 1 ponto do vencedor.', unidade: ['vez', 'vezes'] },
+  { id: 'cadeira', nome: 'Cadeira Cativa', desenho: 'cadeira', metas: [10, 30, 60, 100, 200], medida: 'Partidas jogadas.', unidade: ['partida', 'partidas'] },
+  { id: 'mesa', nome: 'Dono da Mesa', desenho: 'mesa', metas: [5, 15, 30, 50, 100], medida: 'Partidas que abriu e fecharam.', unidade: ['partida aberta', 'partidas abertas'] },
+  { id: 'ecletico', nome: 'Eclético', desenho: 'ecletico', metas: [3, 5, 8, 12, 20], medida: 'Jogos diferentes jogados.', unidade: ['jogo', 'jogos'] },
+  { id: 'lanterna', nome: 'Lanterninha', desenho: 'lanterna', metas: [5, 10, 20, 35, 50], medida: 'Vezes em último.', unidade: ['vez', 'vezes'], soPorEscolha: true },
+  { id: 'estreante', nome: 'Estreante', desenho: 'estreante', metas: [1], medida: 'Jogou a primeira partida.', unidade: ['partida', 'partidas'] },
+];
+
+const CORES_DOS_ICONES = {
+  k: '#1c1e3b',
+  1: '#fff6c8', 2: '#ffe38a', 3: '#f2c14e', 4: '#c98f1f', 5: '#8a5a10',
+  q: '#ff9a8a', r: '#ec5b5b', R: '#b53a3a', e: '#7a2233',
+  a: '#d4e4ff', b: '#9cc2ff', B: '#5a86e8', D: '#3553a8', E: '#25306e',
+  h: '#c8f5a8', g: '#8fdc72', G: '#4aa85a', H: '#2f6e3b',
+  w: '#ffffff', s: '#e4e6f2', S: '#b3b7cf', d: '#7b80a0', x: '#50557a',
+  m: '#f0c088', n: '#d99a5b', N: '#a8672f', M: '#6e3f1a',
+  y: '#ffd84a', f: '#ffa23a', F: '#f2602b', Z: '#b83224',
+};
+
+const DESENHOS_DOS_TITULOS = {
+  estreante: {
+    base: [
+      '.......abB........', '......aabbBB......', '......abbbBB......', '......bbbbBD......', '.......bbBD.......',
+      '..abbbbbbbbbbBBD..', '.abbbbbbbbbbbbBBD.', 'abbbbbbbbbbbbbbBDD', '.bbbbbbbbbbbbbBBD.', '.....bbbbbBD......',
+      '.....bbbbbBD......', '....bbbbbbbBBD....', '...bbbbbbbbbBBD...', '..bbbbbbbbbbbBBD..', '..bbbbbb..bbbBBD..',
+      '.bbbbbb....bbbBBD.', '.BBBBBD....BBBBDD.',
+    ],
+    sobre: ['..................', '...............2..', '..............212.', '...............2..'],
+  },
+  cadeira: {
+    base: [
+      '......rrrrrrrrrr......', '....qrrrrrrrrrrrrR....', '...qrrrrrrrrrrrrrRR...', '...qrrrr122223rrrRR...', '...qrrrr343435rrrRR...',
+      '...qrrrr455555rrrRR...', '...qrrRrrrRrrrRrrRR...', '...qrrerrrerrrerrRR...', 'mnNqrrRrrrRrrrRrrRRnNM', 'nnNqrrrrrrrrrrrrrRRnNM',
+      'nnNqqqqqqqqqqqqqqqRnNM', 'nnNrrrrrrrrrrrrrrrRnNM', 'NNNRRRRRRRRRRRRRRRRNNM', 'NNMeeeeeeeeeeeeeeeeNMM', '.nN................nN.',
+      '.nN................nN.', '.MM................MM.',
+    ],
+  },
+  ecletico: {
+    base: [
+      '............swwws.....', '............wkwwS.....', '............wwkwS.....', '............wwwkS.....', '............SSSSd.....',
+      '...qqqqqqqqqqqqqqqR...', '...rrrrrrrrrrrrrrRR...', '...rr2222rrrrrrrrRR...', '...rrrrrrrrrrrrrrRR...', '...RRRRRRRRRRRRRRee...',
+      '.aaaaaaaaaaaaaaaaaaaB.', '.bbbbbbbbbbbbbbbbbbBB.', '.bbwwwwwwbbbbbbbbbbBB.', '.bbbbbbbbbbbbbbbbbbBB.', '.DDDDDDDDDDDDDDDDDDEE.',
+      'hhhhhhhhhhhhhhhhhhhhhG', 'ggggggggggggggggggggGG', 'gggggggggggg2222ggggGG', 'ggggggggggggggggggggGG', 'HHHHHHHHHHHHHHHHHHHHHH',
+    ],
+  },
+  embalado: {
+    base: [
+      '........F.........', '........FF........', '.......FfF........', '.......FffF....F..', '......FfffF...FF..',
+      '......FffyfF..FfF.', '.....FffyyfF.FffF.', '.....FfyyyffFfffF.', '....FfyyyyyffffF..', '..F.Ffyy11yyyffF..',
+      '.FfFfyy111yyyfffF.', '.FffFyy1111yyyffF.', 'Fffffyy1111yyyyffF', 'Fffffyy11111yyyffF', 'FFfffffyyyyyyfffFF',
+      '.FFfffffffffffffF.', '..ZFFffffffffFFZ..', '....ZZFFFFFFZZ....', '......ZZZZZZ......',
+    ],
+  },
+  atropelo: {
+    base: [
+      '.........12223..', '........12233...', '.......12233....', '......12233.....', '.....12233......',
+      '....12233.......', '...122333333344.', '...4444443334...', '........12234...', '.......1234.....',
+      '......1234......', '.....1234.......', '....123.........', '...124..........', '..13............',
+      '..3.............',
+    ],
+    sobre: [
+      '................', '................', '.2..............', '...............2', '..............2.',
+      '................', '................', '................', '................', '................',
+      '..............2.', '...............2',
+    ],
+  },
+  trave: {
+    base: [
+      '......................', '......................', 'wwwwwwwwwwwwws........', 'ssssssssssssSS........', '............wS........',
+      '............wS........', '............wS........', '............wS........', '............wS........', '............wSwwws....',
+      '............wwkkwws...', '...........wwwkkwwsS..', '...........wwwwwwkkS..', '...........kwwwwwkkS..', '...........kkwwwwwsS..',
+      '............swwsSSS...', '............wSSSSS....', '............wS........', 'GgGGgGGGgGGgGGGgGGgGGG', 'HHHHHHHHHHHHHHHHHHHHHH',
+    ],
+    sobre: [
+      '......................', '..................2...', '......................', '......................', 'S.S.S.S.S.S...........',
+      '.S.S.S.S.S.S......2...', 'S.S.S.S.S.S.........2.', '.S.S.S.S.S.S....2.....', 'S.S.S.S.S.S......1....', '.S.S.S.S.S.S......2...',
+      'S.S.S.S.S.S...........', '.S.S.S.S.S............', 'S.S.S.S.S.S...........', '.S.S.S.S.S............', 'S.S.S.S.S.S...........',
+      '.S.S.S.S.S.S..........', 'S.S.S.S.S.S...........', '.S.S.S.S.S.S..........',
+    ],
+  },
+  lanterna: {
+    base: [
+      '....dSSSSSSd....', '...d........d...', '...d..ssss..d...', '....swwssssS....', '..swwsssssssSd..',
+      '..SSSSSSSSSSdx..', '...d22111122x...', '...d21yffy12x...', '...d21yFFy12x...', '...d221ff122x...',
+      '...d22211222x...', '...d33333333x...', '..swwsssssssSd..', '..SSSSSSSSSSdx..', '...xxxxxxxxxx...',
+    ],
+    sobre: [
+      '................', '................', '................', '................', '................',
+      '................', '.2............2.', '................', '12............21', '................',
+      '.2............2.',
+    ],
+  },
+  mesa: {
+    base: [
+      '.............qR.......', '.............rR.......', '...swwS.....qrrrrR....', '...wkwS......qrrR.....', '...wwkS......rrrR.....',
+      '...SSSd.....qr..rR....', '...nnngGgGgGgGgGnnn...', '..nnnnGgGgGgGgGgnnnN..', '.nnnnngGgGgGgGgGnnnnN.', 'mmmmmmmmmmmmmmmmmmmmmn',
+      'NNNNNNNNNNNNNNNNNNNNNM', 'MMMMMMMMMMMMMMMMMMMMMM', '.nN..M..........M..nN.', '.nN..M..........M..nN.', '.nN................nN.',
+      '.nN................nN.', '.MM................MM.',
+    ],
+  },
+  podio: {
+    base: [
+      '...........2..........', '..........212.........', '........2211122.......', '.........21112........', '........212.212.......',
+      '......................', '.......12222223.......', '.......33333334.......', '.......33334334.......', '.......33344334.......',
+      'wwwwwww33334334.......', 'sssssSd33334334.......', 'ssddsSd33344434.......', 'ssssdSd33333334mmmmmmm', 'sssdsSd33333334nnnnnnN',
+      'ssdssSd33333334nnMMnnN', 'ssdddSd33333334nnnnMnN', 'sssssSd33333334nnnMMnN', 'sssssSd33333334nnnnMnN', 'sssssSd33333334nnMMnnN',
+      'SSSSSdd44444445NNNNNNM',
+    ],
+  },
+  coroa: {
+    base: [
+      '.12.......12.......12.', '.23.......23.......23.', '.223.....2223.....223.', '.2233...222233...2233.', '.22333.22223333.22233.',
+      '.22223322222333222233.', '.22222222222222222333.', '2111111111111111111134', '2333qr3333ab3333qr3344', '2333rR3333bB3333rR3344',
+      '2333333333333333333344', '4444444444444444444445',
+    ],
+  },
+};
+
+const LADO_DO_ICONE = 26;
+
+const CORES_DA_FAIXA = {
+  ouro: { claro: '#fff0a8', meio: '#f2c14e', escuro: '#c48a1c', pontaClara: '#e8b447', ponta: '#d69a2a', pontaEscura: '#9a6a12', dobra: '#6b4608' },
+  prata: { claro: '#ffffff', meio: '#c9cde2', escuro: '#8d93b5', pontaClara: '#b9bed6', ponta: '#a3a9c8', pontaEscura: '#6f7596', dobra: '#4a4f6e' },
+  bronze: { claro: '#f3b67a', meio: '#d0823f', escuro: '#9a5423', pontaClara: '#c47a40', ponta: '#b0662f', pontaEscura: '#7a3f18', dobra: '#532808' },
+  unico: { claro: '#c9cff5', meio: '#7b86d6', escuro: '#4a539e', pontaClara: '#6a75c4', ponta: '#5e68b5', pontaEscura: '#3d4588', dobra: '#2a2f63' },
+  platina: { claro: '#f2fdff', meio: '#a6e3ea', escuro: '#5aa7b5', pontaClara: '#93d3dc', ponta: '#7cc0cb', pontaEscura: '#4a8a96', dobra: '#2e5e68' },
+  lendario: { claro: '#e8ccff', meio: '#a45ee0', escuro: '#6a2fa6', pontaClara: '#9450d0', ponta: '#8243bd', pontaEscura: '#57248c', dobra: '#3a145e' },
+};
+
 const CASAS_DA_NOTA = 3;
 const FRACAO_DA_FALTA = 0.5;
 const formatoNota = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: CASAS_DA_NOTA, maximumFractionDigits: CASAS_DA_NOTA });
@@ -68,7 +211,11 @@ let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
 let mesDoCampeaoAberto = '';
+let rolarParaTitulos = false;
 let carregamentoKatex = null;
+let titulosCalculados = { estado: null, valor: null };
+const imagensDosIcones = new Map();
+const pontasDaFaixa = new Map();
 const tocadores = {};
 let somLigado = lerPreferenciaDeSom();
 
@@ -212,6 +359,185 @@ function nomeDoMes(mes) {
   return `${MESES[indiceDoMes(mes)]} de ${mes.slice(0, 4)}`;
 }
 
+function tituloDeMestre(jogo) {
+  return {
+    id: `mestre:${jogo.id}`, nome: `Mestre de ${jogo.nome}`, jogo, metas: METAS_DE_MESTRE,
+    medida: `Vitórias em ${jogo.nome}.`, unidade: ['vitória', 'vitórias'],
+  };
+}
+
+function calcularTitulos() {
+  const catalogo = [...TITULOS, ...estado.jogos.map(tituloDeMestre)];
+  const metas = new Map(catalogo.map(t => [t.id, t.metas]));
+  const porJogador = new Map();
+  const marcar = (id, titulo, valor, mes) => {
+    if (!metas.has(titulo)) return;
+    if (!porJogador.has(id)) porJogador.set(id, new Map());
+    const registros = porJogador.get(id);
+    const registro = registros.get(titulo) || { atual: 0, niveis: [] };
+    registro.atual = Math.max(registro.atual, valor);
+    const degraus = metas.get(titulo);
+    while (registro.niveis.length < degraus.length && registro.atual >= degraus[registro.niveis.length]) registro.niveis.push(mes);
+    registros.set(titulo, registro);
+  };
+
+  const contagens = new Map();
+  const contagemDe = id => {
+    if (!contagens.has(id)) {
+      contagens.set(id, {
+        partidas: 0, jogos: new Set(), seguidas: 0, vitorias: new Map(), atropelos: 0, ultimo: 0, trave: 0, abertas: 0, campeao: 0, podio: 0,
+      });
+    }
+    return contagens.get(id);
+  };
+
+  const fechadas = estado.partidas
+    .filter(p => p.estado === 'fechada')
+    .sort((a, b) => a.mes.localeCompare(b.mes) || a.abertaEm - b.abertaEm || a.id.localeCompare(b.id));
+  for (const partida of fechadas) {
+    const { mes } = partida;
+    const jogo = jogoDe(partida);
+    const lugares = lugaresDaPartida(partida);
+    const pior = Math.max(...lugares.values());
+    const media = partida.placares.reduce((soma, s) => soma + s.valor, 0) / partida.placares.length;
+    const doPrimeiro = partida.placares.find(s => lugares.get(s.jogador) === 1).valor;
+    if (jogador(partida.abertaPor)) marcar(partida.abertaPor, 'mesa', ++contagemDe(partida.abertaPor).abertas, mes);
+
+    for (const { jogador: id, valor } of partida.placares) {
+      const conta = contagemDe(id);
+      const lugar = lugares.get(id);
+      const venceu = lugar === 1 && pior > 1;
+      marcar(id, 'estreante', ++conta.partidas, mes);
+      marcar(id, 'cadeira', conta.partidas, mes);
+      conta.jogos.add(partida.jogo);
+      marcar(id, 'ecletico', conta.jogos.size, mes);
+      conta.seguidas = venceu ? conta.seguidas + 1 : 0;
+      marcar(id, 'embalado', conta.seguidas, mes);
+      if (venceu) {
+        const vitorias = (conta.vitorias.get(partida.jogo) || 0) + 1;
+        conta.vitorias.set(partida.jogo, vitorias);
+        marcar(id, `mestre:${partida.jogo}`, vitorias, mes);
+      }
+      if (venceu && !jogo.semPlacar) {
+        const folga = jogo.menorVence ? (valor > 0 ? media / valor : Infinity) : valor / media;
+        if (folga >= FOLGA_DO_ATROPELO) marcar(id, 'atropelo', ++conta.atropelos, mes);
+      }
+      if (lugar === pior && pior > 1) marcar(id, 'lanterna', ++conta.ultimo, mes);
+      if (!jogo.semPlacar && lugar === 2 && Math.abs(valor - doPrimeiro) <= 1) marcar(id, 'trave', ++conta.trave, mes);
+    }
+  }
+
+  for (const mes of [...mesesFechados()].reverse()) {
+    for (const linha of rankingDe(mes).linhas) {
+      if (linha.nota <= 0) continue;
+      const conta = contagemDe(linha.id);
+      if (linha.posicao === 1) marcar(linha.id, 'campeao', ++conta.campeao, mes);
+      if (linha.posicao <= 3) marcar(linha.id, 'podio', ++conta.podio, mes);
+    }
+  }
+
+  return { catalogo, porId: new Map(catalogo.map(t => [t.id, t])), porJogador };
+}
+
+function titulosDoGinasio() {
+  if (titulosCalculados.estado !== estado) titulosCalculados = { estado, valor: calcularTitulos() };
+  return titulosCalculados.valor;
+}
+
+function nivelInicial(titulo) {
+  return titulo.metas.length > 1 ? NIVEIS[0] : 'unico';
+}
+
+function situacaoNoTitulo(titulo, registro = { atual: 0, niveis: [] }) {
+  const alcancados = registro.niveis.length;
+  return {
+    titulo,
+    atual: registro.atual,
+    alcancados,
+    nivel: alcancados > 1 ? NIVEIS[alcancados - 1] : nivelInicial(titulo),
+    proxima: titulo.metas[alcancados] ?? null,
+    proximoNivel: NIVEIS[alcancados],
+    desde: registro.niveis[0] || '',
+    subiuEm: registro.niveis[alcancados - 1] || '',
+    chave: `${titulo.id}:${alcancados}`,
+  };
+}
+
+function situacaoDe(id, tituloId) {
+  const { porId, porJogador } = titulosDoGinasio();
+  return situacaoNoTitulo(porId.get(tituloId), porJogador.get(id)?.get(tituloId));
+}
+
+function maisAlto(a, b) {
+  return b.alcancados - a.alcancados || b.subiuEm.localeCompare(a.subiuEm);
+}
+
+function titulosGanhos(id) {
+  return titulosDoGinasio().catalogo
+    .map(t => situacaoDe(id, t.id))
+    .filter(s => s.alcancados)
+    .sort(maisAlto);
+}
+
+function quantosTem({ titulo, alcancados }) {
+  return estado.jogadores.filter(j => situacaoDe(j.id, titulo.id).alcancados >= alcancados).length;
+}
+
+function tituloAutomatico(id) {
+  return titulosGanhos(id)
+    .filter(s => !s.titulo.soPorEscolha)
+    .sort((a, b) => quantosTem(a) - quantosTem(b) || maisAlto(a, b))[0] || null;
+}
+
+function tituloExibido(alguem) {
+  if (!alguem || alguem.titulo === 'nenhum') return null;
+  return titulosGanhos(alguem.id).find(s => s.titulo.id === alguem.titulo) || tituloAutomatico(alguem.id);
+}
+
+function quantidade(numero, [um, varios]) {
+  return `${numero} ${numero === 1 ? um : varios}`;
+}
+
+function textoDoProgresso(situacao) {
+  const { titulo, atual, proxima, proximoNivel, desde } = situacao;
+  if (titulo.textoDoProgresso) return titulo.textoDoProgresso(situacao);
+  if (proxima === null) return titulo.metas.length > 1 ? `Nível máximo: ${quantidade(atual, titulo.unidade)}` : `Desde ${nomeDoMes(desde)}`;
+  return `${Math.min(atual, proxima)} de ${quantidade(proxima, titulo.unidade)} para ${NOME_DO_NIVEL[proximoNivel]}`;
+}
+
+let semMemoriaDeTitulos = false;
+
+function titulosVistos() {
+  try {
+    const guardado = localStorage.getItem(`ginasio.titulos.${estado.eu.id}`);
+    return guardado === null ? null : JSON.parse(guardado);
+  } catch {
+    semMemoriaDeTitulos = true;
+    return [];
+  }
+}
+
+function titulosNovos() {
+  const vistos = titulosVistos() || [];
+  if (semMemoriaDeTitulos) return [];
+  return titulosGanhos(estado.eu.id)
+    .filter(s => !vistos.includes(s.chave))
+    .map(s => {
+      const prefixo = `${s.titulo.id}:`;
+      const antes = Math.max(0, ...vistos.filter(c => c.startsWith(prefixo)).map(c => Number(c.slice(prefixo.length)) || 0));
+      return { ...s, antes: Math.min(antes, s.alcancados - 1) };
+    });
+}
+
+function marcarTitulosVistos(chaves) {
+  const vistos = new Set([...(titulosVistos() || []), ...chaves]);
+  try {
+    localStorage.setItem(`ginasio.titulos.${estado.eu.id}`, JSON.stringify([...vistos]));
+  } catch {
+    semMemoriaDeTitulos = true;
+  }
+}
+
 const formatoData = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
 function dataCurta(momento) {
@@ -324,6 +650,164 @@ function desenhoDaInsignia(indice, vezes, grande = false) {
   return desenho;
 }
 
+function svgEmImagem(largura, altura, pontos) {
+  let retangulos = '';
+  pontos.forEach((linha, y) => {
+    for (let x = 0; x < linha.length;) {
+      const cor = linha[x];
+      let fim = x;
+      while (fim < linha.length && linha[fim] === cor) fim++;
+      if (cor) retangulos += `<rect x="${x}" y="${y}" width="${fim - x}" height="1" fill="${cor}"/>`;
+      x = fim;
+    }
+  });
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largura} ${altura}" shape-rendering="crispEdges">${retangulos}</svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+function imagemDoIcone(nome) {
+  if (imagensDosIcones.has(nome)) return imagensDosIcones.get(nome);
+  const { base, sobre = [] } = DESENHOS_DOS_TITULOS[nome];
+  const lado = LADO_DO_ICONE;
+  const ox = Math.floor((lado - base[0].length) / 2);
+  const oy = Math.floor((lado - base.length) / 2);
+  const grade = Array.from({ length: lado }, () => Array(lado).fill(''));
+  const cheio = (x, y) => Boolean(grade[y]?.[x]) && grade[y][x] !== '_';
+  base.forEach((linha, y) => [...linha].forEach((ponto, x) => { if (ponto !== '.') grade[y + oy][x + ox] = ponto; }));
+  const contorno = [];
+  const sombra = [];
+  for (let y = 0; y < lado; y++) {
+    for (let x = 0; x < lado; x++) {
+      if (!grade[y][x] && (cheio(x - 1, y) || cheio(x + 1, y) || cheio(x, y - 1) || cheio(x, y + 1))) contorno.push([x, y]);
+    }
+  }
+  contorno.forEach(([x, y]) => { grade[y][x] = 'k'; });
+  for (let y = 0; y < lado; y++) {
+    for (let x = 0; x < lado; x++) if (!grade[y][x] && cheio(x - 1, y - 1)) sombra.push([x, y]);
+  }
+  sombra.forEach(([x, y]) => { grade[y][x] = '_'; });
+  sobre.forEach((linha, y) => [...linha].forEach((ponto, x) => { if (ponto !== '.') grade[y + oy][x + ox] = ponto; }));
+  const cores = grade.map(linha => linha.map(p => (p === '_' ? '#0a0a1e59' : CORES_DOS_ICONES[p] || '')));
+  imagensDosIcones.set(nome, svgEmImagem(lado, lado, cores));
+  return imagensDosIcones.get(nome);
+}
+
+function imagemDaPonta(nivel, lado) {
+  const chave = `${nivel}-${lado}`;
+  if (pontasDaFaixa.has(chave)) return pontasDaFaixa.get(chave);
+  const c = CORES_DA_FAIXA[nivel];
+  const tinta = CORES_DOS_ICONES.k;
+  const LARGURA = 12, ALTURA = 16, INICIO = 7, FAIXA = 13;
+  const pontos = Array.from({ length: ALTURA }, (_, y) => Array.from({ length: LARGURA }, (__, x) => {
+    if (y < FAIXA && x >= INICIO) {
+      if (x === INICIO || y === 0 || y === FAIXA - 1) return tinta;
+      if (y === 1) return c.claro;
+      if (y === FAIXA - 2) return c.escuro;
+      if ((y === 2 || y === FAIXA - 3) && x % 2 === 1) return c.escuro;
+      return c.meio;
+    }
+    if (y >= 3 && x < INICIO) {
+      const recorte = Math.max(0, 4 - Math.abs(y - 9));
+      if (x < recorte) return '';
+      if (x === recorte || y === 3 || y === ALTURA - 1) return tinta;
+      if (y === 4) return c.pontaClara;
+      if (y === ALTURA - 2) return c.pontaEscura;
+      return c.ponta;
+    }
+    if (y >= FAIXA && x >= INICIO) {
+      const limite = ALTURA - 1 - y;
+      if (x - INICIO < limite) return c.dobra;
+      if (x - INICIO === limite) return tinta;
+    }
+    return '';
+  }));
+  if (lado === 'direita') pontos.forEach(linha => linha.reverse());
+  pontasDaFaixa.set(chave, svgEmImagem(LARGURA, ALTURA, pontos));
+  return pontasDaFaixa.get(chave);
+}
+
+function figuraDoTitulo(titulo, classe = '') {
+  if (titulo.jogo) return imagemDaCapa(titulo.jogo, `capa-titulo ${classe}`);
+  const figura = criar('img', `icone-titulo ${classe}`);
+  figura.alt = '';
+  figura.src = imagemDoIcone(titulo.desenho);
+  return figura;
+}
+
+function quadroDoTitulo(situacao, grande = false) {
+  const { titulo, nivel, alcancados } = situacao;
+  const quadro = criar('span', `quadro-titulo nivel-${nivel}${alcancados ? '' : ' apagado'}${grande ? ' grande' : ''}`);
+  quadro.append(figuraDoTitulo(titulo));
+  if (titulo.jogo) {
+    const coroa = criar('img', 'coroa-mestre');
+    coroa.alt = '';
+    coroa.src = imagemDoIcone('coroa');
+    quadro.append(coroa);
+  }
+  return quadro;
+}
+
+function faixaDoTitulo({ titulo, nivel }, comFigura = true) {
+  const faixa = criar('span', `faixa nivel-${nivel}`);
+  if (comFigura) faixa.append(figuraDoTitulo(titulo, 'faixa-figura'));
+  for (const [classe, lado] of [['faixa-ponta', 'esquerda'], ['faixa-meio', ''], ['faixa-ponta', 'direita']]) {
+    if (lado) {
+      const ponta = criar('img', classe);
+      ponta.alt = '';
+      ponta.src = imagemDaPonta(nivel, lado);
+      faixa.append(ponta);
+    } else {
+      faixa.append(criar('span', classe, titulo.nome));
+    }
+  }
+  return faixa;
+}
+
+function linhaDoTitulo({ titulo, nivel }) {
+  const linha = criar('span', `titulo-linha nivel-${nivel}`);
+  linha.append(figuraDoTitulo(titulo), criar('span', 'titulo-linha-nome', titulo.nome));
+  return linha;
+}
+
+function etiquetaDoNivel(nivel, apagada = false) {
+  return criar('span', `etiqueta-nivel nivel-${nivel}${apagada ? ' apagada' : ''}`, NOME_DO_NIVEL[nivel]);
+}
+
+function degrausDoTitulo({ titulo, alcancados }) {
+  const degraus = criar('span', 'degraus');
+  degraus.setAttribute('aria-label', `${alcancados} de ${titulo.metas.length} níveis`);
+  degraus.append(...titulo.metas.map((_, i) => criar('span', `degrau nivel-${NIVEIS[i]}${i < alcancados ? ' alcancado' : ''}`)));
+  return degraus;
+}
+
+function barraDoProgresso(situacao) {
+  const { atual, proxima } = situacao;
+  const progresso = criar('span', 'progresso');
+  if (proxima !== null) {
+    const barra = criar('span', 'barra');
+    const cheio = criar('span');
+    cheio.style.width = `${Math.min(1, atual / proxima) * 100}%`;
+    barra.append(cheio);
+    progresso.append(barra);
+  }
+  progresso.append(criar('span', 'detalhe', textoDoProgresso(situacao)));
+  return progresso;
+}
+
+function cartaoDoTitulo(situacao, { emUso = false, destino = situacao.titulo.id } = {}) {
+  const { titulo, nivel, alcancados } = situacao;
+  const cartao = criar('button', `cartao-titulo nivel-${nivel}${alcancados ? '' : ' falta'}`);
+  cartao.type = 'button';
+  const etiquetas = criar('span', 'etiquetas');
+  if (titulo.metas.length > 1) etiquetas.append(etiquetaDoNivel(nivel, !alcancados), degrausDoTitulo(situacao));
+  if (emUso) etiquetas.append(criar('span', 'etiqueta-escura', 'Em uso'));
+  const texto = criar('span', 'cartao-texto');
+  texto.append(etiquetas, criar('span', 'cartao-nome', titulo.nome), criar('span', 'cartao-regra', titulo.medida), barraDoProgresso(situacao));
+  cartao.append(quadroDoTitulo(situacao), texto);
+  cartao.addEventListener('click', () => (destino ? irPara('titulo', destino) : irPara('titulos')));
+  return cartao;
+}
+
 function limparApelido(texto) {
   return texto.toUpperCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 8);
 }
@@ -394,7 +878,12 @@ const ACOES = {
       if (estado.jogadores.some(j => j.id !== eu.id && j.apelido === nome)) throw recusa('Esse apelido já é de outro jogador.');
     }
     const novaFoto = foto === undefined ? eu.foto || fotoDoGoogle() : fotoValida(foto);
-    return setDoc(doc(banco, 'jogadores', eu.id), { apelido: nome, foto: novaFoto });
+    return setDoc(doc(banco, 'jogadores', eu.id), { apelido: nome, foto: novaFoto }, { merge: true });
+  },
+
+  definirTitulo({ titulo }) {
+    if (titulo && titulo !== 'nenhum' && !titulosGanhos(estado.eu.id).some(s => s.titulo.id === titulo)) throw recusa('Você ainda não ganhou esse título.');
+    return updateDoc(doc(banco, 'jogadores', estado.eu.id), { titulo });
   },
 
   cadastrarJogo({ id, nome, menorVence, semPlacar, capa }) {
@@ -550,8 +1039,10 @@ async function pedirEntrada(usuario, email) {
 function escutarDados() {
   pararDados();
   const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', ...(conta.admin ? ['acessos', 'pedidos'] : [])];
-  escutasDosDados = nomes.map(nome => onSnapshot(collection(banco, nome), retrato => {
+  // Nas partidas, escutar a confirmação do servidor: título só é anunciado depois que o placar gravou.
+  escutasDosDados = nomes.map(nome => onSnapshot(collection(banco, nome), { includeMetadataChanges: nome === 'partidas' }, retrato => {
     lidos[nome] = retrato.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+    if (nome === 'partidas') lidos.partidasGravando = retrato.metadata.hasPendingWrites;
     if (!nomes.every(n => lidos[n])) return;
     receberEstado(montarEstado());
     completarFoto();
@@ -573,12 +1064,13 @@ function comoPartida(p) {
 
 function montarEstado() {
   const meu = lidos.jogadores.find(j => j.id === conta.id);
-  const jogadores = lidos.jogadores.filter(j => j.apelido).map(({ id, apelido, foto }) => ({ id, apelido, foto }));
+  const jogadores = lidos.jogadores.filter(j => j.apelido).map(({ id, apelido, foto, titulo }) => ({ id, apelido, foto, titulo: titulo || '' }));
   const apelidoDe = id => jogadores.find(j => j.id === id)?.apelido || '';
   const comEmail = new Set((lidos.acessos || []).map(a => a.jogador));
   return {
     mesAtual: mesDeHoje(),
-    eu: { id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', admin: conta.admin },
+    gravando: Boolean(lidos.partidasGravando),
+    eu: { id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', titulo: meu?.titulo || '', admin: conta.admin },
     jogadores,
     jogos: lidos.jogos.map(({ id, nome, menorVence, semPlacar, capa }) => ({ id, nome, menorVence, semPlacar, capa: capa || '' })),
     partidas: lidos.partidas.map(comoPartida).sort((a, b) => a.abertaEm - b.abertaEm),
@@ -598,7 +1090,7 @@ function completarFoto() {
   const { eu } = estado || {};
   if (fotoCompletada || !eu?.apelido || eu.foto || !fotoDoGoogle()) return;
   fotoCompletada = true;
-  setDoc(doc(banco, 'jogadores', eu.id), { apelido: eu.apelido, foto: fotoDoGoogle() }).catch(() => {});
+  setDoc(doc(banco, 'jogadores', eu.id), { apelido: eu.apelido, foto: fotoDoGoogle() }, { merge: true }).catch(() => {});
 }
 
 function digitando() {
@@ -710,6 +1202,7 @@ function mostrarCelebracao(mes, campeoes) {
   const overlay = document.getElementById('celebracao');
   const botao = document.getElementById('celebracao-fechar');
 
+  overlay.hidden = false;
   renderizar();
   document.getElementById('celebracao-titulo').textContent = `${varios ? 'Campeões' : 'Campeão'} de ${MESES[indice]}`;
   desenharPodio(document.getElementById('celebracao-podio'), rankingDe(mes).linhas);
@@ -751,6 +1244,8 @@ function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
   item.querySelector('.posicao').textContent = `${posicao}º`;
   mostrarFoto(item.querySelector('.foto'), alguem);
   item.querySelector('.apelido').textContent = alguem.apelido;
+  const titulo = tituloExibido(alguem);
+  if (titulo) item.querySelector('.nota').after(linhaDoTitulo(titulo));
   item.querySelector('.nota').replaceChildren(principal);
   item.querySelector('.partidas').textContent = secundario;
   if (nota === null) {
@@ -832,6 +1327,137 @@ function mostrarInicio() {
       `${l.podios} ${l.podios === 1 ? 'vez' : 'vezes'} entre os 3 primeiros`,
     ))
     : [criar('li', 'detalhe', `Nenhum mês fechou ainda. O primeiro entra aqui em 1º de ${proximo}.`)]));
+}
+
+const POUCO_MOVIMENTO = matchMedia('(prefers-reduced-motion: reduce)');
+// Um toque que já vinha a caminho antes do aviso surgir não pode fechá-lo sem a pessoa ter visto.
+const ESPERA_DOS_BOTOES = 1300;
+let relogioDaConquista = null;
+
+function verificarTitulosNovos() {
+  if (!estado?.eu.apelido || estado.gravando) return;
+  if (!document.getElementById('celebracao').hidden || !document.getElementById('conquista').hidden) return;
+  const novos = titulosNovos();
+  if (!novos.length) return;
+  if (titulosVistos() === null && novos.length > 1) mostrarChegadaDosTitulos(novos);
+  else mostrarConquista(novos[0], novos.length);
+}
+
+function imagemDoBrilho() {
+  const linhas = ['...w...', '...w...', '..wyw..', 'wwy3yww', '..wyw..', '...w...', '...w...'];
+  const cor = { w: '#ffffff', y: CORES_DOS_ICONES[2], 3: CORES_DOS_ICONES[3] };
+  if (!imagensDosIcones.has('brilho')) imagensDosIcones.set('brilho', svgEmImagem(7, 7, linhas.map(l => [...l].map(p => cor[p] || ''))));
+  return imagensDosIcones.get('brilho');
+}
+
+function brilhos() {
+  const lugares = [[-74, -44], [70, -52], [-86, 22], [84, 16], [-40, 62], [46, 66]];
+  return lugares.map(([x, y], i) => {
+    const brilho = criar('img', 'brilho-pixel');
+    brilho.alt = '';
+    brilho.src = imagemDoBrilho();
+    brilho.style.cssText = `--x: ${x}px; --y: ${y}px; --atraso: ${180 + i * 140}ms`;
+    return brilho;
+  });
+}
+
+function abrirConquista({ topo, palco, faixa, degraus, texto, fila, botaoVer, aoConcluir }) {
+  const tela = document.getElementById('conquista');
+  document.getElementById('conquista-topo').textContent = topo;
+  document.getElementById('conquista-palco').replaceChildren(...palco);
+  document.getElementById('conquista-faixa').replaceChildren(...(faixa ? [faixa] : []));
+  document.getElementById('conquista-degraus').replaceChildren(...(degraus ? [degraus] : []));
+  document.getElementById('conquista-texto').textContent = texto;
+  document.getElementById('conquista-fila').textContent = fila;
+  const continuar = document.getElementById('conquista-continuar');
+  const ver = document.getElementById('conquista-ver');
+  ver.textContent = botaoVer;
+  const abertaEm = Date.now();
+  const espera = POUCO_MOVIMENTO.matches ? 400 : ESPERA_DOS_BOTOES;
+  const concluir = indoVer => {
+    if (Date.now() - abertaEm < espera) return;
+    tela.hidden = true;
+    aoConcluir(indoVer);
+    verificarTitulosNovos();
+  };
+  continuar.onclick = () => concluir(false);
+  ver.onclick = () => concluir(true);
+  // Forçar o recálculo do layout reinicia as animações quando um aviso vem logo depois do outro.
+  const caixa = tela.firstElementChild;
+  caixa.classList.remove('animando', 'pronta');
+  void caixa.offsetWidth;
+  caixa.classList.add('animando');
+  clearTimeout(relogioDaConquista);
+  relogioDaConquista = setTimeout(() => caixa.classList.add('pronta'), espera);
+  tela.hidden = false;
+  setTimeout(() => tocar('campeao'), POUCO_MOVIMENTO.matches ? 0 : 380);
+}
+
+function mostrarConquista(situacao, total) {
+  const { titulo, nivel, alcancados, antes } = situacao;
+  const sobe = antes > 0;
+  const quadro = quadroDoTitulo(sobe ? { ...situacao, nivel: NIVEIS[antes - 1] } : situacao, true);
+  if (sobe && !POUCO_MOVIMENTO.matches) {
+    setTimeout(() => {
+      quadro.classList.replace(`nivel-${NIVEIS[antes - 1]}`, `nivel-${nivel}`);
+      quadro.classList.add('clarao');
+    }, 520);
+  } else if (sobe) {
+    quadro.classList.replace(`nivel-${NIVEIS[antes - 1]}`, `nivel-${nivel}`);
+  }
+
+  let degraus = null;
+  if (titulo.metas.length > 1) {
+    degraus = degrausDoTitulo(situacao);
+    [...degraus.children].forEach((degrau, i) => {
+      if (i < antes || i >= alcancados) return;
+      degrau.classList.add('acendendo');
+      degrau.style.setProperty('--atraso', `${1050 + (i - antes) * 120}ms`);
+    });
+  }
+
+  const marca = quantidade(titulo.metas[alcancados - 1], titulo.unidade);
+  let texto = titulo.medida;
+  if (sobe) texto = `Agora é ${NOME_DO_NIVEL[nivel]}: ${marca}.`;
+  else if (titulo.metas.length > 1) texto = `Nível ${NOME_DO_NIVEL[nivel]}: ${marca}.`;
+
+  abrirConquista({
+    topo: sobe ? 'Subiu de nível!' : 'Título novo!',
+    palco: [quadro, ...brilhos()],
+    faixa: faixaDoTitulo(situacao, false),
+    degraus,
+    texto,
+    fila: total > 1 ? `Mais ${total - 1} ${total === 2 ? 'novidade esperando' : 'novidades esperando'}` : '',
+    botaoVer: 'Ver título',
+    aoConcluir: indoVer => {
+      marcarTitulosVistos([situacao.chave]);
+      if (indoVer) irPara('titulo', titulo.id);
+    },
+  });
+}
+
+function mostrarChegadaDosTitulos(novos) {
+  const quadros = novos.slice(0, 6).map((s, i) => {
+    const quadro = quadroDoTitulo(s);
+    quadro.style.setProperty('--atraso', `${i * 110}ms`);
+    return quadro;
+  });
+  const grade = criar('div', 'chegada-quadros');
+  grade.append(...quadros);
+  abrirConquista({
+    topo: 'Chegaram os títulos!',
+    palco: [grade],
+    texto: `Você já tem ${quantidade(novos.length, ['título', 'títulos'])}. Eles sobem de nível, de Bronze até Lendário, conforme você joga.`,
+    fila: '',
+    botaoVer: 'Meus títulos',
+    aoConcluir: indoVer => {
+      marcarTitulosVistos(novos.map(s => s.chave));
+      if (indoVer) {
+        rolarParaTitulos = true;
+        irPara('perfil');
+      }
+    },
+  });
 }
 
 function insigniasEmMiniatura(meses, total) {
@@ -1165,9 +1791,183 @@ function mostrarPerfil(id) {
   }));
 
   const proprio = alguem.id === eu.id;
+  const exibido = tituloExibido(alguem);
+  document.getElementById('perfil-titulo').replaceChildren(...(exibido ? [faixaDoTitulo(exibido)] : []));
+  mostrarTitulosDoPerfil(alguem, exibido);
   document.getElementById('trocar-foto').hidden = !proprio;
   if (!proprio) document.getElementById('menu-foto').hidden = true;
-  if (proprio) document.getElementById('campo-novo-apelido').placeholder = alguem.apelido;
+  if (proprio) {
+    document.getElementById('campo-novo-apelido').placeholder = alguem.apelido;
+    mostrarEscolhaDeTitulo();
+  }
+  if (rolarParaTitulos) {
+    rolarParaTitulos = false;
+    document.getElementById('caixa-titulos').scrollIntoView({ block: 'start' });
+  }
+}
+
+function mostrarTitulosDoPerfil(alguem, exibido) {
+  const { catalogo } = titulosDoGinasio();
+  const ganhos = titulosGanhos(alguem.id);
+  const faltam = TITULOS.map(t => situacaoDe(alguem.id, t.id)).filter(s => !s.alcancados);
+  const cartoes = [
+    ...ganhos.map(s => cartaoDoTitulo(s, { emUso: exibido?.titulo.id === s.titulo.id })),
+    ...faltam.map(s => cartaoDoTitulo(s)),
+  ];
+
+  const mestresQueFaltam = catalogo.filter(t => t.jogo).map(t => situacaoDe(alguem.id, t.id)).filter(s => !s.alcancados);
+  if (mestresQueFaltam.length) {
+    const maisPerto = mestresQueFaltam.reduce((melhor, s) => (s.atual > melhor.atual ? s : melhor));
+    const [meta] = METAS_DE_MESTRE;
+    const qualquerMestre = situacaoNoTitulo({
+      nome: 'Mestre de um jogo', jogo: maisPerto.titulo.jogo, metas: METAS_DE_MESTRE, medida: 'Vitórias num mesmo jogo.', unidade: ['vitória', 'vitórias'],
+      textoDoProgresso: () => (maisPerto.atual
+        ? `Mais perto: ${maisPerto.titulo.jogo.nome}, ${maisPerto.atual} de ${meta} vitórias para Bronze`
+        : `0 de ${meta} vitórias num mesmo jogo para Bronze`),
+    }, { atual: maisPerto.atual, niveis: [] });
+    cartoes.splice(ganhos.length, 0, cartaoDoTitulo(qualquerMestre, { destino: maisPerto.atual ? maisPerto.titulo.id : '' }));
+  }
+
+  document.getElementById('perfil-titulos-conta').textContent = quantidade(ganhos.length, ['título', 'títulos']);
+  document.getElementById('perfil-titulos').replaceChildren(...cartoes);
+}
+
+function mostrarEscolhaDeTitulo() {
+  const ganhos = titulosGanhos(estado.eu.id);
+  const lista = document.getElementById('escolha-titulo');
+  document.getElementById('sem-titulo').hidden = ganhos.length > 0;
+  document.getElementById('rodape-titulo').hidden = !ganhos.length;
+  lista.hidden = !ganhos.length;
+  const automatico = criar('span', 'opcao-automatica');
+  automatico.append(criar('span', 'detalhe', 'Automático'));
+  const sugerido = tituloAutomatico(estado.eu.id);
+  if (sugerido) automatico.append(linhaDoTitulo(sugerido));
+  const opcoes = [['', automatico], ...ganhos.map(s => [s.titulo.id, linhaDoTitulo(s)]), ['nenhum', criar('span', 'detalhe', 'Nenhum')]];
+  const marcado = escolhaAtual();
+  lista.replaceChildren(...opcoes.map(([valor, conteudo]) => {
+    const opcao = criar('button', 'opcao-titulo');
+    opcao.type = 'button';
+    opcao.setAttribute('role', 'radio');
+    opcao.setAttribute('aria-checked', valor === marcado);
+    opcao.append(criar('span', 'marcador'), conteudo);
+    opcao.addEventListener('click', () => escolherTitulo(valor));
+    return opcao;
+  }));
+}
+
+function escolhaAtual() {
+  const { titulo, id } = estado.eu;
+  return titulo === 'nenhum' || titulosGanhos(id).some(s => s.titulo.id === titulo) ? titulo : '';
+}
+
+async function escolherTitulo(valor) {
+  if (escolhaAtual() === valor) return;
+  const aviso = document.getElementById('aviso-titulo');
+  document.querySelectorAll('#escolha-titulo button').forEach(b => { b.disabled = true; });
+  aviso.textContent = '';
+  try {
+    await ACOES.definirTitulo({ titulo: valor });
+    aplicarEstadoEmEspera();
+    tocar('confirmar');
+  } catch (erro) {
+    tocar('erro');
+    aviso.textContent = mensagemDeErro(erro);
+  } finally {
+    if (telaVisivel === 'perfil') mostrarEscolhaDeTitulo();
+  }
+}
+
+function donosDoTitulo(id) {
+  return estado.jogadores
+    .map(alguem => [alguem, situacaoDe(alguem.id, id)])
+    .filter(([, s]) => s.alcancados)
+    .sort(([, a], [, b]) => b.alcancados - a.alcancados || a.desde.localeCompare(b.desde));
+}
+
+function mostrarTitulos() {
+  const { catalogo } = titulosDoGinasio();
+  const linha = titulo => {
+    const donos = donosDoTitulo(titulo.id);
+    const botao = criar('button', 'linha-titulo');
+    botao.type = 'button';
+    const texto = criar('span', 'cartao-texto');
+    texto.append(criar('span', 'cartao-nome', titulo.nome));
+    if (!titulo.jogo) texto.append(criar('span', 'cartao-regra', titulo.medida));
+    const rostos = criar('span', 'item-jogadores');
+    rostos.append(...donos.slice(0, MAXIMO_DE_ROSTOS).map(([alguem, s]) => {
+      const rosto = criar('span', `rosto-nivel nivel-${s.nivel}`);
+      rosto.title = NOME_DO_NIVEL[s.nivel];
+      rosto.append(imagemDe(alguem, 'foto'));
+      return rosto;
+    }));
+    if (donos.length > MAXIMO_DE_ROSTOS) rostos.append(criar('span', 'mais', '…'));
+    if (!donos.length) rostos.append(criar('span', 'detalhe', 'Ninguém ainda'));
+    texto.append(rostos);
+    const vitrine = donos[0]?.[1] || { titulo, nivel: nivelInicial(titulo), alcancados: 1 };
+    botao.append(quadroDoTitulo(vitrine), texto);
+    botao.addEventListener('click', () => irPara('titulo', titulo.id));
+    const item = criar('li');
+    item.append(botao);
+    return item;
+  };
+
+  document.getElementById('lista-titulos').replaceChildren(...TITULOS.map(linha));
+  document.getElementById('rodape-mestres').textContent = `Todo jogo cadastrado ganha o seu Mestre, que sobe de nível a cada ${METAS_DE_MESTRE[0]} vitórias nele.`;
+  const mestres = catalogo.filter(t => t.jogo).sort((a, b) => a.jogo.nome.localeCompare(b.jogo.nome, 'pt-BR'));
+  document.getElementById('lista-mestres').replaceChildren(...(mestres.length
+    ? mestres.map(linha)
+    : [criar('li', 'detalhe', 'Nenhum jogo cadastrado ainda.')]));
+}
+
+function mostrarTitulo(id) {
+  const { porId, porJogador } = titulosDoGinasio();
+  const titulo = porId.get(id);
+  if (!titulo) {
+    irPara('titulos');
+    return;
+  }
+  const { eu } = estado;
+  const meu = situacaoDe(eu.id, id);
+  const variosNiveis = titulo.metas.length > 1;
+  const vitrine = meu.alcancados ? meu : { titulo, nivel: nivelInicial(titulo), alcancados: 1 };
+  document.getElementById('titulo-quadro').replaceChildren(quadroDoTitulo(vitrine, true));
+  document.getElementById('titulo-faixa').replaceChildren(faixaDoTitulo(vitrine, false));
+  document.getElementById('titulo-medida').textContent = titulo.medida;
+
+  const situacao = document.getElementById('titulo-meu');
+  if (variosNiveis) {
+    const datas = porJogador.get(eu.id)?.get(id)?.niveis || [];
+    const escada = criar('ol', 'escada-niveis');
+    escada.append(...titulo.metas.map((meta, i) => {
+      const degrau = criar('li', i < meu.alcancados ? 'alcancado' : '');
+      let nota = '';
+      if (i < meu.alcancados) nota = `desde ${nomeDoMes(datas[i])}`;
+      else if (i === meu.alcancados) nota = `faltam ${meta - meu.atual}`;
+      degrau.append(etiquetaDoNivel(NIVEIS[i], i >= meu.alcancados), criar('span', '', quantidade(meta, titulo.unidade)), criar('span', 'detalhe', nota));
+      return degrau;
+    }));
+    situacao.replaceChildren(criar('p', 'rotulo', meu.alcancados ? `Você está no nível ${NOME_DO_NIVEL[meu.nivel]}` : 'Você ainda não tem'), escada);
+  } else if (meu.alcancados) {
+    situacao.replaceChildren(criar('p', '', `Você tem desde ${nomeDoMes(meu.desde)}.`));
+  } else {
+    situacao.replaceChildren(criar('p', 'rotulo', 'Seu progresso'), barraDoProgresso(meu));
+  }
+  if (meu.alcancados && tituloExibido(eu)?.titulo.id === id) situacao.append(criar('p', 'detalhe', 'Está embaixo do seu nome.'));
+
+  const donos = donosDoTitulo(id);
+  document.getElementById('titulo-donos').replaceChildren(...(donos.length
+    ? donos.map(([alguem, s]) => {
+      const item = criar('li');
+      const botao = criar('button', 'botao-limpo dono-titulo');
+      botao.type = 'button';
+      botao.append(imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido));
+      if (variosNiveis) botao.append(etiquetaDoNivel(s.nivel));
+      botao.append(criar('span', 'detalhe', `desde ${nomeDoMes(s.desde)}`));
+      botao.addEventListener('click', () => irPara('perfil', alguem.id));
+      item.append(botao);
+      return item;
+    })
+    : [criar('li', 'detalhe', 'Ninguém ganhou ainda.')]));
 }
 
 async function fotoReduzida(arquivo, { inteira = false } = {}) {
@@ -1561,6 +2361,8 @@ const TELAS = {
   perfil: mostrarPerfil,
   insignias: mostrarInsignias,
   insignia: mostrarInsignia,
+  titulos: mostrarTitulos,
+  titulo: mostrarTitulo,
   campeoes: mostrarCampeoes,
   regras: mostrarRegras,
   administracao: mostrarAdministracao,
@@ -1577,6 +2379,7 @@ function renderizar() {
   const { tela, parametro } = rotaAtual();
   mostrarTela(tela);
   TELAS[tela](parametro);
+  verificarTitulosNovos();
 }
 
 function irPara(tela, parametro) {
@@ -1630,7 +2433,8 @@ function ligarMenu() {
 
   const alternar = aberto => {
     if (aberto) tocar('mover');
-    const atual = menu.querySelector(`[data-item="${telaVisivel === 'insignia' ? 'insignias' : telaVisivel}"]`);
+    const secao = { insignia: 'insignias', titulo: 'titulos' }[telaVisivel] || telaVisivel;
+    const atual = menu.querySelector(`[data-item="${secao}"]`);
     if (aberto) expandirGrupo(menu.querySelector(`[aria-controls="${atual?.parentElement.id}"]`));
     menu.hidden = !aberto;
     botao.setAttribute('aria-expanded', aberto);

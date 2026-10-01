@@ -54,6 +54,11 @@ service cloud.firestore {
       return apelido is string && apelido.matches('[\\p{L}\\p{N}]{1,8}') && apelido == apelido.upper();
     }
 
+    // O site só mostra o título se o jogador de fato o ganhou; aqui só se confere o formato.
+    function tituloValido(titulo) {
+      return titulo is string && (titulo == '' || titulo.matches('[a-z]{3,12}(:[A-Za-z0-9]{1,40})?'));
+    }
+
     match /acessos/{conta} {
       allow read: if logado() && (conta == email() || admin());
       allow create, update: if admin()
@@ -77,9 +82,10 @@ service cloud.firestore {
     match /jogadores/{id} {
       allow read: if membro();
       allow create, update: if membro() && (id == meuId() || admin())
-        && request.resource.data.keys().hasOnly(['apelido', 'foto'])
+        && request.resource.data.keys().hasOnly(['apelido', 'foto', 'titulo'])
         && apelidoValido(request.resource.data.apelido)
-        && fotoValida(request.resource.data.foto);
+        && fotoValida(request.resource.data.foto)
+        && tituloValido(request.resource.data.get('titulo', ''));
       allow delete: if admin();
     }
 
