@@ -1280,7 +1280,7 @@ function rankingGeral() {
 function mostrarInicio() {
   const { mesAtual, eu, premios, partidas } = estado;
   const indice = indiceDoMes(mesAtual);
-  document.getElementById('premio-texto').textContent = premios[mesAtual] || 'O administrador ainda não definiu.';
+  document.getElementById('premio-texto').textContent = premios[mesAtual] || 'Prêmio ainda não definido.';
   document.getElementById('premio-insignia').textContent = INSIGNIAS[indice].nome;
   document.getElementById('premio-fecha').textContent = textoFechamento(mesAtual);
   document.getElementById('premio-insignia-imagem').replaceChildren(desenhoDaInsignia(indice, 1, true));
