@@ -55,6 +55,8 @@ body {
   text-transform: uppercase;
   text-shadow: 2px 2px 0 var(--tinta);
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .botao-menu {
