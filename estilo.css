@@ -391,6 +391,10 @@ select.campo {
 
 .perfil .perfil-dados { grid-template-columns: minmax(0, 1fr); justify-items: center; width: 100%; }
 .perfil .menu-foto { justify-self: stretch; text-align: left; }
+.foto-do-perfil { position: relative; display: grid; place-items: center; }
+.foto-do-perfil.com-moldura { width: 128px; height: 128px; }
+.foto-do-perfil.com-moldura .foto-grande { width: 112px; height: 112px; clip-path: none; }
+.moldura-foto { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
 .perfil-titulo { max-width: 100%; }
 .perfil-titulo:empty { display: none; }
 
@@ -830,6 +834,8 @@ select.campo {
 .opcao-titulo[aria-checked="true"] { border-color: var(--tinta); background: var(--caixa-marcada); }
 .opcao-automatica { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
 .opcao-titulo:disabled { cursor: default; }
+#usar-moldura { width: 100%; margin-top: 6px; }
+#usar-moldura:disabled { opacity: 0.5; }
 .marcador { width: 14px; height: 14px; box-shadow: inset 0 0 0 2px var(--tinta); }
 .opcao-titulo[aria-checked="true"] .marcador { background: var(--tinta); box-shadow: inset 0 0 0 2px var(--tinta), inset 0 0 0 4px var(--caixa-marcada); }
 

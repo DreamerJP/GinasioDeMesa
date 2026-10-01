@@ -86,10 +86,11 @@ service cloud.firestore {
     match /jogadores/{id} {
       allow read: if membro();
       allow create, update: if membro() && (id == meuId() || admin())
-        && request.resource.data.keys().hasOnly(['apelido', 'foto', 'titulo', 'vistos'])
+        && request.resource.data.keys().hasOnly(['apelido', 'foto', 'titulo', 'vistos', 'moldura'])
         && apelidoValido(request.resource.data.apelido)
         && fotoValida(request.resource.data.foto)
         && tituloValido(request.resource.data.get('titulo', ''))
+        && request.resource.data.get('moldura', true) is bool
         && vistosValidos(request.resource.data.get('vistos', []));
       allow delete: if admin();
     }

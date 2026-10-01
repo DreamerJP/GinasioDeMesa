@@ -830,6 +830,10 @@ const ACOES = {
     return updateDoc(doc(banco, 'jogadores', estado.eu.id), { titulo });
   },
 
+  definirMoldura({ moldura }) {
+    return updateDoc(doc(banco, 'jogadores', estado.eu.id), { moldura: Boolean(moldura) });
+  },
+
   cadastrarJogo({ id, nome, menorVence, semPlacar, capa }) {
     const titulo = textoLivre(nome, 2, 40, 'O nome do jogo');
     if (estado.jogos.some(j => j.nome.toLowerCase() === titulo.toLowerCase())) throw recusa('Esse jogo já está cadastrado.');
@@ -1009,14 +1013,14 @@ function comoPartida(p) {
 
 function montarEstado() {
   const meu = lidos.jogadores.find(j => j.id === conta.id);
-  const jogadores = lidos.jogadores.filter(j => j.apelido).map(({ id, apelido, foto, titulo }) => ({ id, apelido, foto, titulo: titulo || '' }));
+  const jogadores = lidos.jogadores.filter(j => j.apelido).map(({ id, apelido, foto, titulo, moldura }) => ({ id, apelido, foto, titulo: titulo || '', moldura: moldura !== false }));
   const apelidoDe = id => jogadores.find(j => j.id === id)?.apelido || '';
   const comEmail = new Set((lidos.acessos || []).map(a => a.jogador));
   return {
     mesAtual: mesDeHoje(),
     gravando: Boolean(lidos.partidasGravando),
     eu: {
-      id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', titulo: meu?.titulo || '', admin: conta.admin,
+      id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', titulo: meu?.titulo || '', moldura: meu?.moldura !== false, admin: conta.admin,
       vistos: Array.isArray(meu?.vistos) ? meu.vistos : [],
     },
     jogadores,
@@ -1714,6 +1718,11 @@ function mostrarPerfil(id) {
   const proprio = alguem.id === eu.id;
   const exibido = tituloExibido(alguem);
   document.getElementById('perfil-titulo').replaceChildren(...(exibido ? [faixaDoTitulo(exibido)] : []));
+  const comMoldura = Boolean(exibido) && alguem.moldura;
+  const moldura = document.getElementById('perfil-moldura');
+  document.getElementById('perfil-quadro').classList.toggle('com-moldura', comMoldura);
+  moldura.hidden = !comMoldura;
+  if (comMoldura) moldura.src = `midia/moldura-${exibido.nivel}.png`;
   mostrarTitulosDoPerfil(alguem, exibido);
   document.getElementById('trocar-foto').hidden = !proprio;
   if (!proprio) document.getElementById('menu-foto').hidden = true;
@@ -1761,6 +1770,10 @@ function mostrarEscolhaDeTitulo() {
   if (sugerido) automatico.append(linhaDoTitulo(sugerido));
   const opcoes = [['', automatico], ...ganhos.map(s => [s.titulo.id, linhaDoTitulo(s)]), ['nenhum', criar('span', 'detalhe', 'Nenhum')]];
   const marcado = escolhaAtual();
+  const usarMoldura = document.getElementById('usar-moldura');
+  document.getElementById('grupo-moldura').hidden = !ganhos.length;
+  usarMoldura.disabled = marcado === 'nenhum';
+  usarMoldura.setAttribute('aria-checked', estado.eu.moldura);
   lista.replaceChildren(...opcoes.map(([valor, conteudo]) => {
     const opcao = criar('button', 'opcao-titulo');
     opcao.type = 'button';
@@ -1784,6 +1797,23 @@ async function escolherTitulo(valor) {
   aviso.textContent = '';
   try {
     await ACOES.definirTitulo({ titulo: valor });
+    aplicarEstadoEmEspera();
+    tocar('confirmar');
+  } catch (erro) {
+    tocar('erro');
+    aviso.textContent = mensagemDeErro(erro);
+  } finally {
+    if (telaVisivel === 'perfil') mostrarEscolhaDeTitulo();
+  }
+}
+
+async function alternarMoldura() {
+  const botao = document.getElementById('usar-moldura');
+  const aviso = document.getElementById('aviso-moldura');
+  botao.disabled = true;
+  aviso.textContent = '';
+  try {
+    await ACOES.definirMoldura({ moldura: !estado.eu.moldura });
     aplicarEstadoEmEspera();
     tocar('confirmar');
   } catch (erro) {
@@ -1920,6 +1950,7 @@ function ligarPerfil() {
   const campo = document.getElementById('campo-novo-apelido');
   const salvar = formulario.querySelector('button');
   const aviso = document.getElementById('aviso-perfil');
+  document.getElementById('usar-moldura').addEventListener('click', alternarMoldura);
 
   campo.addEventListener('input', () => {
     campo.value = limparApelido(campo.value);
