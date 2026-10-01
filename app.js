@@ -1762,16 +1762,13 @@ function mostrarEscolhaDeTitulo() {
   const ganhos = titulosGanhos(estado.eu.id);
   const lista = document.getElementById('escolha-titulo');
   document.getElementById('sem-titulo').hidden = ganhos.length > 0;
-  document.getElementById('rodape-titulo').hidden = !ganhos.length;
   lista.hidden = !ganhos.length;
   const automatico = criar('span', 'opcao-automatica');
-  automatico.append(criar('span', 'detalhe', 'Automático'));
-  const sugerido = tituloAutomatico(estado.eu.id);
-  if (sugerido) automatico.append(linhaDoTitulo(sugerido));
-  const opcoes = [['', automatico], ...ganhos.map(s => [s.titulo.id, linhaDoTitulo(s)]), ['nenhum', criar('span', 'detalhe', 'Nenhum')]];
+  automatico.append(criar('span', '', 'Automático'), criar('span', 'detalhe', 'o seu título mais raro'));
+  const opcoes = [['', automatico], ...ganhos.map(s => [s.titulo.id, linhaDoTitulo(s)]), ['nenhum', criar('span', '', 'Nenhum')]];
   const marcado = escolhaAtual();
   const usarMoldura = document.getElementById('usar-moldura');
-  document.getElementById('grupo-moldura').hidden = !ganhos.length;
+  usarMoldura.hidden = !ganhos.length;
   usarMoldura.disabled = marcado === 'nenhum';
   usarMoldura.setAttribute('aria-checked', estado.eu.moldura);
   lista.replaceChildren(...opcoes.map(([valor, conteudo]) => {
@@ -2017,7 +2014,7 @@ function ligarPerfil() {
     } catch (erro) {
       avisoFoto.textContent = erro.message;
     } finally {
-      rotulo.textContent = 'Escolher do celular';
+      rotulo.textContent = 'Do celular';
     }
   });
 }

@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=39">
-<script type="module" src="app.js?v=39" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=40">
+<script type="module" src="app.js?v=40" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -207,7 +207,24 @@
         <button class="botao-menu" id="trocar-foto" type="button" aria-expanded="false" aria-controls="menu-foto" hidden>Editar perfil</button>
       </div>
       <div class="menu-foto" id="menu-foto" hidden>
-        <form class="formulario" id="form-novo-apelido">
+        <div class="grupo-edicao">
+          <p class="rotulo">Foto</p>
+          <div class="opcoes-foto">
+            <label class="botao-leve" for="foto-arquivo">Do celular</label>
+            <input type="file" id="foto-arquivo" accept="image/*" hidden>
+            <button class="botao-leve" id="foto-google" type="button">Do Google</button>
+            <button class="botao-leve" id="abrir-foto-link" type="button">Por link</button>
+          </div>
+          <form class="linha-campo" id="form-foto-link" hidden>
+            <input class="campo campo-texto" id="campo-foto-link" type="url" inputmode="url" autocomplete="off" placeholder="https://…" aria-label="Link da imagem">
+            <button class="botao" disabled>Usar</button>
+          </form>
+          <p class="detalhe" id="dica-foto-link" hidden>O link precisa abrir direto a imagem.</p>
+          <p class="aviso" id="aviso-foto" role="alert"></p>
+          <button class="interruptor" id="usar-moldura" type="button" role="switch" aria-checked="true">Moldura do título<span class="trilho-interruptor"></span></button>
+          <p class="aviso" id="aviso-moldura" role="alert"></p>
+        </div>
+        <form class="grupo-edicao" id="form-novo-apelido">
           <label class="rotulo" for="campo-novo-apelido">Apelido</label>
           <div class="linha-campo">
             <input class="campo" id="campo-novo-apelido" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false">
@@ -215,26 +232,11 @@
           </div>
           <p class="aviso" id="aviso-perfil" role="alert"></p>
         </form>
-        <p class="rotulo rotulo-foto">Foto</p>
-        <label class="botao-menu item-foto" for="foto-arquivo">Escolher do celular</label>
-        <input type="file" id="foto-arquivo" accept="image/*" hidden>
-        <button class="botao-menu item-foto" id="foto-google" type="button">Usar a foto do Google</button>
-        <button class="botao-menu item-foto" id="abrir-foto-link" type="button">Colar link de imagem</button>
-        <form class="linha-campo" id="form-foto-link" hidden>
-          <input class="campo campo-texto" id="campo-foto-link" type="url" inputmode="url" autocomplete="off" placeholder="https://…" aria-label="Link da imagem">
-          <button class="botao" disabled>Usar</button>
-        </form>
-        <p class="detalhe" id="dica-foto-link" hidden>O link precisa abrir direto a imagem.</p>
-        <p class="aviso" id="aviso-foto" role="alert"></p>
-        <p class="rotulo rotulo-foto">Título embaixo do nome</p>
-        <div class="escolha-titulo" id="escolha-titulo" role="radiogroup" aria-label="Título embaixo do nome"></div>
-        <p class="detalhe" id="sem-titulo" hidden>Você ainda não tem título. O primeiro vem com a primeira partida fechada.</p>
-        <p class="aviso" id="aviso-titulo" role="alert"></p>
-        <p class="detalhe" id="rodape-titulo">Automático mostra o seu título que menos gente do grupo tem.</p>
-        <div class="grupo-moldura" id="grupo-moldura">
-          <p class="rotulo rotulo-foto">Moldura na foto</p>
-          <button class="opcao-titulo" id="usar-moldura" type="button" role="switch" aria-checked="true"><span class="marcador"></span><span class="detalhe">Usar a moldura do título</span></button>
-          <p class="aviso" id="aviso-moldura" role="alert"></p>
+        <div class="grupo-edicao">
+          <p class="rotulo">Título embaixo do nome</p>
+          <div class="escolha-titulo" id="escolha-titulo" role="radiogroup" aria-label="Título embaixo do nome"></div>
+          <p class="detalhe" id="sem-titulo" hidden>Você ainda não tem título. O primeiro vem com a primeira partida fechada.</p>
+          <p class="aviso" id="aviso-titulo" role="alert"></p>
         </div>
       </div>
     </section>
