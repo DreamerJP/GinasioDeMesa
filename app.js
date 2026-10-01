@@ -63,7 +63,7 @@ const TITULOS = [
   },
   { id: 'trave', nome: 'Na Trave', desenho: 'trave', metas: [1, 3, 6, 10, 20], medida: 'Vezes em 2º a 1 ponto do vencedor.', unidade: ['vez', 'vezes'] },
   { id: 'cadeira', nome: 'Cadeira Cativa', desenho: 'cadeira', metas: [10, 30, 60, 100, 200], medida: 'Partidas jogadas.', unidade: ['partida', 'partidas'] },
-  { id: 'mesa', nome: 'Dono da Mesa', desenho: 'mesa', metas: [5, 15, 30, 50, 100], medida: 'Partidas que abriu e fecharam.', unidade: ['partida aberta', 'partidas abertas'] },
+  { id: 'mesa', nome: 'Dono da Mesa', desenho: 'mesa', metas: [5, 15, 30, 50, 100], medida: 'Partidas que abriu.', unidade: ['partida aberta', 'partidas abertas'] },
   { id: 'ecletico', nome: 'Eclético', desenho: 'ecletico', metas: [3, 5, 8, 12, 20], medida: 'Jogos diferentes jogados.', unidade: ['jogo', 'jogos'] },
   { id: 'lanterna', nome: 'Lanterninha', desenho: 'lanterna', metas: [5, 10, 20, 35, 50], medida: 'Vezes em último.', unidade: ['vez', 'vezes'], soPorEscolha: true },
   { id: 'estreante', nome: 'Estreante', desenho: 'estreante', metas: [1], medida: 'Jogou a primeira partida.', unidade: ['partida', 'partidas'] },
@@ -2036,25 +2036,11 @@ function ligarPerfil() {
 
 function mostrarInsignias() {
   const emDisputa = indiceDoMes(estado.mesAtual);
-  const ultimoDono = Array(12).fill(null);
-  const ultimoMes = Array(12).fill('');
-  for (const [id, meses] of conquistas()) {
-    for (const mes of meses) {
-      const i = indiceDoMes(mes);
-      if (mes > ultimoMes[i]) {
-        ultimoMes[i] = mes;
-        ultimoDono[i] = id;
-      }
-    }
-  }
-
   document.getElementById('grade-insignias').replaceChildren(...INSIGNIAS.map((insignia, i) => {
     const botao = criar('button', `botao-insignia${i === emDisputa ? ' em-disputa' : ''}`);
     botao.type = 'button';
     botao.setAttribute('aria-label', `${insignia.nome}, ${MESES[i]}`);
-    const desenho = desenhoDaInsignia(i, 1);
-    if (ultimoDono[i]) desenho.append(imagemDe(jogador(ultimoDono[i]), 'foto dono-insignia'));
-    botao.append(desenho, criar('span', '', insignia.nome.replace(/^Insígnia d[oa]s? /, '')), criar('span', 'detalhe', MESES[i]));
+    botao.append(desenhoDaInsignia(i, 1),criar('span', '', insignia.nome.replace(/^Insígnia d[oa]s? /, '')), criar('span', 'detalhe', MESES[i]));
     botao.addEventListener('click', () => irPara('insignia', i + 1));
     return botao;
   }));
