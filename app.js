@@ -2070,7 +2070,7 @@ function mostrarInsignia(numero) {
       item.append(imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido), criar('span', 'detalhe', anos.join(', ')));
       return item;
     })
-    : [criar('li', 'detalhe', `Ninguém ganhou ainda. Fica com ela quem fechar ${MESES[indice]} no topo.`)]));
+    : [criar('li', 'detalhe', `Ninguém ganhou ainda. Vença ${MESES[indice]} para obtê-la.`)]));
 }
 
 function mostrarCampeoes() {
