@@ -1872,7 +1872,6 @@ function mostrarTitulos() {
   };
 
   document.getElementById('lista-titulos').replaceChildren(...TITULOS.map(linha));
-  document.getElementById('rodape-mestres').textContent = `Todo jogo cadastrado ganha o seu Mestre, que sobe de nível a cada ${METAS_DE_MESTRE[0]} vitórias nele.`;
   const mestres = catalogo.filter(t => t.jogo).sort((a, b) => a.jogo.nome.localeCompare(b.jogo.nome, 'pt-BR'));
   document.getElementById('lista-mestres').replaceChildren(...(mestres.length
     ? mestres.map(linha)
