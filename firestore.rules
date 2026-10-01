@@ -59,6 +59,10 @@ service cloud.firestore {
       return titulo is string && (titulo == '' || titulo.matches('[a-z]{3,12}(:[A-Za-z0-9]{1,40})?'));
     }
 
+    function vistosValidos(vistos) {
+      return vistos is list && vistos.size() <= 500;
+    }
+
     match /acessos/{conta} {
       allow read: if logado() && (conta == email() || admin());
       allow create, update: if admin()
@@ -82,10 +86,11 @@ service cloud.firestore {
     match /jogadores/{id} {
       allow read: if membro();
       allow create, update: if membro() && (id == meuId() || admin())
-        && request.resource.data.keys().hasOnly(['apelido', 'foto', 'titulo'])
+        && request.resource.data.keys().hasOnly(['apelido', 'foto', 'titulo', 'vistos'])
         && apelidoValido(request.resource.data.apelido)
         && fotoValida(request.resource.data.foto)
-        && tituloValido(request.resource.data.get('titulo', ''));
+        && tituloValido(request.resource.data.get('titulo', ''))
+        && vistosValidos(request.resource.data.get('vistos', []));
       allow delete: if admin();
     }
 

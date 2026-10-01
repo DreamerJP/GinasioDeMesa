@@ -2,7 +2,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/fireba
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import {
   initializeFirestore, memoryLocalCache, terminate, clearIndexedDbPersistence,
-  collection, doc, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp,
+  collection, doc, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, arrayUnion,
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
 const FIREBASE = {
@@ -506,20 +506,36 @@ function textoDoProgresso(situacao) {
   return `${Math.min(atual, proxima)} de ${quantidade(proxima, titulo.unidade)} para ${NOME_DO_NIVEL[proximoNivel]}`;
 }
 
-let semMemoriaDeTitulos = false;
+// A gravação no servidor demora a voltar; sem esta lista o mesmo aviso abriria de novo nesse meio-tempo.
+const vistosNestaSessao = new Set();
+let vistosDoAparelhoLevados = false;
 
-function titulosVistos() {
+function avisosVistos() {
+  return [...new Set([...estado.eu.vistos, ...vistosNestaSessao])];
+}
+
+function marcarComoVisto(chaves) {
+  const novas = chaves.filter(c => !estado.eu.vistos.includes(c));
+  novas.forEach(c => vistosNestaSessao.add(c));
+  if (novas.length) updateDoc(doc(banco, 'jogadores', estado.eu.id), { vistos: arrayUnion(...novas) }).catch(() => {});
+}
+
+function levarVistosDoAparelho() {
+  if (vistosDoAparelhoLevados) return;
+  vistosDoAparelhoLevados = true;
+  const chaves = [];
   try {
-    return JSON.parse(localStorage.getItem(`ginasio.titulos-vistos.${estado.eu.id}`) || '[]');
-  } catch {
-    semMemoriaDeTitulos = true;
-    return [];
-  }
+    chaves.push(...JSON.parse(localStorage.getItem(`ginasio.titulos-vistos.${estado.eu.id}`) || '[]'));
+    for (const chave of Object.keys(localStorage)) {
+      if (chave.startsWith('ginasio.celebracao.')) chaves.push(`celebracao:${chave.slice('ginasio.celebracao.'.length)}`);
+    }
+    Object.keys(localStorage).filter(k => k.startsWith('ginasio.titulos') || k.startsWith('ginasio.celebracao.')).forEach(k => localStorage.removeItem(k));
+  } catch {}
+  marcarComoVisto(chaves.filter(c => typeof c === 'string'));
 }
 
 function titulosNovos() {
-  const vistos = titulosVistos();
-  if (semMemoriaDeTitulos) return [];
+  const vistos = avisosVistos();
   return titulosGanhos(estado.eu.id)
     .filter(s => !vistos.includes(s.chave))
     .map(s => {
@@ -527,15 +543,6 @@ function titulosNovos() {
       const antes = Math.max(0, ...vistos.filter(c => c.startsWith(prefixo)).map(c => Number(c.slice(prefixo.length)) || 0));
       return { ...s, antes: Math.min(antes, s.alcancados - 1) };
     });
-}
-
-function marcarTitulosVistos(chaves) {
-  const vistos = new Set([...titulosVistos(), ...chaves]);
-  try {
-    localStorage.setItem(`ginasio.titulos-vistos.${estado.eu.id}`, JSON.stringify([...vistos]));
-  } catch {
-    semMemoriaDeTitulos = true;
-  }
 }
 
 const formatoData = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
@@ -996,6 +1003,8 @@ function pararEscutas() {
   conta = null;
   estado = null;
   estadoEmEspera = null;
+  vistosNestaSessao.clear();
+  vistosDoAparelhoLevados = false;
 }
 
 function acompanharConta(usuario) {
@@ -1070,7 +1079,10 @@ function montarEstado() {
   return {
     mesAtual: mesDeHoje(),
     gravando: Boolean(lidos.partidasGravando),
-    eu: { id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', titulo: meu?.titulo || '', admin: conta.admin },
+    eu: {
+      id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', titulo: meu?.titulo || '', admin: conta.admin,
+      vistos: Array.isArray(meu?.vistos) ? meu.vistos : [],
+    },
     jogadores,
     jogos: lidos.jogos.map(({ id, nome, menorVence, semPlacar, capa }) => ({ id, nome, menorVence, semPlacar, capa: capa || '' })),
     partidas: lidos.partidas.map(comoPartida).sort((a, b) => a.abertaEm - b.abertaEm),
@@ -1149,6 +1161,7 @@ function aplicarEstado(novo) {
   document.querySelectorAll('[data-mes]').forEach(el => { el.textContent = MESES[indiceDoMes(estado.mesAtual)]; });
   document.querySelector('[data-item="perfil"]').textContent = estado.eu.apelido;
   document.querySelector('[data-item="administracao"]').hidden = !estado.eu.admin;
+  levarVistosDoAparelho();
   if (convidarParaFrase()) return;
   renderizar();
 }
@@ -1161,16 +1174,14 @@ function convidarParaFrase() {
   const campeoes = campeoesDe(ultimo);
   if (!campeoes.length) return false;
 
-  const chave = `ginasio.celebracao.${ultimo}`;
-  let jaViu = false;
-  try { jaViu = localStorage.getItem(chave) === '1'; } catch {}
-  if (jaViu) {
+  const chave = `celebracao:${ultimo}`;
+  if (avisosVistos().includes(chave)) {
     const euVenci = campeoes.some(l => l.id === estado.eu.id);
     const escreveu = estado.frases.some(f => f.mes === ultimo && f.jogador === estado.eu.id);
     if (euVenci && !escreveu) { tocar('campeao'); irPara('campeoes'); return true; }
     return false;
   }
-  try { localStorage.setItem(chave, '1'); } catch {}
+  marcarComoVisto([chave]);
   tocar('campeao');
   mostrarCelebracao(ultimo, campeoes);
   return true;
@@ -1429,7 +1440,7 @@ function mostrarConquista(situacao) {
     detalhe,
     botaoVer: 'Ver título',
     aoConcluir: indoVer => {
-      marcarTitulosVistos([situacao.chave]);
+      marcarComoVisto([situacao.chave]);
       if (indoVer) irPara('titulo', titulo.id);
     },
   });
