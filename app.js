@@ -993,6 +993,7 @@ function escutarDados() {
     lidos[nome] = retrato.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
     if (nome === 'partidas') lidos.partidasGravando = retrato.metadata.hasPendingWrites;
     if (!nomes.every(n => lidos[n])) return;
+    if (conta.visita) conta.id = lidos.jogadores.find(j => j.apelido === conta.visita)?.id || '';
     receberEstado(montarEstado());
     completarFoto();
   }, falhaDeLeitura));
@@ -2422,6 +2423,13 @@ function iniciar() {
   }));
   try { localStorage.removeItem('ginasio.token'); } catch {}
   try { indexedDB.deleteDatabase(`firestore/[DEFAULT]/${FIREBASE.projectId}/main`); } catch {}
+  const visita = new URLSearchParams(location.search).get('visita');
+  if (visita) {
+    mostrarEntrada('Abrindo o ginásio…');
+    conta = { id: '', admin: false, visita: visita.toUpperCase() };
+    escutarDados();
+    return;
+  }
   onAuthStateChanged(auth, acompanharConta);
 }
 
