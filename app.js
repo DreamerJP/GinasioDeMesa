@@ -18,6 +18,7 @@ const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const LIMITE_FOTO = 45000;
 const LADO_FOTO = 320;
 const MAXIMO_DE_ROSTOS = 8;
+const MAXIMO_DE_INSIGNIAS = 6;
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const SONS = {
@@ -1244,7 +1245,7 @@ function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
   mostrarFoto(item.querySelector('.foto'), alguem);
   item.querySelector('.apelido').textContent = alguem.apelido;
   const titulo = tituloExibido(alguem);
-  if (titulo) item.querySelector('.nota').after(linhaDoTitulo(titulo));
+  item.querySelector('.nota').after(titulo ? linhaDoTitulo(titulo) : criar('span', 'titulo-linha'));
   item.querySelector('.nota').replaceChildren(principal);
   item.querySelector('.partidas').textContent = secundario;
   if (nota === null) {
@@ -1338,7 +1339,7 @@ function verificarTitulosNovos() {
   if (!document.getElementById('celebracao').hidden || !document.getElementById('conquista').hidden) return;
   const novos = titulosNovos();
   if (!novos.length) return;
-  mostrarConquista(novos[0], novos.length);
+  mostrarConquista(novos[0]);
 }
 
 function imagemDoBrilho() {
@@ -1359,14 +1360,14 @@ function brilhos() {
   });
 }
 
-function abrirConquista({ topo, palco, faixa, degraus, texto, fila, botaoVer, aoConcluir }) {
+function abrirConquista({ topo, palco, faixa, degraus, texto, detalhe, botaoVer, aoConcluir }) {
   const tela = document.getElementById('conquista');
   document.getElementById('conquista-topo').textContent = topo;
   document.getElementById('conquista-palco').replaceChildren(...palco);
   document.getElementById('conquista-faixa').replaceChildren(...(faixa ? [faixa] : []));
   document.getElementById('conquista-degraus').replaceChildren(...(degraus ? [degraus] : []));
   document.getElementById('conquista-texto').textContent = texto;
-  document.getElementById('conquista-fila').textContent = fila;
+  document.getElementById('conquista-detalhe').textContent = detalhe;
   const continuar = document.getElementById('conquista-continuar');
   const ver = document.getElementById('conquista-ver');
   ver.textContent = botaoVer;
@@ -1391,7 +1392,7 @@ function abrirConquista({ topo, palco, faixa, degraus, texto, fila, botaoVer, ao
   setTimeout(() => tocar('campeao'), POUCO_MOVIMENTO.matches ? 0 : 380);
 }
 
-function mostrarConquista(situacao, total) {
+function mostrarConquista(situacao) {
   const { titulo, nivel, alcancados, antes } = situacao;
   const sobe = antes > 0;
   const quadro = quadroDoTitulo(sobe ? { ...situacao, nivel: NIVEIS[antes - 1] } : situacao, true);
@@ -1415,17 +1416,17 @@ function mostrarConquista(situacao, total) {
   }
 
   const marca = quantidade(titulo.metas[alcancados - 1], titulo.unidade);
-  let texto = titulo.medida;
-  if (sobe) texto = `Agora é ${NOME_DO_NIVEL[nivel]}: ${marca}.`;
-  else if (titulo.metas.length > 1) texto = `Nível ${NOME_DO_NIVEL[nivel]}: ${marca}.`;
+  let detalhe = '';
+  if (sobe) detalhe = `Agora é ${NOME_DO_NIVEL[nivel]}: ${marca}.`;
+  else if (titulo.metas.length > 1) detalhe = `Nível ${NOME_DO_NIVEL[nivel]}: ${marca}.`;
 
   abrirConquista({
     topo: sobe ? 'Subiu de nível!' : 'Título novo!',
     palco: [quadro, ...brilhos()],
     faixa: faixaDoTitulo(situacao, false),
     degraus,
-    texto,
-    fila: total > 1 ? `Mais ${total - 1} ${total === 2 ? 'novidade esperando' : 'novidades esperando'}` : '',
+    texto: titulo.medida,
+    detalhe,
     botaoVer: 'Ver título',
     aoConcluir: indoVer => {
       marcarTitulosVistos([situacao.chave]);
@@ -1438,10 +1439,9 @@ function mostrarConquista(situacao, total) {
 function insigniasEmMiniatura(meses, total) {
   const miniaturas = criar('span', 'insignias-miniatura');
   miniaturas.setAttribute('aria-label', `${total} ${total === 1 ? 'insígnia' : 'insígnias'}`);
-  vezesPorInsignia(meses).forEach((vezes, i) => {
-    if (vezes) miniaturas.append(desenhoDaInsignia(i, vezes));
-  });
-  if (!total) miniaturas.append(criar('span', 'detalhe', 'sem insígnia'));
+  const ganhas = vezesPorInsignia(meses).map((vezes, i) => [i, vezes]).filter(([, vezes]) => vezes);
+  miniaturas.append(...ganhas.slice(0, MAXIMO_DE_INSIGNIAS).map(([i, vezes]) => desenhoDaInsignia(i, vezes)));
+  if (ganhas.length > MAXIMO_DE_INSIGNIAS) miniaturas.append(criar('span', 'insignias-mais', `+${ganhas.length - MAXIMO_DE_INSIGNIAS}`));
   return miniaturas;
 }
 
