@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=45">
-<script type="module" src="app.js?v=46" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=46">
+<script type="module" src="app.js?v=47" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -42,14 +42,14 @@
 
   <main class="conteudo" data-tela="entrada">
     <section class="caixa entrada">
+      <img class="entrada-icone" src="midia/livro.png" alt="">
+      <h2 class="chamada-titulo">Ginásio de Mesa</h2>
       <p id="aviso-entrada">Abrindo o ginásio…</p>
       <button class="botao" id="botao-google" hidden>Entrar com o Google</button>
       <button class="botao" id="tentar-de-novo" onclick="location.reload()" hidden>Tentar de novo</button>
-      <div class="privacidade">
-        <p class="rotulo">Sua conta Google</p>
-        <p class="detalhe">O site só recebe o nome, o e&#8209;mail e a foto da sua conta. Não vê senha, Gmail nem Drive.</p>
-      </div>
+      <p class="detalhe" id="dica-pedido" hidden>Ainda não está no grupo? Entre mesmo assim, e o pedido chega ao administrador.</p>
     </section>
+    <p class="rodape-entrada">O site só recebe o nome, o e&#8209;mail e a foto da sua conta Google. Não vê senha, Gmail nem Drive.</p>
   </main>
 
   <main class="conteudo" data-tela="apelido" hidden>

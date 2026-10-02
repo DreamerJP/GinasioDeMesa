@@ -1027,6 +1027,7 @@ function mostrarEntrada(mensagem, saida = null) {
   document.getElementById('aviso-entrada').textContent = mensagem;
   document.getElementById('botao-google').hidden = saida !== 'google';
   document.getElementById('tentar-de-novo').hidden = saida !== 'tentar';
+  document.getElementById('dica-pedido').hidden = saida !== 'google' || mensagem === AGUARDANDO;
   mostrarTela('entrada');
 }
 

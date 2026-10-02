@@ -216,16 +216,12 @@ select.campo {
 .opcao { display: flex; align-items: center; gap: 8px; font-size: 15px; }
 .opcao input { width: 18px; height: 18px; margin: 0; accent-color: var(--tinta); }
 
-.entrada { display: grid; gap: 14px; justify-items: start; }
+.tela:has(> [data-tela="entrada"]:not([hidden])) > .topo { display: none; }
+.entrada { display: grid; gap: 14px; justify-items: center; padding-block: 24px; text-align: center; }
+.entrada .botao { justify-self: center; }
+.entrada-icone { width: 120px; height: 120px; }
 #botao-google { min-height: 44px; }
-
-.privacidade {
-  display: grid;
-  gap: 4px;
-  width: 100%;
-  padding-top: 12px;
-  border-top: 2px solid var(--caixa-funda);
-}
+.rodape-entrada { padding: 0 8px; font-size: 12px; text-align: center; color: var(--caixa-funda); }
 
 .foto {
   width: 40px;
