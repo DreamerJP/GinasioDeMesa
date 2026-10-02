@@ -1399,9 +1399,6 @@ function mostrarPartida(id) {
   if (aberta && valeNoMes) situacao = `Aberta${autor ? ` por ${autor}` : ''}. ${lancados} de ${partida.placares.length} lançaram.`;
   if (aberta && !valeNoMes) situacao = 'Não conta: o mês fechou antes de todos lançarem.';
   document.getElementById('partida-situacao').textContent = situacao;
-  const andamento = document.getElementById('partida-andamento');
-  andamento.hidden = !(aberta && valeNoMes);
-  andamento.replaceChildren(...partida.placares.map(s => criar('span', `passo${s.valor === null ? '' : ' feito'}`)));
 
   const notas = aberta ? new Map() : new Map(notasDaPartida(partidaParaFormula(partida)));
   const lugares = aberta ? new Map() : lugaresDaPartida(partida);

@@ -408,9 +408,6 @@ select.campo {
 
 .partida-cabeca { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; }
 .partida-nome { display: grid; gap: 4px; min-width: 0; }
-.andamento { display: flex; gap: 4px; }
-.andamento .passo { width: 14px; height: 14px; background: var(--caixa-funda); clip-path: var(--canto); }
-.andamento .passo.feito { background: var(--vida); }
 #form-placar.urgente { box-shadow: inset 0 0 0 var(--px) var(--ouro); }
 .cancelar-partida { display: grid; justify-items: center; gap: 4px; }
 .cancelar-partida .botao-menu.confirmando { background: var(--perigo); box-shadow: inset 0 -3px 0 #5e1d1d; }
