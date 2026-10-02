@@ -597,11 +597,22 @@ select.campo {
 .simbolos dt { text-align: center; }
 .simbolos dd { margin: 0; font-size: 14px; }
 
-.titulo-garantias { font-size: 17px; }
-.garantias { margin-top: 6px; padding: 0; list-style: none; }
-.garantias li { display: grid; gap: 3px; padding: 10px 0; border-top: 2px solid var(--caixa-funda); }
-.garantias li:first-child { border-top: 0; }
-.garantias strong { font-size: 15px; }
+.chamada { display: grid; gap: 6px; text-align: center; }
+.chamada-titulo, .pergunta-titulo { font-family: 'Pixelify Sans', monospace; font-weight: 600; font-variant-ligatures: none; color: var(--tinta); }
+.chamada-titulo { font-size: 20px; line-height: 1.2; letter-spacing: 1px; text-transform: uppercase; }
+.chamada-texto { font-size: 15px; color: var(--tinta-suave); }
+.chamada-texto b { font-weight: 400; color: var(--tinta); background: linear-gradient(transparent 60%, #f2c14e66 0); }
+.pergunta { display: grid; gap: 10px; }
+.pergunta-topo { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; align-items: center; }
+.pergunta-topo img { width: 48px; height: 48px; padding: 4px; background: var(--caixa-funda); clip-path: var(--canto); }
+.pergunta-titulo { font-size: 18px; line-height: 1.2; }
+.respostas { display: grid; gap: 8px; padding: 0; list-style: none; }
+.respostas li { position: relative; display: grid; gap: 2px; padding-left: 18px; }
+.respostas li::before { content: ''; position: absolute; left: 4px; top: 9px; width: 5px; height: 5px; background: var(--ouro); box-shadow: 0 0 0 1px var(--tinta); transform: rotate(45deg); }
+.respostas strong { font-size: 15px; }
+.exemplo { display: grid; gap: 2px; margin-top: 4px; padding: 8px 10px; background: var(--caixa-marcada); border-left: 4px solid var(--ouro); font-size: 14px; }
+.exemplo .rotulo { font-size: 11px; }
+.para-curiosos { text-align: center; font-size: 13px; color: var(--caixa-funda); }
 
 .lista-acessos li {
   display: grid;

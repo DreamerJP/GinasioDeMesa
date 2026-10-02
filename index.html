@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=40">
+<link rel="stylesheet" href="estilo.css?v=41">
 <script type="module" src="app.js?v=43" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
@@ -320,6 +320,42 @@
   </main>
 
   <main class="conteudo" data-tela="regras" hidden>
+    <section class="caixa chamada">
+      <h2 class="chamada-titulo">Como se vence o mês</h2>
+      <p class="chamada-texto">A conta premia duas coisas: <b>jogar bem</b> e <b>aparecer</b>.</p>
+    </section>
+
+    <section class="caixa pergunta">
+      <div class="pergunta-topo"><img src="midia/regra-pontos.png" alt=""><h2 class="pergunta-titulo">Como eu ganho pontos?</h2></div>
+      <ul class="respostas">
+        <li><strong>Cada partida dá pontos a quem jogou.</strong><span class="detalhe">Quem soma mais no mês vence.</span></li>
+        <li><strong>Vencer com folga vale mais que vencer apertado.</strong></li>
+        <li><strong>Não importa se o jogo dá poucos ou muitos pontos.</strong><span class="detalhe">O que conta é quanto você fez comparado com os outros da mesa.</span>
+          <p class="exemplo"><span class="rotulo">Exemplo</span>5 pontos no Saboteur podem valer tanto quanto 200 no Fantasy Realms.</p></li>
+      </ul>
+    </section>
+
+    <section class="caixa pergunta">
+      <div class="pergunta-topo"><img src="midia/regra-faltas.png" alt=""><h2 class="pergunta-titulo">E se eu faltar?</h2></div>
+      <ul class="respostas">
+        <li><strong>Quem vai e fica em último sempre leva mais do que quem faltou.</strong><span class="detalhe">Quem falta leva metade da nota do último colocado.</span></li>
+        <li><strong>Faltar algumas partidas não tira ninguém da disputa.</strong><span class="detalhe">Quem joga bem continua na frente.</span></li>
+        <li><strong>Quanto mais partidas a pessoa deixa de jogar, mais difícil fica passar quem foi a todas.</strong></li>
+        <li><strong>Quem jogou pouco não fica no alto.</strong>
+          <p class="exemplo"><span class="rotulo">Exemplo</span>Quem vai a 1 de 11 partidas e vence fica perto de 0,23.</p></li>
+      </ul>
+    </section>
+
+    <section class="caixa pergunta">
+      <div class="pergunta-topo"><img src="midia/regra-fim.png" alt=""><h2 class="pergunta-titulo">E no fim do mês?</h2></div>
+      <ul class="respostas">
+        <li><strong>A partida conta no mês em que foi aberta.</strong><span class="detalhe">Partida incompleta no fim do mês não conta.</span></li>
+        <li><strong>Empate no fim do mês divide o prêmio.</strong></li>
+      </ul>
+    </section>
+
+    <p class="para-curiosos">Quer ver a conta por dentro? As fórmulas estão logo abaixo.</p>
+
     <section class="caixa">
       <h2 class="rotulo">Nota do jogador na partida</h2>
       <div class="formula" data-formula="P_{i,j} = \frac{1}{2}\left[\frac{N - r_i + 1}{N} + \min\left(1,\ \frac{x_i}{2\,\bar{x}}\right)\right]"></div>
@@ -348,21 +384,6 @@
         <dt data-formula-linha="P">P</dt><dd>nota da partida, de 0 a 1</dd>
         <dt data-formula-linha="G">G</dt><dd>nota do mês, de 0 a 1</dd>
       </dl>
-    </section>
-
-    <section class="caixa">
-      <h2 class="titulo-caixa titulo-garantias">A conta pesa as duas coisas que importam: jogar bem e comparecer.</h2>
-      <ul class="garantias">
-        <li><strong>Cada partida dá pontos a quem jogou.</strong><span class="detalhe">Quem soma mais no mês vence.</span></li>
-        <li><strong>Quem vai e fica em último sempre leva mais do que quem faltou.</strong><span class="detalhe">Quem falta leva metade da nota do último colocado.</span></li>
-        <li><strong>Faltar algumas partidas não tira ninguém da disputa.</strong><span class="detalhe">Quem joga bem continua na frente.</span></li>
-        <li><strong>Quanto mais partidas a pessoa perde, mais difícil fica passar quem foi a todas.</strong></li>
-        <li><strong>Quem jogou pouco não fica no alto.</strong><span class="detalhe">Quem vai a 1 de 11 partidas e vence fica perto de 0,23.</span></li>
-        <li><strong>Não importa se o jogo dá poucos ou muitos pontos.</strong><span class="detalhe">O que conta é quanto você fez comparado com os outros da mesa: 5 pontos no Saboteur podem valer tanto quanto 200 no Fantasy Realms.</span></li>
-        <li><strong>Vencer com folga vale mais que vencer apertado.</strong></li>
-        <li><strong>Empate no fim do mês divide o prêmio.</strong></li>
-        <li><strong>A partida conta no mês em que foi aberta.</strong><span class="detalhe">Partida incompleta no fim do mês não conta.</span></li>
-      </ul>
     </section>
   </main>
 
