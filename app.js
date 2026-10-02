@@ -90,28 +90,12 @@ const DESENHOS_DOS_TITULOS = {
     ],
     sobre: ['..................', '...............2..', '..............212.', '...............2..'],
   },
-  cadeira: {
-    base: [
-      '......rrrrrrrrrr......', '....qrrrrrrrrrrrrR....', '...qrrrrrrrrrrrrrRR...', '...qrrrr122223rrrRR...', '...qrrrr343435rrrRR...',
-      '...qrrrr455555rrrRR...', '...qrrRrrrRrrrRrrRR...', '...qrrerrrerrrerrRR...', 'mnNqrrRrrrRrrrRrrRRnNM', 'nnNqrrrrrrrrrrrrrRRnNM',
-      'nnNqqqqqqqqqqqqqqqRnNM', 'nnNrrrrrrrrrrrrrrrRnNM', 'NNNRRRRRRRRRRRRRRRRNNM', 'NNMeeeeeeeeeeeeeeeeNMM', '.nN................nN.',
-      '.nN................nN.', '.MM................MM.',
-    ],
-  },
   ecletico: {
     base: [
       '............swwws.....', '............wkwwS.....', '............wwkwS.....', '............wwwkS.....', '............SSSSd.....',
       '...qqqqqqqqqqqqqqqR...', '...rrrrrrrrrrrrrrRR...', '...rr2222rrrrrrrrRR...', '...rrrrrrrrrrrrrrRR...', '...RRRRRRRRRRRRRRee...',
       '.aaaaaaaaaaaaaaaaaaaB.', '.bbbbbbbbbbbbbbbbbbBB.', '.bbwwwwwwbbbbbbbbbbBB.', '.bbbbbbbbbbbbbbbbbbBB.', '.DDDDDDDDDDDDDDDDDDEE.',
       'hhhhhhhhhhhhhhhhhhhhhG', 'ggggggggggggggggggggGG', 'gggggggggggg2222ggggGG', 'ggggggggggggggggggggGG', 'HHHHHHHHHHHHHHHHHHHHHH',
-    ],
-  },
-  embalado: {
-    base: [
-      '........F.........', '........FF........', '.......FfF........', '.......FffF....F..', '......FfffF...FF..',
-      '......FffyfF..FfF.', '.....FffyyfF.FffF.', '.....FfyyyffFfffF.', '....FfyyyyyffffF..', '..F.Ffyy11yyyffF..',
-      '.FfFfyy111yyyfffF.', '.FffFyy1111yyyffF.', 'Fffffyy1111yyyyffF', 'Fffffyy11111yyyffF', 'FFfffffyyyyyyfffFF',
-      '.FFfffffffffffffF.', '..ZFFffffffffFFZ..', '....ZZFFFFFFZZ....', '......ZZZZZZ......',
     ],
   },
   atropelo: {
@@ -127,40 +111,6 @@ const DESENHOS_DOS_TITULOS = {
       '..............2.', '...............2',
     ],
   },
-  trave: {
-    base: [
-      '......................', '......................', 'wwwwwwwwwwwwws........', 'ssssssssssssSS........', '............wS........',
-      '............wS........', '............wS........', '............wS........', '............wS........', '............wSwwws....',
-      '............wwkkwws...', '...........wwwkkwwsS..', '...........wwwwwwkkS..', '...........kwwwwwkkS..', '...........kkwwwwwsS..',
-      '............swwsSSS...', '............wSSSSS....', '............wS........', 'GgGGgGGGgGGgGGGgGGgGGG', 'HHHHHHHHHHHHHHHHHHHHHH',
-    ],
-    sobre: [
-      '......................', '..................2...', '......................', '......................', 'S.S.S.S.S.S...........',
-      '.S.S.S.S.S.S......2...', 'S.S.S.S.S.S.........2.', '.S.S.S.S.S.S....2.....', 'S.S.S.S.S.S......1....', '.S.S.S.S.S.S......2...',
-      'S.S.S.S.S.S...........', '.S.S.S.S.S............', 'S.S.S.S.S.S...........', '.S.S.S.S.S............', 'S.S.S.S.S.S...........',
-      '.S.S.S.S.S.S..........', 'S.S.S.S.S.S...........', '.S.S.S.S.S.S..........',
-    ],
-  },
-  lanterna: {
-    base: [
-      '....dSSSSSSd....', '...d........d...', '...d..ssss..d...', '....swwssssS....', '..swwsssssssSd..',
-      '..SSSSSSSSSSdx..', '...d22111122x...', '...d21yffy12x...', '...d21yFFy12x...', '...d221ff122x...',
-      '...d22211222x...', '...d33333333x...', '..swwsssssssSd..', '..SSSSSSSSSSdx..', '...xxxxxxxxxx...',
-    ],
-    sobre: [
-      '................', '................', '................', '................', '................',
-      '................', '.2............2.', '................', '12............21', '................',
-      '.2............2.',
-    ],
-  },
-  mesa: {
-    base: [
-      '.............qR.......', '.............rR.......', '...swwS.....qrrrrR....', '...wkwS......qrrR.....', '...wwkS......rrrR.....',
-      '...SSSd.....qr..rR....', '...nnngGgGgGgGgGnnn...', '..nnnnGgGgGgGgGgnnnN..', '.nnnnngGgGgGgGgGnnnnN.', 'mmmmmmmmmmmmmmmmmmmmmn',
-      'NNNNNNNNNNNNNNNNNNNNNM', 'MMMMMMMMMMMMMMMMMMMMMM', '.nN..M..........M..nN.', '.nN..M..........M..nN.', '.nN................nN.',
-      '.nN................nN.', '.MM................MM.',
-    ],
-  },
   podio: {
     base: [
       '...........2..........', '..........212.........', '........2211122.......', '.........21112........', '........212.212.......',
@@ -168,13 +118,6 @@ const DESENHOS_DOS_TITULOS = {
       'wwwwwww33334334.......', 'sssssSd33334334.......', 'ssddsSd33344434.......', 'ssssdSd33333334mmmmmmm', 'sssdsSd33333334nnnnnnN',
       'ssdssSd33333334nnMMnnN', 'ssdddSd33333334nnnnMnN', 'sssssSd33333334nnnMMnN', 'sssssSd33333334nnnnMnN', 'sssssSd33333334nnMMnnN',
       'SSSSSdd44444445NNNNNNM',
-    ],
-  },
-  coroa: {
-    base: [
-      '.12.......12.......12.', '.23.......23.......23.', '.223.....2223.....223.', '.2233...222233...2233.', '.22333.22223333.22233.',
-      '.22223322222333222233.', '.22222222222222222333.', '2111111111111111111134', '2333qr3333ab3333qr3344', '2333rR3333bB3333rR3344',
-      '2333333333333333333344', '4444444444444444444445',
     ],
   },
 };
@@ -547,36 +490,31 @@ function criar(tag, classe, texto) {
   return elemento;
 }
 
-function avatarPadrao(apelido) {
-  let semente = 0;
-  for (const letra of apelido) semente = (semente * 31 + letra.charCodeAt(0)) >>> 0;
-  const cores = ['#d9604a', '#4a86d9', '#3aa865', '#a95fd0', '#d99a33', '#3a9fa0'];
-  const cor = cores[(semente >>> 16) % cores.length];
+const QUANTOS_MEEPLES = 12;
+const CORES_DAS_CAIXAS = ['vermelha', 'azul', 'verde', 'laranja'];
 
-  let pixels = '';
-  for (let y = 0; y < 5; y++) {
-    for (let x = 0; x < 3; x++) {
-      if (!((semente >>> (y * 3 + x)) & 1)) continue;
-      pixels += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
-      if (x < 2) pixels += `<rect x="${4 - x}" y="${y}" width="1" height="1"/>`;
-    }
-  }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 7 7" shape-rendering="crispEdges" fill="${cor}">${pixels}</svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+function numeroDoTexto(texto) {
+  let numero = 0;
+  for (const letra of texto) numero = (numero * 31 + letra.charCodeAt(0)) >>> 0;
+  return numero;
 }
 
-const MEEPLE = ['..###..', '..###..', '#######', '.#####.', '..###..', '.##.##.', '.##.##.'];
+// Distribui os meeples entre quem está sem foto para que dois jogadores não fiquem com o mesmo enquanto houver sobrando.
+function avatarPadrao(alguem) {
+  const id = alguem?.id || alguem?.apelido || '?';
+  const usados = new Set();
+  const semFoto = (estado?.jogadores || []).filter(j => !j.foto).sort((a, b) => a.id.localeCompare(b.id));
+  for (const outro of semFoto) {
+    let numero = numeroDoTexto(outro.id) % QUANTOS_MEEPLES;
+    while (usados.has(numero) && usados.size < QUANTOS_MEEPLES) numero = (numero + 1) % QUANTOS_MEEPLES;
+    usados.add(numero);
+    if (outro.id === id) return `midia/meeple-${numero + 1}.png`;
+  }
+  return `midia/meeple-${numeroDoTexto(id) % QUANTOS_MEEPLES + 1}.png`;
+}
 
 function capaPadrao(nome) {
-  let semente = 0;
-  for (const letra of nome) semente = (semente * 31 + letra.charCodeAt(0)) >>> 0;
-  const cores = ['#d9604a', '#4a86d9', '#3aa865', '#a95fd0', '#d99a33', '#3a9fa0'];
-  let pixels = '';
-  MEEPLE.forEach((linha, y) => [...linha].forEach((ponto, x) => {
-    if (ponto === '#') pixels += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
-  }));
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 11 11" shape-rendering="crispEdges"><rect x="-2" y="-2" width="11" height="11" fill="#e2dac0"/><g fill="${cores[semente % cores.length]}">${pixels}</g></svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  return `midia/caixa-${CORES_DAS_CAIXAS[numeroDoTexto(nome) % CORES_DAS_CAIXAS.length]}.png`;
 }
 
 function imagemDaCapa(jogo, classe = 'capa') {
@@ -596,13 +534,13 @@ function mostrarCapa(imagem, jogo) {
 }
 
 function fotoDe(alguem) {
-  return alguem?.foto || avatarPadrao(alguem?.apelido || '?');
+  return alguem?.foto || avatarPadrao(alguem);
 }
 
 function mostrarFoto(imagem, alguem) {
   imagem.onerror = () => {
     imagem.onerror = null;
-    imagem.src = avatarPadrao(alguem?.apelido || '?');
+    imagem.src = avatarPadrao(alguem);
   };
   imagem.src = fotoDe(alguem);
 }
@@ -678,7 +616,7 @@ function figuraDoTitulo(titulo, classe = '') {
   if (titulo.jogo) return imagemDaCapa(titulo.jogo, `capa-titulo ${classe}`);
   const figura = criar('img', `icone-titulo ${classe}`);
   figura.alt = '';
-  figura.src = imagemDoIcone(titulo.desenho);
+  figura.src = DESENHOS_DOS_TITULOS[titulo.desenho] ? imagemDoIcone(titulo.desenho) : `midia/titulo-${titulo.desenho}.png`;
   return figura;
 }
 
