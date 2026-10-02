@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=43">
+<link rel="stylesheet" href="estilo.css?v=44">
 <script type="module" src="app.js?v=45" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
@@ -360,23 +360,31 @@
       </ul>
     </section>
 
+    <section class="caixa pergunta">
+      <div class="pergunta-topo"><img src="midia/insignia-01.webp" alt=""><h2 class="pergunta-titulo">E o ranking geral?</h2></div>
+      <ul class="respostas">
+        <li><strong>Cada mês vencido vale uma insígnia.</strong><span class="detalhe">Quem tem mais fica na frente.</span></li>
+        <li><strong>Empate em insígnias: fica na frente quem terminou mais meses no pódio.</strong><span class="detalhe">Ficar em 2º ou em 3º vale o mesmo aqui.</span></li>
+        <li><strong>Se ainda empatar, os dois dividem a posição.</strong>
+          <p class="exemplo"><span class="rotulo">Exemplo</span>Dois jogadores sem insígnia e com um mês no pódio cada dividem o mesmo lugar.</p></li>
+      </ul>
+    </section>
+
     <p class="para-curiosos">Quer ver a conta por dentro? As fórmulas estão logo abaixo.</p>
 
     <section class="caixa">
       <h2 class="rotulo">Nota do jogador na partida</h2>
       <div class="formula" data-formula="P_{i,j} = \frac{1}{2}\left[\frac{N - r_i + 1}{N} + \min\left(1,\ \frac{x_i}{2\,\bar{x}}\right)\right]"></div>
-      <p class="detalhe">Jogo em que menor placar vence: a fração do placar vira <span data-formula-linha="\dfrac{\bar{x}}{2\,x_i}"></span>. Jogo sem placar ou empate geral: vale só a colocação, <span data-formula-linha="\dfrac{N - r_i + 1}{N}"></span>.</p>
+      <p class="detalhe">Jogo em que menor placar vence, a fração do placar vira:</p>
+      <div class="formula formula-menor" data-formula="\frac{\bar{x}}{2\,x_i}"></div>
+      <p class="detalhe">Jogo sem placar ou empate geral, vale só a colocação:</p>
+      <div class="formula formula-menor" data-formula="\frac{N - r_i + 1}{N}"></div>
     </section>
 
     <section class="caixa">
       <h2 class="rotulo">Nota do mês</h2>
       <div class="formula" data-formula="G_i = \frac{1}{M}\sum_{j=1}^{M} P_{i,j}"></div>
       <p class="detalhe">Quem faltou a uma partida leva nela <span data-formula-linha="\tfrac{1}{2}\min_k P_{k,j}"></span>, metade da nota do último colocado. Quem não jogou nenhuma partida no mês fica com 0.</p>
-    </section>
-
-    <section class="caixa">
-      <h2 class="rotulo">Ranking geral</h2>
-      <p class="detalhe">Conta as insígnias de cada um. Empate: fica na frente quem terminou mais meses entre os 3 primeiros.</p>
     </section>
 
     <section class="caixa">
@@ -389,6 +397,11 @@
         <dt data-formula-linha="M">M</dt><dd>partidas do grupo no mês</dd>
         <dt data-formula-linha="P">P</dt><dd>nota da partida, de 0 a 1</dd>
         <dt data-formula-linha="G">G</dt><dd>nota do mês, de 0 a 1</dd>
+        <dt data-formula-linha="i">i</dt><dd>o jogador da conta</dd>
+        <dt data-formula-linha="j">j</dt><dd>uma das partidas do mês</dd>
+        <dt data-formula-linha="k">k</dt><dd>qualquer jogador daquela partida, usado para achar a menor nota</dd>
+        <dt data-formula-linha="\textstyle\sum">∑</dt><dd>soma; na nota do mês, soma as notas de todas as partidas, de j = 1 até M</dd>
+        <dt data-formula-linha="\min">min</dt><dd>o menor valor; aparece na nota da partida e na nota de quem faltou</dd>
       </dl>
     </section>
   </main>

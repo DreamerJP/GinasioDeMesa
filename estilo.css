@@ -613,6 +613,7 @@ select.campo {
 .campeao-seguinte .foto { width: 28px; height: 28px; }
 
 .formula { padding: 12px 0; overflow-x: auto; font-size: clamp(10px, 3.2vw, 17px); text-align: center; }
+.formula-menor { padding: 2px 0 8px; }
 
 .simbolos { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin-top: 8px; }
 .simbolos dt { text-align: center; }
