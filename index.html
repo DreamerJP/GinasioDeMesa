@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=44">
-<script type="module" src="app.js?v=45" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=45">
+<script type="module" src="app.js?v=46" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -53,14 +53,23 @@
   </main>
 
   <main class="conteudo" data-tela="apelido" hidden>
+    <section class="caixa chamada">
+      <h2 class="chamada-titulo">Bem-vindo ao Ginásio</h2>
+      <p class="chamada-texto">Aqui as partidas do grupo viram um ranking que fecha todo mês. Primeiro, escolha como você vai aparecer.</p>
+    </section>
+
     <form class="caixa formulario" id="form-apelido">
-      <label class="rotulo" for="campo-apelido">Seu apelido no ranking</label>
+      <div class="previa-apelido">
+        <img class="foto" id="previa-apelido-foto" alt="" referrerpolicy="no-referrer">
+        <span class="vazio" id="previa-apelido-nome">???</span>
+      </div>
+      <label class="rotulo" for="campo-apelido">Seu apelido</label>
       <div class="linha-campo">
         <input class="campo" id="campo-apelido" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false">
         <button class="botao" disabled>Salvar</button>
       </div>
       <p class="aviso" id="aviso-apelido" role="alert"></p>
-      <p class="detalhe">Até 8 letras ou números, sem espaço. Todo mundo do grupo vê.</p>
+      <p class="detalhe">Até 8 letras ou números, sem espaço. Dá para trocar depois em Editar perfil.</p>
     </form>
   </main>
 

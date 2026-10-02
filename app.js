@@ -1033,6 +1033,8 @@ function mostrarEntrada(mensagem, saida = null) {
 function aplicarEstado(novo) {
   estado = novo;
   if (!estado.eu.apelido) {
+    const foto = document.getElementById('previa-apelido-foto');
+    foto.src = estado.eu.foto || fotoDoGoogle() || avatarPadrao(estado.eu);
     mostrarTela('apelido');
     return;
   }
@@ -2282,10 +2284,13 @@ function ligarApelido() {
   const botao = formulario.querySelector('button');
   const aviso = document.getElementById('aviso-apelido');
 
+  const previa = document.getElementById('previa-apelido-nome');
   campo.addEventListener('input', () => {
     campo.value = limparApelido(campo.value);
     botao.disabled = !campo.value;
     aviso.textContent = '';
+    previa.textContent = campo.value || '???';
+    previa.classList.toggle('vazio', !campo.value);
   });
 
   formulario.addEventListener('submit', async evento => {
