@@ -1393,11 +1393,15 @@ function mostrarPartida(id) {
   const lancados = partida.placares.filter(s => s.valor !== null).length;
   const autor = jogador(partida.abertaPor)?.apelido;
 
+  document.getElementById('partida-capa').replaceChildren(imagemDaCapa(jogo));
   document.getElementById('partida-jogo').textContent = jogo.nome;
   let situacao = `Fechada, conta em ${nomeDoMes(partida.mes)}`;
   if (aberta && valeNoMes) situacao = `Aberta${autor ? ` por ${autor}` : ''}. ${lancados} de ${partida.placares.length} lançaram.`;
   if (aberta && !valeNoMes) situacao = 'Não conta: o mês fechou antes de todos lançarem.';
   document.getElementById('partida-situacao').textContent = situacao;
+  const andamento = document.getElementById('partida-andamento');
+  andamento.hidden = !(aberta && valeNoMes);
+  andamento.replaceChildren(...partida.placares.map(s => criar('span', `passo${s.valor === null ? '' : ' feito'}`)));
 
   const notas = aberta ? new Map() : new Map(notasDaPartida(partidaParaFormula(partida)));
   const lugares = aberta ? new Map() : lugaresDaPartida(partida);
@@ -1405,11 +1409,17 @@ function mostrarPartida(id) {
   document.getElementById('partida-jogadores').classList.toggle('aberta', aberta);
   document.getElementById('partida-jogadores').replaceChildren(...placares.map(s => {
     const alguem = jogador(s.jogador);
-    const linha = criar('li', 'jogador-linha');
+    const falta = aberta && s.valor === null;
+    const linha = criar('li', `jogador-linha${!aberta && lugares.get(s.jogador) === 1 ? ' vencedor' : ''}${falta ? ' pendente' : ''}`);
     const valor = criar('span', 'valor');
-    if (aberta) {
-      const proprio = s.jogador === eu.id && s.valor !== null;
-      valor.append(criar('span', 'detalhe', s.valor === null ? 'falta' : proprio ? formatoPlacar.format(s.valor) : 'lançou'));
+    if (falta) {
+      valor.append(criar('span', 'detalhe', 'falta'));
+    } else if (aberta) {
+      const lancou = criar('span', 'lancou');
+      lancou.setAttribute('aria-label', 'lançou');
+      if (s.jogador === eu.id) lancou.append(criar('span', '', formatoPlacar.format(s.valor)));
+      lancou.append(criar('span', 'visto'));
+      valor.append(lancou);
     } else {
       if (!jogo.semPlacar) valor.append(criar('span', '', formatoPlacar.format(s.valor)));
       valor.append(criar('span', 'detalhe', `nota ${formatoNota.format(notas.get(s.jogador))}`));
@@ -1420,22 +1430,32 @@ function mostrarPartida(id) {
 
   const regras = [];
   if (jogo.semPlacar) regras.push('Jogo sem placar: vale a ordem de chegada.');
-  if (jogo.menorVence) regras.push('Neste jogo, menor placar vence.');
+  const comCampo = Boolean(aberta && valeNoMes && meu);
+  if (jogo.menorVence && !comCampo) regras.push('Neste jogo, menor placar vence.');
   if (!aberta) regras.push('Nota da partida vai de 0 a 1.');
   document.getElementById('partida-rodape').textContent = regras.join(' ');
 
   const formulario = document.getElementById('form-placar');
-  formulario.hidden = !(aberta && valeNoMes && meu);
+  formulario.hidden = !comCampo;
   if (!formulario.hidden) {
     const campo = document.getElementById('campo-placar');
-    if (!mesmaPartida || !campo.value) campo.value = meu.valor === null ? '' : String(meu.valor).replace('.', ',');
-    formulario.querySelector('button').textContent = meu.valor === null ? 'Confirmar' : 'Corrigir';
+    const falta = meu.valor === null;
+    if (!mesmaPartida || !campo.value) campo.value = falta ? '' : String(meu.valor).replace('.', ',');
+    formulario.querySelector('button').textContent = falta ? 'Confirmar' : 'Corrigir';
+    formulario.classList.toggle('urgente', falta);
+    const jogadores = document.getElementById('caixa-jogadores');
+    if (falta) jogadores.before(formulario);
+    else jogadores.after(formulario);
+    const dica = document.getElementById('dica-placar');
+    dica.hidden = !jogo.menorVence;
+    dica.textContent = 'Neste jogo, menor placar vence.';
     validarPlacar();
   }
 
   const podeCancelar = aberta && (partida.abertaPor === eu.id || eu.admin);
   document.getElementById('caixa-cancelar').hidden = !podeCancelar;
   document.getElementById('cancelar-partida').textContent = 'Cancelar partida';
+  document.getElementById('cancelar-partida').classList.remove('confirmando');
 }
 
 function valorDoPlacar() {
@@ -1464,10 +1484,12 @@ function ligarPartida() {
   let confirmando = null;
   cancelar.addEventListener('click', async () => {
     if (!confirmando) {
-      cancelar.textContent = 'Toque de novo para cancelar';
+      cancelar.textContent = 'Toque de novo para apagar';
+      cancelar.classList.add('confirmando');
       confirmando = setTimeout(() => {
         confirmando = null;
         cancelar.textContent = 'Cancelar partida';
+        cancelar.classList.remove('confirmando');
       }, 4000);
       return;
     }

@@ -390,6 +390,30 @@ select.campo {
 }
 
 .jogador-linha:first-child { border-top: 0; }
+.jogador-linha.vencedor { margin: 0 -8px; padding-inline: 8px; background: var(--caixa-marcada); box-shadow: inset 4px 0 0 var(--ouro); }
+.jogador-linha.vencedor .posicao { color: var(--ouro-fundo); }
+.jogador-linha.pendente > .foto, .jogador-linha.pendente > span:not(.valor) { opacity: 0.5; }
+.lancou { display: flex; align-items: center; gap: 8px; }
+.visto { position: relative; width: 16px; height: 12px; }
+.visto::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 2px;
+  height: 4px;
+  background: var(--vida);
+  box-shadow: 2px 2px 0 var(--vida), 4px 4px 0 var(--vida), 6px 2px 0 var(--vida), 8px 0 0 var(--vida), 10px -2px 0 var(--vida), 12px -4px 0 var(--vida), 14px -4px 0 var(--vida);
+}
+
+.partida-cabeca { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; }
+.partida-nome { display: grid; gap: 4px; min-width: 0; }
+.andamento { display: flex; gap: 4px; }
+.andamento .passo { width: 14px; height: 14px; background: var(--caixa-funda); clip-path: var(--canto); }
+.andamento .passo.feito { background: var(--vida); }
+#form-placar.urgente { box-shadow: inset 0 0 0 var(--px) var(--ouro); }
+.cancelar-partida { display: grid; justify-items: center; gap: 4px; }
+.cancelar-partida .botao-menu.confirmando { background: var(--perigo); box-shadow: inset 0 -3px 0 #5e1d1d; }
 .lista-jogadores.aberta .jogador-linha { grid-template-columns: 32px 1fr auto; }
 .lista-jogadores.aberta .posicao { display: none; }
 .jogador-linha .foto { width: 32px; height: 32px; }

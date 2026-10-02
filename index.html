@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=41">
-<script type="module" src="app.js?v=43" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=42">
+<script type="module" src="app.js?v=44" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -123,11 +123,13 @@
   </main>
 
   <main class="conteudo" data-tela="partida" hidden>
-    <section class="caixa">
-      <h2 class="titulo-caixa" id="partida-jogo"></h2>
-      <p class="detalhe" id="partida-situacao"></p>
-      <ol class="lista-jogadores" id="partida-jogadores"></ol>
-      <p class="rodape" id="partida-rodape"></p>
+    <section class="caixa partida-cabeca">
+      <span id="partida-capa"></span>
+      <div class="partida-nome">
+        <h2 class="titulo-caixa" id="partida-jogo"></h2>
+        <p class="detalhe" id="partida-situacao"></p>
+        <span class="andamento" id="partida-andamento"></span>
+      </div>
     </section>
 
     <form class="caixa formulario" id="form-placar" hidden>
@@ -136,14 +138,19 @@
         <input class="campo campo-texto" id="campo-placar" inputmode="decimal" autocomplete="off">
         <button class="botao" disabled>Confirmar</button>
       </div>
+      <p class="detalhe" id="dica-placar" hidden></p>
       <p class="aviso" id="aviso-placar" role="alert"></p>
     </form>
 
-    <section class="caixa formulario" id="caixa-cancelar" hidden>
-      <button class="botao botao-perigo" id="cancelar-partida" type="button">Cancelar partida</button>
-      <p class="aviso" id="aviso-cancelar" role="alert"></p>
-      <p class="rodape">Partida cancelada sai do ranking e não volta.</p>
+    <section class="caixa" id="caixa-jogadores">
+      <ol class="lista-jogadores" id="partida-jogadores"></ol>
+      <p class="rodape" id="partida-rodape"></p>
     </section>
+
+    <div class="cancelar-partida" id="caixa-cancelar" hidden>
+      <button class="botao-menu" id="cancelar-partida" type="button">Cancelar partida</button>
+      <p class="aviso" id="aviso-cancelar" role="alert"></p>
+    </div>
   </main>
 
   <main class="conteudo" data-tela="nova-partida" hidden>
