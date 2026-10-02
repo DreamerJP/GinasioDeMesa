@@ -14,6 +14,7 @@ const FIREBASE = {
 const CHAVE_SOM = 'ginasio.som';
 const FUSO = 'America/Sao_Paulo';
 const AGUARDANDO = 'Seu pedido de entrada foi enviado. Assim que o administrador aprovar, o ginásio abre sozinho.';
+const DEMORA_DA_ENTRADA = 8000;
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const LIMITE_FOTO = 45000;
 const LADO_FOTO = 320;
@@ -141,6 +142,7 @@ let escutaDoAcesso = null;
 let escutasDosDados = [];
 let estado = null;
 let estadoEmEspera = null;
+let relogioDaEntrada = null;
 let telaVisivel = '';
 let partidaAberta = '';
 let jogoEscolhido = '';
@@ -1024,10 +1026,29 @@ function mostrarTela(nome) {
 }
 
 function mostrarEntrada(mensagem, saida = null) {
-  document.getElementById('aviso-entrada').textContent = mensagem;
+  const carregando = !saida && mensagem.endsWith('…');
+  const aviso = document.getElementById('aviso-entrada');
+  aviso.textContent = carregando ? mensagem.slice(0, -1) : mensagem;
+  if (carregando) {
+    const pontos = criar('span', 'pontos');
+    pontos.append(criar('span', '', '.'), criar('span', '', '.'), criar('span', '', '.'));
+    aviso.append(pontos);
+  }
+  const demora = document.getElementById('demora-entrada');
+  const tentar = document.getElementById('tentar-de-novo');
+  demora.hidden = true;
+  clearTimeout(relogioDaEntrada);
+  if (carregando) {
+    relogioDaEntrada = setTimeout(() => {
+      if (document.querySelector('[data-tela="entrada"]').hidden) return;
+      demora.hidden = false;
+      tentar.hidden = false;
+    }, DEMORA_DA_ENTRADA);
+  }
   document.getElementById('botao-google').hidden = saida !== 'google';
-  document.getElementById('tentar-de-novo').hidden = saida !== 'tentar';
+  tentar.hidden = saida !== 'tentar';
   document.getElementById('dica-pedido').hidden = saida !== 'google' || mensagem === AGUARDANDO;
+  document.getElementById('rodape-entrada').hidden = saida !== 'google';
   mostrarTela('entrada');
 }
 

@@ -222,6 +222,14 @@ select.campo {
 .entrada-icone { width: 120px; height: 120px; }
 #botao-google { min-height: 44px; }
 .rodape-entrada { padding: 0 8px; font-size: 12px; text-align: center; color: var(--caixa-funda); }
+.pontos span { opacity: 0; animation: 1.6s steps(1, end) infinite; }
+.pontos span:nth-child(1) { animation-name: ponto-1; }
+.pontos span:nth-child(2) { animation-name: ponto-2; }
+.pontos span:nth-child(3) { animation-name: ponto-3; }
+@keyframes ponto-1 { 25%, 100% { opacity: 1; } }
+@keyframes ponto-2 { 50%, 100% { opacity: 1; } }
+@keyframes ponto-3 { 75%, 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .pontos span { opacity: 1; animation: none; } }
 
 .foto {
   width: 40px;
