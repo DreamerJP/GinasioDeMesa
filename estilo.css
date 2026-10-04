@@ -907,11 +907,10 @@ select.campo {
 .degrau { width: 10px; height: 10px; box-shadow: inset 0 0 0 2px var(--caixa-funda); }
 .degrau.alcancado { background: var(--nivel); box-shadow: inset 0 0 0 2px var(--tinta); }
 
-.escada-niveis { display: grid; gap: 6px; width: 100%; max-width: 300px; margin: 6px auto 0; padding: 0; list-style: none; text-align: left; }
-.escada-niveis li { display: grid; grid-template-columns: 76px auto 1fr; gap: 10px; align-items: center; color: var(--tinta-suave); }
+.escada-niveis { display: grid; gap: 6px; width: fit-content; max-width: 100%; margin: 10px auto 0; padding: 0; list-style: none; text-align: left; }
+.escada-niveis li { display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 10px; align-items: center; color: var(--tinta-suave); }
 .escada-niveis li.alcancado { color: var(--tinta); }
 .escada-niveis .etiqueta-nivel { text-align: center; }
-.escada-niveis .detalhe { text-align: right; }
 
 .rosto-nivel { display: grid; gap: 2px; }
 .rosto-nivel::after { content: ''; height: 3px; background: var(--nivel); box-shadow: inset 0 -1px 0 var(--nivel-escuro); }
@@ -942,8 +941,9 @@ select.campo {
 .faixa-do-detalhe .faixa.compacta, .conquista-faixa .faixa.compacta { --e: 1; }
 .meu-titulo { display: grid; justify-items: center; gap: 4px; width: 100%; }
 .meu-titulo .progresso { width: 100%; max-width: 280px; }
-.dono-titulo { display: flex; align-items: center; gap: 10px; text-align: left; }
-.dono-titulo .etiqueta-nivel { margin-left: auto; }
+.dono-titulo { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; }
+.dono-titulo .etiqueta-nivel { min-width: 76px; margin-left: auto; text-align: center; }
+.dono-nome { display: grid; min-width: 0; }
 
 .escolha-titulo { display: grid; border: 2px solid var(--caixa-funda); clip-path: var(--canto); }
 

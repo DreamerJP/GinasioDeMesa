@@ -147,6 +147,7 @@ let telaVisivel = '';
 let partidaAberta = '';
 let diaAberto = '';
 let mesDoDiaAberto = '';
+let tituloSendoVisto = '';
 let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
@@ -1266,6 +1267,9 @@ let relogioDaConquista = null;
 function verificarTitulosNovos() {
   if (!estado?.eu.apelido || estado.gravando) return;
   if (!document.getElementById('celebracao').hidden || !document.getElementById('conquista').hidden) return;
+  const { tela, parametro } = rotaAtual();
+  if (tituloSendoVisto && tela === 'titulo' && parametro === tituloSendoVisto) return;
+  tituloSendoVisto = '';
   const novos = titulosNovos();
   if (!novos.length) return;
   mostrarConquista(novos[0]);
@@ -1364,7 +1368,9 @@ function mostrarConquista(situacao) {
     botaoVer: 'Ver título',
     aoConcluir: indoVer => {
       marcarComoVisto([situacao.chave]);
-      if (indoVer) irPara('titulo', titulo.id);
+      if (!indoVer) return;
+      tituloSendoVisto = titulo.id;
+      irPara('titulo', titulo.id);
     },
   });
 }
@@ -1950,19 +1956,16 @@ function mostrarTitulo(id) {
     const escada = criar('ol', 'escada-niveis');
     escada.append(...titulo.metas.map((meta, i) => {
       const degrau = criar('li', i < meu.alcancados ? 'alcancado' : '');
-      let nota = '';
-      if (i < meu.alcancados) nota = `desde ${nomeDoMes(datas[i])}`;
-      else if (i === meu.alcancados) nota = `faltam ${meta - meu.atual}`;
-      degrau.append(etiquetaDoNivel(NIVEIS[i], i >= meu.alcancados), criar('span', '', quantidade(meta, titulo.unidade)), criar('span', 'detalhe', nota));
+      degrau.append(etiquetaDoNivel(NIVEIS[i], i >= meu.alcancados), criar('span', '', quantidade(meta, titulo.unidade)));
       return degrau;
     }));
-    situacao.replaceChildren(criar('p', 'rotulo', meu.alcancados ? `Você está no nível ${NOME_DO_NIVEL[meu.nivel]}` : 'Você ainda não tem'), escada);
+    const nivelAtual = meu.alcancados ? [criar('p', '', `${NOME_DO_NIVEL[meu.nivel]} desde ${nomeDoMes(datas[meu.alcancados - 1])}`)] : [];
+    situacao.replaceChildren(...nivelAtual, barraDoProgresso(meu), escada);
   } else if (meu.alcancados) {
     situacao.replaceChildren(criar('p', '', `Você tem desde ${nomeDoMes(meu.desde)}.`));
   } else {
     situacao.replaceChildren(criar('p', 'rotulo', 'Seu progresso'), barraDoProgresso(meu));
   }
-  if (meu.alcancados && tituloExibido(eu)?.titulo.id === id) situacao.append(criar('p', 'detalhe', 'Está embaixo do seu nome.'));
 
   const donos = donosDoTitulo(id);
   document.getElementById('titulo-donos').replaceChildren(...(donos.length
@@ -1970,9 +1973,10 @@ function mostrarTitulo(id) {
       const item = criar('li');
       const botao = criar('button', 'botao-limpo dono-titulo');
       botao.type = 'button';
-      botao.append(imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido));
+      const nome = criar('span', 'dono-nome');
+      nome.append(criar('span', '', alguem.apelido), criar('span', 'detalhe', `desde ${nomeDoMes(s.desde)}`));
+      botao.append(imagemDe(alguem, 'foto'), nome);
       if (variosNiveis) botao.append(etiquetaDoNivel(s.nivel));
-      botao.append(criar('span', 'detalhe', `desde ${nomeDoMes(s.desde)}`));
       botao.addEventListener('click', () => irPara('perfil', alguem.id));
       item.append(botao);
       return item;
@@ -2130,7 +2134,9 @@ function mostrarInsignia(numero) {
   document.getElementById('insignia-donos').replaceChildren(...(donos.length
     ? donos.map(([alguem, { mes }]) => {
       const item = criar('li');
-      item.append(imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido), criar('span', 'detalhe', nomeDoMes(mes)));
+      const nome = criar('span', 'dono-nome');
+      nome.append(criar('span', '', alguem.apelido), criar('span', 'detalhe', nomeDoMes(mes)));
+      item.append(imagemDe(alguem, 'foto'), nome);
       return item;
     })
     : [criar('li', 'detalhe', 'Ninguém chegou aqui ainda.')]));
