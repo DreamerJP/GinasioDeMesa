@@ -1401,7 +1401,7 @@ function mostrarRanking(pedido) {
   const doMes = partidas.filter(p => p.mes === mes);
   const { linhas, total } = rankingDe(mes);
   document.getElementById('total-partidas').textContent = `${total} ${total === 1 ? 'partida' : 'partidas'} no mês`;
-  document.getElementById('ranking').replaceChildren(...linhas.map(l => linhaDoMes(l, total)));
+  document.getElementById('ranking').replaceChildren(...linhas.filter(l => l.partidas > 0).map(l => linhaDoMes(l, total)));
 
   // Partidas lançadas pelo administrador trazem o dia certo, mas não a hora em que foram abertas.
   const dias = new Map();
