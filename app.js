@@ -1402,8 +1402,6 @@ function mostrarRanking(pedido) {
   document.getElementById('troca-mes').hidden = meses.length < 2;
   document.getElementById('ranking-mes').textContent = MESES[indiceDoMes(mes)];
   document.getElementById('partidas-mes').textContent = MESES[indiceDoMes(mes)];
-  document.getElementById('ranking-nova-partida').hidden = mes !== mesAtual;
-
   const doMes = partidas.filter(p => p.mes === mes);
   const { linhas, total } = rankingDe(mes);
   document.getElementById('total-partidas').textContent = `${total} ${total === 1 ? 'partida' : 'partidas'} no mês`;
