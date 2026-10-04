@@ -15,6 +15,9 @@
   --vida: #52c46a;
   --trilho: #2f3155;
   --canto: polygon(0 var(--px), var(--px) var(--px), var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px), 100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%, var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)));
+  /* Setas desenhadas em pixel: as fontes do site não têm ▸ nem ▾, e cada aparelho desenharia a sua. Usar só em 2x (8x14 e 14x8). */
+  --seta-direita: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1H0z'/%3E%3C/svg%3E");
+  --seta-baixo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h7v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1H0z'/%3E%3C/svg%3E");
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -328,7 +331,6 @@ select.campo {
 .dados:has(.insignias-miniatura) .partidas { order: 3; }
 .insignias-mais { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 4px; font-size: 12px; color: var(--tinta-suave); box-shadow: inset 0 0 0 2px var(--caixa-funda); }
 .insignias-miniatura .insignia { width: 28px; height: 28px; }
-.insignias-miniatura .insignia-vezes { right: -3px; bottom: -3px; padding: 0 2px; font-size: 10px; }
 
 .barra {
   display: block;
@@ -363,7 +365,61 @@ select.campo {
   cursor: pointer;
 }
 
-.lista-partidas li:first-child .item-partida { border-top: 0; }
+.lista-partidas > li:first-child > .item-partida { border-top: 0; }
+
+.dia-partidas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 10px 8px 12px;
+  border: 0;
+  background: var(--caixa-funda);
+  color: var(--tinta);
+  text-align: left;
+  clip-path: var(--canto);
+  cursor: pointer;
+}
+
+.grupo-dia:first-child .dia-partidas { margin-top: 0; }
+.dia-partidas:active { transform: translateY(2px); }
+.dia-partidas .rotulo { color: var(--tinta); }
+.dia-partidas .detalhe { margin-left: auto; }
+.grupo-dia .lista-partidas { margin-bottom: 6px; }
+
+.seta-redonda {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #4a4b63;
+  color: #e9e8f2;
+  box-shadow: inset 0 -3px 0 #2d2e40;
+}
+
+.seta-redonda::before, .menu button:focus::before {
+  content: '';
+  width: 8px;
+  height: 14px;
+  background: currentColor;
+  -webkit-mask: var(--seta-direita) center / 100% 100% no-repeat;
+  mask: var(--seta-direita) center / 100% 100% no-repeat;
+}
+
+[aria-expanded="true"] > .seta-redonda::before {
+  width: 14px;
+  height: 8px;
+  -webkit-mask-image: var(--seta-baixo);
+  mask-image: var(--seta-baixo);
+}
+
+.seta-redonda::before { margin-left: 2px; }
+[aria-expanded="true"] > .seta-redonda::before { margin: 2px 0 0; }
+.troca-mes { display: flex; gap: 8px; }
+.troca-mes #mes-seguinte { margin-left: auto; }
 .item-partida.aberta { padding: 10px 8px; background: var(--caixa-marcada); box-shadow: inset 0 0 0 var(--px) var(--ouro); }
 .item-corpo { display: grid; gap: 2px; }
 .item-topo { display: flex; justify-content: space-between; gap: 10px; }
@@ -418,6 +474,7 @@ select.campo {
 .lista-jogadores.aberta .jogador-linha { grid-template-columns: 32px 1fr auto; }
 .lista-jogadores.aberta .posicao { display: none; }
 .jogador-linha .foto { width: 32px; height: 32px; }
+.faltas-partida { margin-top: 8px; padding-top: 12px; border-top: 2px solid var(--caixa-funda); }
 .valor { display: grid; justify-items: end; }
 
 .escolha-jogadores {
@@ -502,32 +559,32 @@ select.campo {
   .insignia.brilha.ganha::after { display: none; }
 }
 
-.insignia-vezes {
-  position: absolute;
-  z-index: 1;
-  right: -4px;
-  bottom: -4px;
-  padding: 0 4px;
-  background: var(--tinta);
-  color: var(--caixa);
-  font-size: 12px;
-  clip-path: var(--canto);
-}
-
-.quadro-insignias {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px 8px;
-  justify-items: center;
-  margin-top: 10px;
-}
-
 .historia { display: grid; gap: 10px; margin-top: 8px; font-size: 15px; }
 
-.grade-insignias { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 4px; margin-top: 10px; align-items: start; }
-.grade-insignias .botao-insignia { gap: 2px; padding: 6px 2px; }
+.grade-insignias { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.casa-insignia { --cor-da-trilha: var(--tinta-apagada); position: relative; display: grid; }
+.casa-insignia.trilha-feita { --cor-da-trilha: var(--ouro); }
+.casa-insignia::after { position: absolute; top: 37px; }
+.trilha-direita::after, .trilha-esquerda::after { content: ''; width: calc(100% - 56px); border-top: 2px dashed var(--cor-da-trilha); }
+.trilha-direita::after { left: calc(50% + 32px); }
+.trilha-esquerda::after { right: calc(50% + 32px); }
+.trilha-volta-direita::after, .trilha-volta-esquerda::after { content: ''; width: calc(50% - 22px); height: calc(100% + 8px); border: 2px dashed var(--cor-da-trilha); }
+.trilha-volta-direita::after { left: calc(50% + 32px); border-left: 0; }
+.trilha-volta-esquerda::after { right: calc(50% + 32px); border-right: 0; }
+.grade-insignias .botao-insignia { align-content: start; gap: 2px; padding: 6px 2px; }
 .grade-insignias .insignia { margin-bottom: 4px; }
-.botao-insignia.em-disputa { background: var(--caixa-marcada); box-shadow: inset 0 0 0 var(--px) var(--ouro); clip-path: var(--canto); }
+.botao-insignia:focus { outline: none; }
+.botao-insignia.proxima .insignia { filter: drop-shadow(0 0 3px rgb(242 193 78 / 0.7)); }
+.botao-insignia.proxima .insignia img { opacity: 0; }
+.botao-insignia.proxima .insignia::before,
+.botao-insignia.proxima .insignia::after {
+  content: '';
+  position: absolute;
+  -webkit-mask: var(--imagem) center / contain no-repeat;
+  mask: var(--imagem) center / contain no-repeat;
+}
+.botao-insignia.proxima .insignia::before { inset: -3px; background: var(--ouro); }
+.botao-insignia.proxima .insignia::after { inset: 0; background: #b9b5a7; }
 
 .botao-insignia {
   display: grid;
@@ -687,20 +744,17 @@ select.campo {
   background: none;
   color: var(--tinta);
   text-align: left;
+  line-height: 22px;
   letter-spacing: 1px;
   text-transform: uppercase;
   cursor: pointer;
 }
 
 .menu button:focus { outline: none; }
-.menu button:focus::before { content: '▶'; position: absolute; left: 8px; }
+.menu button:focus::before { position: absolute; left: 10px; top: calc(50% - 7px); }
 
-.menu-grupo::after { content: '▸'; position: absolute; right: 8px; }
-.menu-grupo[aria-expanded="true"]::after { content: '▾'; }
-
-.menu-itens { display: grid; }
-.menu-itens button { padding-left: 44px; }
-.menu-itens button:focus::before { left: 24px; }
+.menu-bloco { display: grid; margin-top: 6px; padding-top: 6px; border-top: 2px solid var(--caixa-funda); }
+.menu-rotulo { padding: 4px 8px 2px 28px; }
 
 .celebracao {
   position: fixed;

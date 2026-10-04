@@ -34,18 +34,18 @@ const SONS = {
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
 const INSIGNIAS = [
-  { nome: 'Insígnia do Canto', trecho: 'Mar de verão', lore: 'O Ginásio começa sua travessia à beira do mar, no calor do verão, ao som do canto das baleias.' },
-  { nome: 'Insígnia do Trovão', trecho: 'Tempestade de verão', lore: 'Uma tempestade varre o mar de verão. Os raios iluminam a água por um instante.' },
-  { nome: 'Insígnia da Maré', trecho: 'Praia no fim do verão', lore: 'O verão chega ao fim. A maré leva o que ficou para trás e prepara a virada.' },
-  { nome: 'Insígnia do Vento', trecho: 'Planície dos ventos', lore: 'O outono começa nas planícies abertas. O vento não deixa nada parado por muito tempo.' },
-  { nome: 'Insígnia da Teia', trecho: 'Bosque das teias', lore: 'No bosque, as teias brilham com o orvalho da manhã. Cada fio marca um caminho.' },
-  { nome: 'Insígnia da Lã', trecho: 'Pasto de nuvens', lore: 'O outono termina entre nuvens baixas e pasto macio. A jornada descansa antes do frio.' },
-  { nome: 'Insígnia da Geada', trecho: 'Campos de gelo', lore: 'O inverno chega com força. Os campos de gelo cobrem o caminho até onde a vista alcança.' },
-  { nome: 'Insígnia do Cume', trecho: 'Pico da montanha', lore: 'O ponto mais alto da travessia. Daqui se vê toda a jornada e o caminho que ainda falta.' },
-  { nome: 'Insígnia do Leque', trecho: 'Vale do canto', lore: 'O inverno fica ameno no vale. Entre ecos e ventos suaves, a primavera já se anuncia.' },
-  { nome: 'Insígnia da Flor', trecho: 'Jardim de espinhos', lore: 'A primavera floresce entre espinhos. As flores do jardim só abrem para quem passa com cuidado.' },
-  { nome: 'Insígnia da Estrela', trecho: 'Árvore das estrelas', lore: 'A árvore mais alta da terra do Ginásio. Suas folhas brilham como estrelas na noite da primavera.' },
-  { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa', lore: 'O fim da travessia. Além daqui, o mapa está em branco. Até o Ginásio recomeçar no próximo ano.' },
+  { nome: 'Insígnia do Canto', trecho: 'Mar de verão', lore: 'A baleia desta insígnia veio do mar de verão. Encostada no ouvido, ainda se ouve o canto dela.' },
+  { nome: 'Insígnia do Trovão', trecho: 'Tempestade de verão', lore: 'Os raios desta insígnia guardam a energia da tempestade de verão. Na mão, ela vibra como se o trovão ainda estivesse preso dentro.' },
+  { nome: 'Insígnia da Maré', trecho: 'Praia no fim do verão', lore: 'Água-viva presa num globo de resina, recolhida quando a maré baixou. No escuro, ela ainda acende devagar.' },
+  { nome: 'Insígnia do Vento', trecho: 'Planície dos ventos', lore: 'Um galho florido arrancado pela ventania das planícies. As folhas ainda estão viradas para o lado em que o vento soprou.' },
+  { nome: 'Insígnia da Teia', trecho: 'Bosque das teias', lore: 'A aranha desta insígnia veio do bosque das teias. Os fios dela ainda brilham com o orvalho da manhã.' },
+  { nome: 'Insígnia da Lã', trecho: 'Pasto de nuvens', lore: 'A ovelha desta insígnia veio do pasto de nuvens. É tão macia que parece feita da própria nuvem.' },
+  { nome: 'Insígnia da Geada', trecho: 'Campos de gelo', lore: 'Floco de neve que não derrete, trazido dos campos de gelo. Deixa frio o bolso de quem o carrega.' },
+  { nome: 'Insígnia do Cume', trecho: 'Pico da montanha', lore: 'O pico e a lua desta insígnia vêm do ponto mais alto da travessia. Na mão, ela pesa como a própria montanha.' },
+  { nome: 'Insígnia da Asa', trecho: 'Vale do canto', lore: 'O pássaro desta insígnia veio do vale do canto. As asas dele guardam o primeiro vento da primavera.' },
+  { nome: 'Insígnia da Flor', trecho: 'Jardim de espinhos', lore: 'Flor de cristal colhida no jardim de espinhos. Não murcha, e o caule ainda espeta quem a segura.' },
+  { nome: 'Insígnia da Estrela', trecho: 'Bosque estrelado', lore: 'No alto do bosque estrelado, as noites são tão claras que dá para ler o mapa sem lanterna.' },
+  { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa', lore: 'Bússola achada nos confins do mapa. A agulha não aponta para o norte, aponta o caminho de volta.' },
 ].map((insignia, i) => ({ ...insignia, imagem: `midia/insignia-${String(i + 1).padStart(2, '0')}.webp` }));
 
 const FOLGA_DO_ATROPELO = 1.5;
@@ -145,6 +145,8 @@ let estadoEmEspera = null;
 let relogioDaEntrada = null;
 let telaVisivel = '';
 let partidaAberta = '';
+let diaAberto = '';
+let mesDoDiaAberto = '';
 let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
@@ -281,10 +283,22 @@ function conquistas() {
   return porJogador;
 }
 
-function vezesPorInsignia(meses = []) {
-  const vezes = Array(12).fill(0);
-  for (const mes of meses) vezes[indiceDoMes(mes)]++;
-  return vezes;
+function mesesVencidos(id) {
+  return [...(conquistas().get(id) || [])].sort();
+}
+
+function colecaoDe(id) {
+  return mesesVencidos(id).slice(0, INSIGNIAS.length).map((mes, indice) => ({ indice, mes }));
+}
+
+function insigniaDaVitoria(id, mes) {
+  const indice = mesesVencidos(id).indexOf(mes);
+  return indice >= 0 && indice < INSIGNIAS.length ? indice : null;
+}
+
+function proximaInsignia(id) {
+  const vitorias = mesesVencidos(id).length;
+  return vitorias < INSIGNIAS.length ? vitorias : null;
 }
 
 function indiceDoMes(mes) {
@@ -465,10 +479,13 @@ function titulosNovos() {
     });
 }
 
-const formatoData = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+const formatoHora = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, hour: '2-digit', minute: '2-digit' });
+const formatoDia = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: 'long', day: 'numeric' });
+const formatoDataLonga = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 
-function dataCurta(momento) {
-  return formatoData.format(momento).replace(',', '');
+function diaDaPartida(momento) {
+  const partes = formatoDia.formatToParts(momento);
+  return `${partes.find(p => p.type === 'weekday').value}, dia ${partes.find(p => p.type === 'day').value}`;
 }
 
 function mesDeHoje() {
@@ -555,20 +572,14 @@ function imagemDe(alguem, classe) {
   return imagem;
 }
 
-function desenhoDaInsignia(indice, vezes, grande = false) {
+function desenhoDaInsignia(indice, ganha, grande = false) {
   const { imagem } = INSIGNIAS[indice];
-  const desenho = criar('span', `insignia${vezes ? ' ganha' : ''}${grande ? ' grande' : ''}${imagem ? ' com-imagem' : ''}`);
-  if (imagem) {
-    const figura = criar('img');
-    figura.alt = '';
-    figura.src = imagem;
-    desenho.append(figura);
-    desenho.style.setProperty('--imagem', `url(${imagem})`);
-    if (grande) desenho.classList.add('brilha');
-  } else {
-    desenho.append(MESES[indice].slice(0, 3));
-  }
-  if (vezes > 1) desenho.append(criar('span', 'insignia-vezes', `×${vezes}`));
+  const desenho = criar('span', `insignia com-imagem${ganha ? ' ganha' : ''}${grande ? ' grande brilha' : ''}`);
+  const figura = criar('img');
+  figura.alt = '';
+  figura.src = imagem;
+  desenho.append(figura);
+  desenho.style.setProperty('--imagem', `url(${imagem})`);
   return desenho;
 }
 
@@ -1104,8 +1115,8 @@ function desenharPodio(podio, linhas) {
 
 function mostrarCelebracao(mes, campeoes) {
   const indice = indiceDoMes(mes);
-  const insignia = INSIGNIAS[indice];
   const euVenci = campeoes.some(l => l.id === estado.eu.id);
+  const daEntrega = insigniaDaVitoria(euVenci ? estado.eu.id : campeoes[0].id, mes);
   const escreveu = estado.frases.some(f => f.mes === mes && f.jogador === estado.eu.id);
   const varios = campeoes.length > 1;
   const nomes = euVenci && !varios ? 'Você' : campeoes.map(l => jogador(l.id)?.apelido || '?').join(' e ');
@@ -1126,12 +1137,19 @@ function mostrarCelebracao(mes, campeoes) {
     balao.append(criar('p', 'frase', frase.texto));
     return [balao];
   }));
-  const insigniaDaEntrega = desenhoDaInsignia(indice, 1);
-  insigniaDaEntrega.classList.add('brilha');
-  insigniaDaEntrega.style.setProperty('--atraso', '0.8s');
-  document.getElementById('celebracao-insignia').replaceChildren(insigniaDaEntrega);
-  let entrega = `${nomes} ${varios ? 'levam' : 'leva'} a ${insignia.nome}.`;
-  if (premio) entrega = varios ? `${nomes} dividem: ${premio}. Cada um leva a ${insignia.nome}.` : `${nomes} leva: ${premio} e ${insignia.nome}.`;
+  const lugarDaInsignia = document.getElementById('celebracao-insignia');
+  lugarDaInsignia.replaceChildren();
+  if (daEntrega !== null) {
+    const insigniaDaEntrega = desenhoDaInsignia(daEntrega, true);
+    insigniaDaEntrega.classList.add('brilha');
+    insigniaDaEntrega.style.setProperty('--atraso', '0.8s');
+    lugarDaInsignia.append(insigniaDaEntrega);
+  }
+  const nomeDaInsignia = daEntrega === null ? '' : INSIGNIAS[daEntrega].nome;
+  let entrega;
+  if (varios) entrega = premio ? `${nomes} dividem: ${premio}. Cada um leva a sua próxima insígnia.` : `${nomes} levam, cada um, a sua próxima insígnia.`;
+  else if (nomeDaInsignia) entrega = premio ? `${nomes} leva: ${premio} e a ${nomeDaInsignia}.` : `${nomes} leva a ${nomeDaInsignia}.`;
+  else entrega = premio ? `${nomes} leva: ${premio}.` : `${nomes} fecha o mês em 1º.`;
   document.getElementById('celebracao-subtitulo').textContent = entrega;
   botao.textContent = euVenci && !escreveu ? 'Escrever minha frase' : 'Continuar';
 
@@ -1199,11 +1217,16 @@ function mostrarInicio() {
   const { mesAtual, eu, premios, partidas } = estado;
   const indice = indiceDoMes(mesAtual);
   document.getElementById('premio-texto').textContent = premios[mesAtual] || 'Prêmio ainda não definido.';
-  document.getElementById('premio-insignia').textContent = INSIGNIAS[indice].nome;
   document.getElementById('premio-fecha').textContent = textoFechamento(mesAtual);
-  document.getElementById('premio-insignia-imagem').replaceChildren(desenhoDaInsignia(indice, 1, true));
-  document.getElementById('premio-insignia-imagem').onclick = () => irPara('insignia', indice + 1);
-  document.getElementById('premio-insignia').onclick = () => irPara('insignia', indice + 1);
+  const proxima = proximaInsignia(eu.id);
+  document.getElementById('premio-insignia-imagem').hidden = proxima === null;
+  document.getElementById('premio-linha-insignia').hidden = proxima === null;
+  if (proxima !== null) {
+    document.getElementById('premio-insignia').textContent = INSIGNIAS[proxima].nome;
+    document.getElementById('premio-insignia-imagem').replaceChildren(desenhoDaInsignia(proxima, true, true));
+    document.getElementById('premio-insignia-imagem').onclick = () => irPara('insignia', proxima + 1);
+    document.getElementById('premio-insignia').onclick = () => irPara('insignia', proxima + 1);
+  }
 
   const doMes = partidas.filter(p => p.mes === mesAtual);
   const pedidos = estado.pedidos || [];
@@ -1229,10 +1252,9 @@ function mostrarInicio() {
   desenharPodio(document.getElementById('podio-do-mes'), linhas);
 
   const geral = rankingGeral();
-  const donos = conquistas();
   const proximo = MESES[(indice + 1) % 12];
   document.getElementById('ranking-geral').replaceChildren(...(geral.length
-    ? geral.map(l => linhaDoRanking(l.id, l.posicao, insigniasEmMiniatura(donos.get(l.id), l.insignias), ''))
+    ? geral.map(l => linhaDoRanking(l.id, l.posicao, insigniasEmMiniatura(l.id, l.insignias), ''))
     : [criar('li', 'detalhe', `Nenhum mês fechou ainda. O primeiro entra aqui em 1º de ${proximo}.`)]));
 }
 
@@ -1348,50 +1370,102 @@ function mostrarConquista(situacao) {
 }
 
 
-function insigniasEmMiniatura(meses, total) {
+function insigniasEmMiniatura(id, total) {
   const miniaturas = criar('span', 'insignias-miniatura');
   miniaturas.setAttribute('aria-label', `${total} ${total === 1 ? 'insígnia' : 'insígnias'}`);
-  const ganhas = vezesPorInsignia(meses).map((vezes, i) => [i, vezes]).filter(([, vezes]) => vezes);
-  miniaturas.append(...ganhas.slice(0, MAXIMO_DE_INSIGNIAS).map(([i, vezes]) => desenhoDaInsignia(i, vezes)));
-  if (ganhas.length > MAXIMO_DE_INSIGNIAS) miniaturas.append(criar('span', 'insignias-mais', `+${ganhas.length - MAXIMO_DE_INSIGNIAS}`));
+  const colecao = colecaoDe(id);
+  miniaturas.append(...colecao.slice(0, MAXIMO_DE_INSIGNIAS).map(({ indice }) => desenhoDaInsignia(indice, true)));
+  if (colecao.length > MAXIMO_DE_INSIGNIAS) miniaturas.append(criar('span', 'insignias-mais', `+${colecao.length - MAXIMO_DE_INSIGNIAS}`));
   return miniaturas;
 }
 
-function mostrarRanking() {
+function ligarTrocaDeMes(botao, mes, texto) {
+  botao.hidden = !mes;
+  if (!mes) return;
+  botao.textContent = texto(MESES[indiceDoMes(mes)]);
+  botao.onclick = () => irPara('ranking', mes === estado.mesAtual ? '' : mes);
+}
+
+function mostrarRanking(pedido) {
   const { mesAtual, partidas } = estado;
-  const doMes = partidas.filter(p => p.mes === mesAtual);
-  const { linhas, total } = rankingDe(mesAtual);
+  const meses = [...new Set([...partidas.map(p => p.mes), mesAtual])].sort();
+  const mes = meses.includes(pedido) ? pedido : mesAtual;
+  const posicao = meses.indexOf(mes);
+  ligarTrocaDeMes(document.getElementById('mes-anterior'), meses[posicao - 1], nome => `◀ ${nome}`);
+  ligarTrocaDeMes(document.getElementById('mes-seguinte'), meses[posicao + 1], nome => `${nome} ▶`);
+  document.getElementById('troca-mes').hidden = meses.length < 2;
+  document.getElementById('ranking-mes').textContent = MESES[indiceDoMes(mes)];
+  document.getElementById('partidas-mes').textContent = MESES[indiceDoMes(mes)];
+  document.getElementById('ranking-nova-partida').hidden = mes !== mesAtual;
+
+  const doMes = partidas.filter(p => p.mes === mes);
+  const { linhas, total } = rankingDe(mes);
   document.getElementById('total-partidas').textContent = `${total} ${total === 1 ? 'partida' : 'partidas'} no mês`;
   document.getElementById('ranking').replaceChildren(...linhas.map(l => linhaDoMes(l, total)));
 
-  const itens = [...doMes].reverse().map(partida => {
-    const jogo = jogoDe(partida);
-    const aberta = partida.estado === 'aberta';
-    const botao = criar('button', `item-partida${aberta ? ' aberta' : ''}`);
-    botao.type = 'button';
-    const topo = criar('span', 'item-topo');
-    topo.append(criar('span', '', jogo.nome), criar('span', 'detalhe', partida.abertaPor ? dataCurta(partida.abertaEm) : ''));
-    const lugares = aberta ? null : lugaresDaPartida(partida);
-    const ordem = aberta ? partida.placares : [...partida.placares].sort((a, b) => lugares.get(a.jogador) - lugares.get(b.jogador));
-    const rostos = criar('span', 'item-jogadores');
-    rostos.append(...ordem.slice(0, MAXIMO_DE_ROSTOS).map(s => {
-      const foto = imagemDe(jogador(s.jogador), 'foto');
-      if (!aberta && lugares.get(s.jogador) === 1) foto.classList.add('vencedor');
-      return foto;
-    }));
-    if (ordem.length > MAXIMO_DE_ROSTOS) rostos.append(criar('span', 'mais', '…'));
-    const corpo = criar('span', 'item-corpo');
-    corpo.append(topo, criar('span', 'detalhe', resumoDaPartida(partida)), rostos);
-    botao.append(imagemDaCapa(jogo), corpo);
-    botao.addEventListener('click', () => irPara('partida', partida.id));
-    const item = criar('li');
-    item.append(botao);
-    return item;
+  // Partidas lançadas pelo administrador trazem o dia certo, mas não a hora em que foram abertas.
+  const dias = new Map();
+  for (const partida of [...doMes].reverse()) {
+    const dia = partida.abertaEm.getTime() ? diaDaPartida(partida.abertaEm) : 'Sem data';
+    if (!dias.has(dia)) dias.set(dia, []);
+    dias.get(dia).push(partida);
+  }
+  if (mesDoDiaAberto !== mes || !dias.has(diaAberto)) {
+    diaAberto = '';
+    mesDoDiaAberto = mes;
+  }
+  let cabecaAberta = null;
+  const grupos = [...dias].map(([dia, doDia]) => {
+    const aberto = dia === diaAberto;
+    const cabeca = criar('button', 'dia-partidas');
+    cabeca.type = 'button';
+    cabeca.setAttribute('aria-expanded', aberto);
+    cabeca.append(criar('span', 'rotulo', dia), criar('span', 'detalhe', `${doDia.length} ${doDia.length === 1 ? 'partida' : 'partidas'}`), criar('span', 'seta-redonda'));
+    cabeca.addEventListener('click', () => {
+      diaAberto = aberto ? '' : dia;
+      mostrarRanking(pedido);
+    });
+    const grupo = criar('li', 'grupo-dia');
+    grupo.append(cabeca);
+    if (aberto) {
+      const lista = criar('ul', 'lista-partidas');
+      lista.append(...doDia.map(itemDaPartida));
+      grupo.append(lista);
+      cabecaAberta = cabeca;
+    }
+    return grupo;
   });
-  document.getElementById('lista-partidas').replaceChildren(...(itens.length ? itens : [criar('li', 'detalhe', 'Nenhuma partida neste mês ainda.')]));
+  document.getElementById('lista-partidas').replaceChildren(...(grupos.length ? grupos : [criar('li', 'detalhe', 'Nenhuma partida neste mês ainda.')]));
+  if (cabecaAberta && cabecaAberta.getBoundingClientRect().top < 0) cabecaAberta.scrollIntoView();
+}
+
+function itemDaPartida(partida) {
+  const jogo = jogoDe(partida);
+  const aberta = partida.estado === 'aberta';
+  const botao = criar('button', `item-partida${aberta ? ' aberta' : ''}`);
+  botao.type = 'button';
+  const topo = criar('span', 'item-topo');
+  topo.append(criar('span', '', jogo.nome), criar('span', 'detalhe', partida.abertaPor ? formatoHora.format(partida.abertaEm) : ''));
+  const lugares = aberta ? null : lugaresDaPartida(partida);
+  const ordem = aberta ? partida.placares : [...partida.placares].sort((a, b) => lugares.get(a.jogador) - lugares.get(b.jogador));
+  const rostos = criar('span', 'item-jogadores');
+  rostos.append(...ordem.slice(0, MAXIMO_DE_ROSTOS).map(s => {
+    const foto = imagemDe(jogador(s.jogador), 'foto');
+    if (!aberta && lugares.get(s.jogador) === 1) foto.classList.add('vencedor');
+    return foto;
+  }));
+  if (ordem.length > MAXIMO_DE_ROSTOS) rostos.append(criar('span', 'mais', '…'));
+  const corpo = criar('span', 'item-corpo');
+  corpo.append(topo, criar('span', 'detalhe', resumoDaPartida(partida)), rostos);
+  botao.append(imagemDaCapa(jogo), corpo);
+  botao.addEventListener('click', () => irPara('partida', partida.id));
+  const item = criar('li');
+  item.append(botao);
+  return item;
 }
 
 function resumoDaPartida(partida) {
+  if (partida.estado === 'aberta' && partida.mes < estado.mesAtual) return 'Não contou: faltou placar';
   if (partida.estado === 'aberta') {
     const faltam = partida.placares.filter(s => s.valor === null).length;
     return `Aberta, ${faltam === 1 ? 'falta 1 placar' : `faltam ${faltam} placares`}`;
@@ -1419,7 +1493,11 @@ function mostrarPartida(id) {
 
   document.getElementById('partida-capa').replaceChildren(imagemDaCapa(jogo));
   document.getElementById('partida-jogo').textContent = jogo.nome;
-  let situacao = `Fechada, conta em ${nomeDoMes(partida.mes)}`;
+  const data = document.getElementById('partida-data');
+  data.hidden = !partida.abertaEm.getTime();
+  const quando = formatoDataLonga.format(partida.abertaEm);
+  data.textContent = quando[0].toUpperCase() + quando.slice(1) + (partida.abertaPor ? ` às ${formatoHora.format(partida.abertaEm)}` : '');
+  let situacao = `Fechada, ranking ${partida.mes.slice(5)}/${partida.mes.slice(0, 4)}`;
   if (aberta && valeNoMes) situacao = `Aberta${autor ? ` por ${autor}` : ''}. ${lancados} de ${partida.placares.length} lançaram.`;
   if (aberta && !valeNoMes) situacao = 'Não conta: o mês fechou antes de todos lançarem.';
   document.getElementById('partida-situacao').textContent = situacao;
@@ -1449,12 +1527,25 @@ function mostrarPartida(id) {
     return linha;
   }));
 
+  // Só conta como falta para quem jogou alguma partida no mês; quem não jogou nenhuma fica com nota 0 de qualquer jeito.
+  const ausentes = aberta ? [] : rankingDe(partida.mes).linhas.filter(l => l.partidas > 0 && !notas.has(l.id));
+  const notaDaFalta = aberta ? 0 : Math.min(...notas.values()) * FRACAO_DA_FALTA;
+  document.getElementById('partida-faltas').hidden = !ausentes.length;
+  document.getElementById('partida-ausentes').replaceChildren(...ausentes.map(l => {
+    const alguem = jogador(l.id);
+    const linha = criar('li', 'jogador-linha pendente');
+    const valor = criar('span', 'valor');
+    valor.append(criar('span', 'detalhe', `nota ${formatoNota.format(notaDaFalta)}`));
+    linha.append(criar('span', 'posicao'), imagemDe(alguem, 'foto'), criar('span', '', alguem?.apelido || '?'), valor);
+    return linha;
+  }));
+
   const regras = [];
   if (jogo.semPlacar) regras.push('Jogo sem placar: vale a ordem de chegada.');
   const comCampo = Boolean(aberta && valeNoMes && meu);
   if (jogo.menorVence && !comCampo) regras.push('Neste jogo, menor placar vence.');
-  if (!aberta) regras.push('Nota da partida vai de 0 a 1.');
   document.getElementById('partida-rodape').textContent = regras.join(' ');
+  document.getElementById('partida-rodape').hidden = !regras.length;
 
   const formulario = document.getElementById('form-placar');
   formulario.hidden = !comCampo;
@@ -1686,15 +1777,9 @@ function mostrarPerfil(id) {
     ? `${nomeMes}: ${linha.posicao}º lugar, ${linha.partidas} de ${total} partidas`
     : `Nenhuma partida em ${MESES[indice]} ainda.`;
 
-  const vezes = vezesPorInsignia(conquistas().get(alguem.id));
-  document.getElementById('perfil-insignias').replaceChildren(...vezes.map((quantas, i) => {
-    const botao = criar('button', 'botao-insignia');
-    botao.type = 'button';
-    botao.setAttribute('aria-label', `${INSIGNIAS[i].nome}${quantas ? `, ${quantas}×` : ', ainda não tem'}`);
-    botao.append(desenhoDaInsignia(i, quantas));
-    botao.addEventListener('click', () => irPara('insignia', i + 1));
-    return botao;
-  }));
+  const ganhas = colecaoDe(alguem.id).length;
+  document.getElementById('perfil-insignias-conta').textContent = `${ganhas} de ${INSIGNIAS.length}`;
+  document.getElementById('perfil-insignias').replaceChildren(...trilhaDeInsignias({ ganhas, destacarProxima: alguem.id === eu.id }));
 
   const proprio = alguem.id === eu.id;
   const exibido = tituloExibido(alguem);
@@ -2000,44 +2085,55 @@ function ligarPerfil() {
   });
 }
 
-function mostrarInsignias() {
-  const emDisputa = indiceDoMes(estado.mesAtual);
-  document.getElementById('grade-insignias').replaceChildren(...INSIGNIAS.map((insignia, i) => {
-    const botao = criar('button', `botao-insignia${i === emDisputa ? ' em-disputa' : ''}`);
+function trilhaDeInsignias({ ganhas = null, comNomes = false, destacarProxima = false } = {}) {
+  return INSIGNIAS.map((insignia, i) => {
+    const linha = Math.floor(i / 4);
+    const posicao = i % 4;
+    let trilha = '';
+    if (i < INSIGNIAS.length - 1 && posicao < 3) trilha = linha % 2 ? 'trilha-esquerda' : 'trilha-direita';
+    if (i < INSIGNIAS.length - 1 && posicao === 3) trilha = linha % 2 ? 'trilha-volta-esquerda' : 'trilha-volta-direita';
+    const tem = ganhas === null || i < ganhas;
+    const casa = criar('span', `casa-insignia ${trilha}${ganhas !== null && i + 1 < ganhas ? ' trilha-feita' : ''}`);
+    casa.style.gridRow = linha + 1;
+    casa.style.gridColumn = (linha % 2 ? 3 - posicao : posicao) + 1;
+    const botao = criar('button', `botao-insignia${destacarProxima && i === ganhas ? ' proxima' : ''}`);
     botao.type = 'button';
-    botao.setAttribute('aria-label', `${insignia.nome}, ${MESES[i]}`);
-    botao.append(desenhoDaInsignia(i, 1),criar('span', '', insignia.nome.replace(/^Insígnia d[oa]s? /, '')), criar('span', 'detalhe', MESES[i]));
+    botao.setAttribute('aria-label', `${insignia.nome}${tem ? '' : ', ainda não tem'}`);
+    botao.append(desenhoDaInsignia(i, tem));
+    if (comNomes) botao.append(criar('span', '', insignia.nome.replace(/^Insígnia d[oa]s? /, '')));
     botao.addEventListener('click', () => irPara('insignia', i + 1));
-    return botao;
-  }));
+    casa.append(botao);
+    return casa;
+  });
+}
+
+function mostrarInsignias() {
+  document.getElementById('grade-insignias').replaceChildren(...trilhaDeInsignias({ comNomes: true }));
 }
 
 function mostrarInsignia(numero) {
   const indice = Number(numero) - 1;
-  if (!(indice >= 0 && indice < 12)) {
+  if (!(indice >= 0 && indice < INSIGNIAS.length)) {
     irPara('insignias');
     return;
   }
   const { trecho, nome, lore } = INSIGNIAS[indice];
-  const todas = conquistas();
-  const minhas = vezesPorInsignia(todas.get(estado.eu.id))[indice];
-  const donos = [...todas]
-    .map(([id, meses]) => [jogador(id), meses.filter(m => indiceDoMes(m) === indice).map(m => m.slice(0, 4))])
-    .filter(([alguem, anos]) => alguem && anos.length);
+  const donos = estado.jogadores
+    .map(alguem => [alguem, colecaoDe(alguem.id)[indice]])
+    .filter(([, ganha]) => ganha)
+    .sort(([, a], [, b]) => a.mes.localeCompare(b.mes));
 
-  document.getElementById('insignia-imagem').replaceChildren(desenhoDaInsignia(indice, Math.max(1, minhas), true));
-  document.getElementById('insignia-minha').hidden = !minhas;
-  document.getElementById('insignia-minha').textContent = minhas > 1 ? `Você tem esta insígnia ×${minhas}` : 'Você tem esta insígnia';
+  document.getElementById('insignia-imagem').replaceChildren(desenhoDaInsignia(indice, true, true));
   document.getElementById('insignia-nome').textContent = nome;
-  document.getElementById('insignia-trecho').textContent = `${MESES[indice]} · ${trecho}`;
+  document.getElementById('insignia-trecho').textContent = `${indice + 1}º trecho · ${trecho}`;
   document.getElementById('insignia-texto').textContent = lore;
   document.getElementById('insignia-donos').replaceChildren(...(donos.length
-    ? donos.map(([alguem, anos]) => {
+    ? donos.map(([alguem, { mes }]) => {
       const item = criar('li');
-      item.append(imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido), criar('span', 'detalhe', anos.join(', ')));
+      item.append(imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido), criar('span', 'detalhe', nomeDoMes(mes)));
       return item;
     })
-    : [criar('li', 'detalhe', `Ninguém ganhou ainda. Vença ${MESES[indice]} para obtê-la.`)]));
+    : [criar('li', 'detalhe', 'Ninguém chegou aqui ainda.')]));
 }
 
 function mostrarCampeoes() {
@@ -2087,7 +2183,8 @@ function linhaDeCampeao(mes) {
   rostos.append(...campeoes.map(l => imagemDe(jogador(l.id), 'foto')));
   const nome = criar('span', 'linha-campeao-nome');
   nome.append(criar('span', '', campeoes.map(l => jogador(l.id)?.apelido || '?').join(' e ')), criar('span', 'detalhe', nomeDoMes(mes)));
-  botao.append(desenhoDaInsignia(indiceDoMes(mes), 1), rostos, nome);
+  const insignia = insigniaDaVitoria(campeoes[0].id, mes);
+  botao.append(insignia === null ? criar('span') : desenhoDaInsignia(insignia, true), rostos, nome);
   botao.addEventListener('click', () => abrirCampeao(mes));
   return botao;
 }
@@ -2095,15 +2192,18 @@ function linhaDeCampeao(mes) {
 function cartaoDeCampeao(mes) {
   const { linhas } = rankingDe(mes);
   const campeoes = linhas.filter(l => l.posicao === 1 && l.nota > 0);
-  const indice = indiceDoMes(mes);
+  const euVenci = campeoes.some(l => l.id === estado.eu.id);
+  const indice = insigniaDaVitoria(euVenci ? estado.eu.id : campeoes[0].id, mes);
   const cartao = criar('section', 'caixa campeao');
   cartao.append(criar('h2', 'rotulo', nomeDoMes(mes)));
 
   const trofeu = criar('button', 'botao-limpo');
   trofeu.type = 'button';
-  trofeu.setAttribute('aria-label', `Ver a ${INSIGNIAS[indice].nome}`);
-  trofeu.append(desenhoDaInsignia(indice, 1, true));
-  trofeu.addEventListener('click', () => irPara('insignia', indice + 1));
+  if (indice !== null) {
+    trofeu.setAttribute('aria-label', `Ver a ${INSIGNIAS[indice].nome}`);
+    trofeu.append(desenhoDaInsignia(indice, true, true));
+    trofeu.addEventListener('click', () => irPara('insignia', indice + 1));
+  }
   const pessoas = criar('div', 'campeao-pessoas');
   pessoas.append(...campeoes.map(linha => {
     const alguem = jogador(linha.id);
@@ -2126,7 +2226,10 @@ function cartaoDeCampeao(mes) {
     cartao.append(balao);
   }
 
-  cartao.append(criar('p', 'detalhe', `${INSIGNIAS[indice].nome} e ${estado.premios[mes] || 'prêmio não registrado'}`));
+  const premio = estado.premios[mes] || 'prêmio não registrado';
+  let entrega = indice === null ? premio : `${INSIGNIAS[indice].nome} e ${premio}`;
+  if (campeoes.length > 1) entrega = `Cada um levou a sua próxima insígnia. Prêmio: ${premio}`;
+  cartao.append(criar('p', 'detalhe', entrega));
 
   const seguintes = linhas.filter(l => l.nota > 0 && l.posicao > 1 && l.posicao <= 3);
   if (seguintes.length) {
@@ -2335,22 +2438,13 @@ async function sairDaConta() {
 function ligarMenu() {
   const botao = document.getElementById('abrir-menu');
   const menu = document.getElementById('menu');
-  const itensAtivos = () => [...menu.querySelectorAll('button:not([hidden])')].filter(b => !b.parentElement.hidden);
-  const acoes = { som: alternarSom, sair: sairDaConta, fechar: () => {} };
-
-  const expandirGrupo = cabecalho => {
-    menu.querySelectorAll('[data-grupo]').forEach(g => {
-      const aberto = g === cabecalho;
-      g.setAttribute('aria-expanded', aberto);
-      document.getElementById(g.getAttribute('aria-controls')).hidden = !aberto;
-    });
-  };
+  const itensAtivos = () => [...menu.querySelectorAll('button:not([hidden])')];
+  const acoes = { som: alternarSom, sair: sairDaConta };
 
   const alternar = aberto => {
     if (aberto) tocar('mover');
     const secao = { insignia: 'insignias', titulo: 'titulos' }[telaVisivel] || telaVisivel;
     const atual = menu.querySelector(`[data-item="${secao}"]`);
-    if (aberto) expandirGrupo(menu.querySelector(`[aria-controls="${atual?.parentElement.id}"]`));
     menu.hidden = !aberto;
     botao.setAttribute('aria-expanded', aberto);
     (aberto ? atual || itensAtivos()[0] : botao).focus();
@@ -2360,12 +2454,6 @@ function ligarMenu() {
   menu.addEventListener('click', e => {
     const item = e.target.closest('button');
     if (!item) return;
-    if (item.dataset.grupo) {
-      tocar('mover');
-      expandirGrupo(item.getAttribute('aria-expanded') === 'true' ? null : item);
-      item.focus();
-      return;
-    }
     alternar(false);
     if (item.dataset.item !== 'som') tocar('escolher');
     if (acoes[item.dataset.item]) acoes[item.dataset.item]();

@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=47">
-<script type="module" src="app.js?v=48" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=48">
+<script type="module" src="app.js?v=49" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -21,23 +21,22 @@
 
   <nav class="caixa menu" id="menu" role="menu" hidden>
     <button role="menuitem" data-item="inicio">Início</button>
+    <button role="menuitem" data-item="ranking">Ranking</button>
     <button role="menuitem" data-item="nova-partida">Nova partida</button>
-    <button role="menuitem" class="menu-grupo" data-grupo="disputa" aria-expanded="false" aria-controls="grupo-disputa">Disputa</button>
-    <div class="menu-itens" id="grupo-disputa" role="group" hidden>
-      <button role="menuitem" data-item="ranking">Ranking</button>
+    <div class="menu-bloco" role="group" aria-labelledby="menu-ginasio">
+      <p class="rotulo menu-rotulo" id="menu-ginasio">Ginásio</p>
       <button role="menuitem" data-item="campeoes">Campeões</button>
       <button role="menuitem" data-item="insignias">Insígnias</button>
       <button role="menuitem" data-item="titulos">Títulos</button>
       <button role="menuitem" data-item="regras">Regras</button>
     </div>
-    <button role="menuitem" class="menu-grupo" data-grupo="conta" aria-expanded="false" aria-controls="grupo-conta">Minha conta</button>
-    <div class="menu-itens" id="grupo-conta" role="group" hidden>
+    <div class="menu-bloco" role="group" aria-labelledby="menu-conta">
+      <p class="rotulo menu-rotulo" id="menu-conta">Conta</p>
       <button role="menuitem" data-item="perfil">Perfil</button>
       <button role="menuitem" data-item="som">Som: ligado</button>
+      <button role="menuitem" data-item="administracao" hidden>Administração</button>
       <button role="menuitem" data-item="sair">Sair da conta</button>
     </div>
-    <button role="menuitem" data-item="administracao" hidden>Administração</button>
-    <button role="menuitem" data-item="fechar">Fechar</button>
   </nav>
 
   <main class="conteudo" data-tela="entrada">
@@ -80,9 +79,9 @@
         <h2 class="rotulo">Disputa de <span data-mes></span></h2>
         <p class="detalhe" id="premio-fecha"></p>
       </div>
-      <button class="botao-limpo" id="premio-insignia-imagem" type="button" aria-label="Ver a insígnia do mês"></button>
+      <button class="botao-limpo" id="premio-insignia-imagem" type="button" aria-label="Ver a sua próxima insígnia"></button>
       <p class="premio-texto" id="premio-texto"></p>
-      <p class="detalhe">e a <button class="botao-limpo" id="premio-insignia" type="button"></button></p>
+      <p class="detalhe" id="premio-linha-insignia">e a sua próxima insígnia, a <button class="botao-limpo" id="premio-insignia" type="button"></button></p>
       <div class="podio" id="podio-do-mes">
         <img class="podio-base" src="midia/podio.png" alt="">
         <div class="podio-lugar" data-degrau="1"></div>
@@ -111,9 +110,14 @@
   </main>
 
   <main class="conteudo" data-tela="ranking" hidden>
+    <nav class="troca-mes" id="troca-mes" aria-label="Outros meses">
+      <button class="botao-menu" id="mes-anterior" type="button"></button>
+      <button class="botao-menu" id="mes-seguinte" type="button"></button>
+    </nav>
+
     <section class="caixa">
       <div class="cabecalho">
-        <h2 class="rotulo">Ranking de <span data-mes></span></h2>
+        <h2 class="rotulo">Ranking de <span id="ranking-mes"></span></h2>
         <p class="detalhe" id="total-partidas"></p>
       </div>
       <ol class="ranking" id="ranking"></ol>
@@ -125,8 +129,8 @@
 
     <section class="caixa">
       <div class="cabecalho">
-        <h2 class="rotulo">Partidas de <span data-mes></span></h2>
-        <button class="botao-menu" data-ir="nova-partida">+ Nova partida</button>
+        <h2 class="rotulo">Partidas de <span id="partidas-mes"></span></h2>
+        <button class="botao-menu" id="ranking-nova-partida" data-ir="nova-partida">+ Nova partida</button>
       </div>
       <ul class="lista-partidas" id="lista-partidas"></ul>
     </section>
@@ -137,6 +141,7 @@
       <span id="partida-capa"></span>
       <div class="partida-nome">
         <h2 class="titulo-caixa" id="partida-jogo"></h2>
+        <p class="detalhe" id="partida-data"></p>
         <p class="detalhe" id="partida-situacao"></p>
       </div>
     </section>
@@ -153,6 +158,10 @@
 
     <section class="caixa" id="caixa-jogadores">
       <ol class="lista-jogadores" id="partida-jogadores"></ol>
+      <div class="faltas-partida" id="partida-faltas" hidden>
+        <h3 class="rotulo">Faltaram</h3>
+        <ol class="lista-jogadores" id="partida-ausentes"></ol>
+      </div>
       <p class="rodape" id="partida-rodape"></p>
     </section>
 
@@ -258,9 +267,11 @@
     </section>
 
     <section class="caixa">
-      <h2 class="rotulo">Insígnias</h2>
-      <div class="quadro-insignias" id="perfil-insignias"></div>
-      <p class="rodape">Uma insígnia por mês vencido. Vencer o mesmo mês em outro ano vira ×2, ×3.</p>
+      <div class="cabecalho">
+        <h2 class="rotulo">Insígnias</h2>
+        <p class="detalhe" id="perfil-insignias-conta"></p>
+      </div>
+      <div class="grade-insignias" id="perfil-insignias"></div>
     </section>
 
     <section class="caixa" id="caixa-titulos">
@@ -280,12 +291,10 @@
     <section class="caixa">
       <h2 class="rotulo">Insígnias do Ginásio</h2>
       <div class="historia">
-        <p>Todo ano, o Ginásio parte em viagem.</p>
-        <p>Sai do mar no calor do verão, atravessa os ventos do outono, sobe as montanhas geladas do inverno e floresce na primavera, até chegar aos confins do mapa em dezembro.</p>
-        <p>Cada mês é um trecho do caminho. Quem fecha o mês no topo guarda a insígnia daquele trecho.</p>
+        <p>Cada mês vencido leva você um trecho adiante na travessia do Ginásio.</p>
+        <p>São 12 trechos, do mar de verão aos confins do mapa, e cada um tem a sua insígnia.</p>
       </div>
       <div class="grade-insignias" id="grade-insignias"></div>
-      <p class="rodape">Toque numa insígnia para ver os detalhes.</p>
     </section>
   </main>
 
@@ -295,7 +304,6 @@
       <div id="insignia-imagem"></div>
       <h2 class="titulo-caixa" id="insignia-nome"></h2>
       <p class="detalhe" id="insignia-trecho"></p>
-      <p id="insignia-minha" hidden></p>
       <p class="lore-insignia" id="insignia-texto"></p>
       <div class="donos-insignia">
         <p class="rotulo">Quem tem</p>
