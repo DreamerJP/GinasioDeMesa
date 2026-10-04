@@ -62,10 +62,13 @@ const TITULOS = [
     id: 'atropelo', nome: 'Atropelo', desenho: 'atropelo', metas: [1, 3, 6, 10, 20],
     medida: `Vitórias com ${Math.round((FOLGA_DO_ATROPELO - 1) * 100)}% a mais que a média da mesa.`, unidade: ['vitória com folga', 'vitórias com folga'],
   },
+  { id: 'casa', nome: 'Casa Cheia', desenho: 'casa', metas: [1, 3, 6, 10, 20], medida: 'Vitórias em partidas com 6 ou mais jogadores.', unidade: ['vitória de casa cheia', 'vitórias de casa cheia'] },
+  { id: 'volta', nome: 'Volta por Cima', desenho: 'volta', metas: [1, 3, 6, 10, 20], medida: 'Vitórias logo depois de ficar em último.', unidade: ['volta por cima', 'voltas por cima'] },
   { id: 'trave', nome: 'Na Trave', desenho: 'trave', metas: [1, 3, 6, 10, 20], medida: 'Vezes em 2º a 1 ponto do vencedor.', unidade: ['vez', 'vezes'] },
   { id: 'cadeira', nome: 'Cadeira Cativa', desenho: 'cadeira', metas: [10, 30, 60, 100, 200], medida: 'Partidas jogadas.', unidade: ['partida', 'partidas'] },
   { id: 'mesa', nome: 'Dono da Mesa', desenho: 'mesa', metas: [5, 15, 30, 50, 100], medida: 'Partidas que abriu.', unidade: ['partida aberta', 'partidas abertas'] },
   { id: 'ecletico', nome: 'Eclético', desenho: 'ecletico', metas: [3, 5, 8, 12, 20], medida: 'Jogos diferentes jogados.', unidade: ['jogo', 'jogos'] },
+  { id: 'vice', nome: 'Vice', desenho: 'vice', metas: [5, 10, 20, 35, 50], medida: 'Vezes em 2º lugar.', unidade: ['vez', 'vezes'], soPorEscolha: true },
   { id: 'lanterna', nome: 'Lanterninha', desenho: 'lanterna', metas: [5, 10, 20, 35, 50], medida: 'Vezes em último.', unidade: ['vez', 'vezes'], soPorEscolha: true },
   { id: 'estreante', nome: 'Estreante', desenho: 'estreante', metas: [1], medida: 'Jogou a primeira partida.', unidade: ['partida', 'partidas'] },
 ];
@@ -337,6 +340,7 @@ function calcularTitulos() {
     if (!contagens.has(id)) {
       contagens.set(id, {
         partidas: 0, jogos: new Set(), seguidas: 0, vitorias: new Map(), atropelos: 0, ultimo: 0, trave: 0, abertas: 0, campeao: 0, podio: 0,
+        vice: 0, casa: 0, voltas: 0, vinhaDeUltimo: false,
       });
     }
     return contagens.get(id);
@@ -373,6 +377,10 @@ function calcularTitulos() {
         const folga = jogo.menorVence ? (valor > 0 ? media / valor : Infinity) : valor / media;
         if (folga >= FOLGA_DO_ATROPELO) marcar(id, 'atropelo', ++conta.atropelos, mes);
       }
+      if (lugar === 2 && pior > 2) marcar(id, 'vice', ++conta.vice, mes);
+      if (venceu && partida.placares.length >= 6) marcar(id, 'casa', ++conta.casa, mes);
+      if (venceu && conta.vinhaDeUltimo) marcar(id, 'volta', ++conta.voltas, mes);
+      conta.vinhaDeUltimo = lugar === pior && pior > 1;
       if (lugar === pior && pior > 1) marcar(id, 'lanterna', ++conta.ultimo, mes);
       if (!jogo.semPlacar && lugar === 2 && Math.abs(valor - doPrimeiro) <= 1) marcar(id, 'trave', ++conta.trave, mes);
     }
