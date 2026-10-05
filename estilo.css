@@ -377,7 +377,7 @@ select.campo {
 
 .lista-partidas > li:first-child > .item-partida { border-top: 0; }
 
-.dia-partidas {
+.faixa-recolhivel {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -392,11 +392,13 @@ select.campo {
   cursor: pointer;
 }
 
-.grupo-dia:first-child .dia-partidas { margin-top: 0; }
-.dia-partidas:active { transform: translateY(2px); }
-.dia-partidas .rotulo { color: var(--tinta); }
-.dia-partidas .detalhe { margin-left: auto; }
+.grupo-dia:first-child .faixa-recolhivel { margin-top: 0; }
+.faixa-recolhivel:active { transform: translateY(2px); }
+.faixa-recolhivel .rotulo { color: var(--tinta); }
+.faixa-recolhivel .detalhe { margin-left: auto; }
 .grupo-dia .lista-partidas { margin-bottom: 6px; }
+.andamento-titulos { display: grid; gap: 10px; margin-top: 10px; }
+.andamento-titulos:empty { display: none; }
 
 .seta-redonda {
   display: grid;
@@ -898,6 +900,11 @@ select.campo {
 
 .cartao-titulo.falta { background: var(--caixa); box-shadow: inset 0 0 0 2px var(--caixa-funda); }
 .cartao-texto { display: grid; gap: 2px; min-width: 0; }
+.mestres-perto { display: grid; gap: 4px; margin-top: 4px; }
+.mestre-perto { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 6px; align-items: center; font-size: 13px; }
+.mestre-perto .capa-titulo { width: 18px; height: 18px; object-fit: cover; object-position: top; outline: 1px solid var(--tinta); }
+.mestre-perto-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mestre-perto .detalhe { font-size: 12px; }
 .cartao-nome { font: 600 16px/1.15 'Pixelify Sans Digitos', 'Pixelify Sans', monospace; letter-spacing: 1px; text-transform: uppercase; overflow-wrap: anywhere; }
 .falta .cartao-nome { color: var(--tinta-suave); }
 .cartao-regra { font-size: 13px; color: var(--tinta-suave); }

@@ -20,6 +20,7 @@ const LIMITE_FOTO = 45000;
 const LADO_FOTO = 320;
 const MAXIMO_DE_ROSTOS = 8;
 const MAXIMO_DE_INSIGNIAS = 6;
+const MAXIMO_DE_MESTRES_NO_PERFIL = 3;
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const SONS = {
@@ -151,6 +152,7 @@ let partidaAberta = '';
 let diaAberto = '';
 let mesDoDiaAberto = '';
 let tituloSendoVisto = '';
+let andamentoAbertoDe = '';
 let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
@@ -1542,7 +1544,7 @@ function mostrarRanking(pedido) {
   let cabecaAberta = null;
   const grupos = [...dias].map(([dia, doDia]) => {
     const aberto = dia === diaAberto;
-    const cabeca = criar('button', 'dia-partidas');
+    const cabeca = criar('button', 'faixa-recolhivel');
     cabeca.type = 'button';
     cabeca.setAttribute('aria-expanded', aberto);
     cabeca.append(criar('span', 'rotulo', dia), criar('span', 'detalhe', `${doDia.length} ${doDia.length === 1 ? 'partida' : 'partidas'}`), criar('span', 'seta-redonda'));
@@ -1922,30 +1924,58 @@ function mostrarPerfil(id) {
   }
 }
 
+function cartaoDosMestres(comVitoria) {
+  const [meta] = METAS_DE_MESTRE;
+  const qualquerMestre = situacaoNoTitulo({
+    nome: 'Mestre de um jogo', jogo: comVitoria[0].titulo.jogo, metas: METAS_DE_MESTRE, medida: 'Vitórias num mesmo jogo.', unidade: ['vitória', 'vitórias'],
+  }, { atual: comVitoria[0].atual, niveis: [] });
+  const cartao = cartaoDoTitulo(qualquerMestre, { destino: '' });
+  const jogos = criar('span', 'mestres-perto');
+  jogos.append(...comVitoria.slice(0, MAXIMO_DE_MESTRES_NO_PERFIL).map(s => {
+    const linha = criar('span', 'mestre-perto');
+    linha.append(imagemDaCapa(s.titulo.jogo, 'capa-titulo'), criar('span', 'mestre-perto-nome', s.titulo.jogo.nome), criar('span', 'detalhe', `${s.atual} de ${meta}`));
+    return linha;
+  }));
+  const restantes = comVitoria.length - MAXIMO_DE_MESTRES_NO_PERFIL;
+  if (restantes > 0) jogos.append(criar('span', 'detalhe', `e mais ${quantidade(restantes, ['jogo', 'jogos'])}`));
+  cartao.querySelector('.progresso').replaceWith(jogos);
+  return cartao;
+}
+
 function mostrarTitulosDoPerfil(alguem, exibido) {
   const { catalogo } = titulosDoGinasio();
   const ganhos = titulosGanhos(alguem.id);
-  const faltam = TITULOS.map(t => situacaoDe(alguem.id, t.id)).filter(s => !s.alcancados);
-  const cartoes = [
-    ...ganhos.map(s => cartaoDoTitulo(s, { emUso: exibido?.titulo.id === s.titulo.id })),
-    ...faltam.map(s => cartaoDoTitulo(s)),
-  ];
-
-  const mestresQueFaltam = catalogo.filter(t => t.jogo).map(t => situacaoDe(alguem.id, t.id)).filter(s => !s.alcancados);
-  if (mestresQueFaltam.length) {
-    const maisPerto = mestresQueFaltam.reduce((melhor, s) => (s.atual > melhor.atual ? s : melhor));
-    const [meta] = METAS_DE_MESTRE;
-    const qualquerMestre = situacaoNoTitulo({
-      nome: 'Mestre de um jogo', jogo: maisPerto.titulo.jogo, metas: METAS_DE_MESTRE, medida: 'Vitórias num mesmo jogo.', unidade: ['vitória', 'vitórias'],
-      textoDoProgresso: () => (maisPerto.atual
-        ? `Mais perto: ${maisPerto.titulo.jogo.nome}, ${maisPerto.atual} de ${meta} vitórias para Bronze`
-        : `0 de ${meta} vitórias num mesmo jogo para Bronze`),
-    }, { atual: maisPerto.atual, niveis: [] });
-    cartoes.splice(ganhos.length, 0, cartaoDoTitulo(qualquerMestre, { destino: maisPerto.atual ? maisPerto.titulo.id : '' }));
-  }
+  const parte = s => s.atual / s.proxima;
+  const andamento = TITULOS.map(t => situacaoDe(alguem.id, t.id)).filter(s => !s.alcancados && s.atual > 0)
+    .map(s => ({ parte: parte(s), cartao: cartaoDoTitulo(s) }));
+  const mestresComVitoria = catalogo.filter(t => t.jogo).map(t => situacaoDe(alguem.id, t.id)).filter(s => !s.alcancados && s.atual > 0)
+    .sort((a, b) => b.atual - a.atual || a.titulo.jogo.nome.localeCompare(b.titulo.jogo.nome));
+  if (mestresComVitoria.length) andamento.push({ parte: parte(mestresComVitoria[0]), cartao: cartaoDosMestres(mestresComVitoria) });
+  andamento.sort((a, b) => b.parte - a.parte);
 
   document.getElementById('perfil-titulos-conta').textContent = quantidade(ganhos.length, ['título', 'títulos']);
-  document.getElementById('perfil-titulos').replaceChildren(...cartoes);
+  document.getElementById('perfil-titulos').replaceChildren(...(ganhos.length
+    ? ganhos.map(s => cartaoDoTitulo(s, { emUso: exibido?.titulo.id === s.titulo.id }))
+    : [criar('p', 'detalhe', 'Nenhum título ainda.')]));
+
+  const lugar = document.getElementById('perfil-andamento');
+  lugar.replaceChildren();
+  if (!andamento.length) return;
+  const aberto = andamentoAbertoDe === alguem.id;
+  const faixa = criar('button', 'faixa-recolhivel');
+  faixa.type = 'button';
+  faixa.setAttribute('aria-expanded', aberto);
+  faixa.append(criar('span', 'rotulo', 'A conquistar'), criar('span', 'detalhe', quantidade(andamento.length, ['título', 'títulos'])), criar('span', 'seta-redonda'));
+  const cartoes = criar('div', 'colecao-titulos');
+  cartoes.hidden = !aberto;
+  cartoes.append(...andamento.map(a => a.cartao));
+  faixa.addEventListener('click', () => {
+    const abrir = cartoes.hidden;
+    andamentoAbertoDe = abrir ? alguem.id : '';
+    cartoes.hidden = !abrir;
+    faixa.setAttribute('aria-expanded', abrir);
+  });
+  lugar.append(faixa, cartoes);
 }
 
 function mostrarEscolhaDeTitulo() {
