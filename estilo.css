@@ -1,3 +1,9 @@
+@font-face {
+  font-family: 'Pixelify Sans Digitos';
+  src: url(https://fonts.gstatic.com/s/dotgothic16/v22/v6-QGYjBJFKgyw5nSoDAGH7M6X8.woff2) format('woff2');
+  unicode-range: U+0030-0039;
+}
+
 :root {
   --px: 3px;
   --fundo: #282a57;
@@ -51,7 +57,7 @@ body {
 }
 
 .marca {
-  font-family: 'Pixelify Sans', monospace;
+  font-family: 'Pixelify Sans Digitos', 'Pixelify Sans', monospace;
   font-size: 22px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -689,7 +695,7 @@ select.campo {
 .previa-apelido .foto { width: 40px; height: 40px; }
 .previa-apelido span { font-size: 20px; letter-spacing: 2px; }
 .previa-apelido .vazio { color: var(--tinta-apagada); }
-.chamada-titulo, .pergunta-titulo { font-family: 'Pixelify Sans', monospace; font-weight: 600; font-variant-ligatures: none; color: var(--tinta); }
+.chamada-titulo, .pergunta-titulo { font-family: 'Pixelify Sans Digitos', 'Pixelify Sans', monospace; font-weight: 600; font-variant-ligatures: none; color: var(--tinta); }
 .chamada-titulo { font-size: 20px; line-height: 1.2; letter-spacing: 1px; text-transform: uppercase; }
 .chamada-texto { font-size: 15px; color: var(--tinta-suave); }
 .chamada-texto b { font-weight: 400; color: var(--tinta); background: linear-gradient(transparent 60%, #f2c14e66 0); }
@@ -716,7 +722,7 @@ select.campo {
 }
 
 .lista-acessos li:first-child { border-top: 0; }
-.email, #campo-email { font-family: 'Pixelify Sans', monospace; font-weight: 400; letter-spacing: 0; }
+.email, #campo-email { font-family: 'Pixelify Sans Digitos', 'Pixelify Sans', monospace; font-weight: 400; letter-spacing: 0; }
 
 .lista-pedidos { padding: 0; list-style: none; }
 
@@ -824,7 +830,7 @@ select.campo {
   border-image: var(--fita) 0 4 fill / 0 calc(4px * var(--e)) stretch;
   image-rendering: pixelated;
   overflow: hidden;
-  font: 600 calc(12px * var(--e)) / calc(16px * var(--e)) 'Pixelify Sans', monospace;
+  font: 600 calc(12px * var(--e)) / calc(16px * var(--e)) 'Pixelify Sans Digitos', 'Pixelify Sans', monospace;
   letter-spacing: calc(1px * var(--e));
   text-transform: uppercase;
   text-overflow: ellipsis;
@@ -840,7 +846,7 @@ select.campo {
   align-items: center;
   gap: 2px;
   min-width: 0;
-  font: 400 12px/1.2 'Pixelify Sans', monospace;
+  font: 400 12px/1.2 'Pixelify Sans Digitos', 'Pixelify Sans', monospace;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--nivel-texto);
@@ -892,7 +898,7 @@ select.campo {
 
 .cartao-titulo.falta { background: var(--caixa); box-shadow: inset 0 0 0 2px var(--caixa-funda); }
 .cartao-texto { display: grid; gap: 2px; min-width: 0; }
-.cartao-nome { font: 600 16px/1.15 'Pixelify Sans', monospace; letter-spacing: 1px; text-transform: uppercase; overflow-wrap: anywhere; }
+.cartao-nome { font: 600 16px/1.15 'Pixelify Sans Digitos', 'Pixelify Sans', monospace; letter-spacing: 1px; text-transform: uppercase; overflow-wrap: anywhere; }
 .falta .cartao-nome { color: var(--tinta-suave); }
 .cartao-regra { font-size: 13px; color: var(--tinta-suave); }
 
@@ -975,8 +981,27 @@ select.campo {
 .marcador::after { content: ''; position: absolute; inset: 2px; background: var(--fundo-da-opcao); clip-path: polygon(3px 0, 7px 0, 10px 3px, 10px 7px, 7px 10px, 3px 10px, 0 7px, 0 3px); }
 .opcao-titulo[aria-checked="true"] .marcador::before { content: ''; position: absolute; inset: 4px; z-index: 1; background: var(--tinta); }
 
+.resultado-fundo { align-items: flex-start; overflow-y: auto; }
+.resultado-fundo > .caixa { margin: auto 0; }
+.resultado { grid-template-columns: minmax(0, 1fr); justify-items: stretch; gap: 12px; }
+.resultado-jogo { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; }
+.resultado-placar { text-align: left; }
+.resultado-placar .jogador-linha { padding-block: 5px; opacity: 0; transform: translateX(16px); }
+.resultado-placar .jogador-linha.revelada { opacity: 1; transform: none; transition: opacity 150ms steps(2, end), transform 240ms steps(4, end); }
+.resultado-placar .jogador-linha.vencedor.revelada { animation: vencedor-chega 420ms steps(4, end); }
+.resultado-placar .sou-eu { margin: 0 -8px; padding-inline: 8px; outline: 2px solid var(--tinta); outline-offset: -2px; }
+.resultado-placar .foto { width: 28px; height: 28px; }
+.resultado:not(.pronta) .resultado-depois { visibility: hidden; }
+#resultado-continuar { justify-self: center; }
+
+@keyframes vencedor-chega {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
 .conquista { grid-template-columns: minmax(0, 1fr); gap: 8px; }
-.conquista-topo { font: 600 18px/1 'Pixelify Sans', monospace; letter-spacing: 2px; text-transform: uppercase; color: var(--ouro-fundo); }
+.conquista-topo { font: 600 18px/1 'Pixelify Sans Digitos', 'Pixelify Sans', monospace; letter-spacing: 2px; text-transform: uppercase; color: var(--ouro-fundo); }
 .conquista-palco { position: relative; display: grid; place-items: center; width: 100%; min-height: 150px; }
 .conquista-faixa { max-width: 100%; }
 .conquista-faixa:empty, .conquista-degraus:empty, .conquista-depois:empty { display: none; }
@@ -1034,7 +1059,7 @@ select.campo {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .conquista *, .conquista *::after { animation: none !important; }
+  .conquista *, .conquista *::after, .resultado * { animation: none !important; transition: none !important; }
   .brilho-pixel { display: none; }
 }
 

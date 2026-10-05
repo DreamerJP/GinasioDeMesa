@@ -2,7 +2,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/fireba
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import {
   initializeFirestore, memoryLocalCache, terminate, clearIndexedDbPersistence,
-  collection, doc, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, arrayUnion,
+  collection, doc, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, arrayUnion, arrayRemove,
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
 const FIREBASE = {
@@ -491,6 +491,12 @@ function titulosNovos() {
 const formatoHora = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, hour: '2-digit', minute: '2-digit' });
 const formatoDia = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: 'long', day: 'numeric' });
 const formatoDataLonga = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+
+function quandoFoiAberta(partida) {
+  if (!partida.abertaEm.getTime()) return '';
+  const dia = formatoDataLonga.format(partida.abertaEm);
+  return dia[0].toUpperCase() + dia.slice(1) + (partida.abertaPor ? ` às ${formatoHora.format(partida.abertaEm)}` : '');
+}
 
 function diaDaPartida(momento) {
   const partes = formatoDia.formatToParts(momento);
@@ -1271,10 +1277,117 @@ const POUCO_MOVIMENTO = matchMedia('(prefers-reduced-motion: reduce)');
 // Um toque que já vinha a caminho antes do aviso surgir não pode fechá-lo sem a pessoa ter visto.
 const ESPERA_DOS_BOTOES = 1300;
 let relogioDaConquista = null;
+const PRAZO_DO_RESULTADO = 3 * 24 * 3600e3;
+const INTERVALO_DO_PLACAR = 500;
+let relogiosDoResultado = [];
+
+function avisoAberto() {
+  return ['celebracao', 'conquista', 'resultado'].some(id => !document.getElementById(id).hidden);
+}
+
+function verificarAvisos() {
+  if (!estado?.eu.apelido || estado.gravando || avisoAberto()) return;
+  const pendentes = resultadosPendentes();
+  if (pendentes.length) mostrarResultado(pendentes[0], pendentes.length - 1);
+  else verificarTitulosNovos();
+}
+
+function chaveDoResultado(partida) {
+  return `partida:${partida.id}`;
+}
+
+function resultadosPendentes() {
+  const vistos = avisosVistos();
+  const limite = Date.now() - PRAZO_DO_RESULTADO;
+  return estado.partidas.filter(p => p.estado === 'fechada' && p.abertaEm.getTime() > limite
+    && p.placares.some(s => s.jogador === estado.eu.id) && !vistos.includes(chaveDoResultado(p)));
+}
+
+function marcarResultadoVisto(partida) {
+  marcarComoVisto([chaveDoResultado(partida)]);
+  const limite = Date.now() - PRAZO_DO_RESULTADO;
+  const recentes = new Set(estado.partidas.filter(p => p.abertaEm.getTime() > limite).map(chaveDoResultado));
+  const velhas = estado.eu.vistos.filter(c => c.startsWith('partida:') && !recentes.has(c));
+  if (velhas.length) updateDoc(doc(banco, 'jogadores', estado.eu.id), { vistos: arrayRemove(...velhas) }).catch(() => {});
+}
+
+function contarAte(alvo, valor) {
+  const inicio = performance.now();
+  const avancar = agora => {
+    const parte = Math.min(1, (agora - inicio) / (INTERVALO_DO_PLACAR - 100));
+    alvo.textContent = formatoPlacar.format(parte < 1 ? Math.round(valor * parte) : valor);
+    if (parte < 1) requestAnimationFrame(avancar);
+  };
+  requestAnimationFrame(avancar);
+}
+
+function mostrarResultado(partida, restantes) {
+  const tela = document.getElementById('resultado');
+  const caixa = tela.firstElementChild;
+  const jogo = jogoDe(partida);
+  const { eu } = estado;
+  const notas = new Map(notasDaPartida(partidaParaFormula(partida)));
+  const lugares = lugaresDaPartida(partida);
+  const pior = Math.max(...lugares.values());
+  const venci = lugares.get(eu.id) === 1 && pior > 1;
+  const ordem = [...partida.placares].sort((a, b) => lugares.get(a.jogador) - lugares.get(b.jogador));
+
+  document.getElementById('resultado-capa').replaceChildren(imagemDaCapa(jogo));
+  document.getElementById('resultado-nome').textContent = jogo.nome;
+  document.getElementById('resultado-data').textContent = quandoFoiAberta(partida);
+  const linhas = ordem.map(({ jogador: id, valor }) => {
+    const alguem = jogador(id);
+    const lugar = lugares.get(id);
+    const linha = criar('li', `jogador-linha${lugar === 1 && pior > 1 ? ' vencedor' : ''}${id === eu.id ? ' sou-eu' : ''}`);
+    const placar = criar('span', 'valor');
+    const numero = criar('span', '', '0');
+    if (!jogo.semPlacar) placar.append(numero);
+    placar.append(criar('span', 'detalhe', `nota ${formatoNota.format(notas.get(id))}`));
+    linha.append(criar('span', 'posicao', `${lugar}º`), imagemDe(alguem, 'foto'), criar('span', '', alguem?.apelido || '?'), placar);
+    return { linha, numero, valor };
+  });
+  document.getElementById('resultado-placar').replaceChildren(...linhas.map(l => l.linha));
+
+  relogiosDoResultado.forEach(clearTimeout);
+  relogiosDoResultado = [];
+  let terminado = false;
+  const terminar = () => {
+    if (terminado) return;
+    terminado = true;
+    relogiosDoResultado.forEach(clearTimeout);
+    linhas.forEach(l => {
+      l.linha.classList.add('revelada');
+      l.numero.textContent = formatoPlacar.format(l.valor);
+    });
+    caixa.classList.add('pronta');
+    tocar(venci ? 'campeao' : 'partidaFechada');
+  };
+  caixa.classList.remove('pronta');
+  if (POUCO_MOVIMENTO.matches) terminar();
+  else {
+    [...linhas].reverse().forEach((l, i) => relogiosDoResultado.push(setTimeout(() => {
+      l.linha.classList.add('revelada');
+      if (!jogo.semPlacar) contarAte(l.numero, l.valor);
+      tocar('mover');
+    }, INTERVALO_DO_PLACAR * (i + 1))));
+    relogiosDoResultado.push(setTimeout(terminar, INTERVALO_DO_PLACAR * (linhas.length + 1) + 200));
+  }
+
+  const botao = document.getElementById('resultado-continuar');
+  botao.textContent = restantes ? 'Próxima partida' : 'Continuar';
+  botao.onclick = () => {
+    tela.hidden = true;
+    marcarResultadoVisto(partida);
+    verificarAvisos();
+  };
+  caixa.onclick = e => {
+    if (!terminado && !e.target.closest('button')) terminar();
+  };
+  tela.hidden = false;
+}
 
 function verificarTitulosNovos() {
-  if (!estado?.eu.apelido || estado.gravando) return;
-  if (!document.getElementById('celebracao').hidden || !document.getElementById('conquista').hidden) return;
+  if (!estado?.eu.apelido || estado.gravando || avisoAberto()) return;
   const { tela, parametro } = rotaAtual();
   if (tituloSendoVisto && tela === 'titulo' && parametro === tituloSendoVisto) return;
   tituloSendoVisto = '';
@@ -1318,7 +1431,7 @@ function abrirConquista({ topo, palco, faixa, degraus, texto, detalhe, botaoVer,
     if (Date.now() - abertaEm < espera) return;
     tela.hidden = true;
     aoConcluir(indoVer);
-    verificarTitulosNovos();
+    verificarAvisos();
   };
   continuar.onclick = () => concluir(false);
   ver.onclick = () => concluir(true);
@@ -1506,9 +1619,8 @@ function mostrarPartida(id) {
   document.getElementById('partida-capa').replaceChildren(imagemDaCapa(jogo));
   document.getElementById('partida-jogo').textContent = jogo.nome;
   const data = document.getElementById('partida-data');
-  data.hidden = !partida.abertaEm.getTime();
-  const quando = formatoDataLonga.format(partida.abertaEm);
-  data.textContent = quando[0].toUpperCase() + quando.slice(1) + (partida.abertaPor ? ` às ${formatoHora.format(partida.abertaEm)}` : '');
+  data.textContent = quandoFoiAberta(partida);
+  data.hidden = !data.textContent;
   let situacao = `Fechada, ranking ${partida.mes.slice(5)}/${partida.mes.slice(0, 4)}`;
   if (aberta && valeNoMes) situacao = `Aberta${autor ? ` por ${autor}` : ''}. ${lancados} de ${partida.placares.length} lançaram.`;
   if (aberta && !valeNoMes) situacao = 'Não conta: o mês fechou antes de todos lançarem.';
@@ -2406,7 +2518,7 @@ function renderizar() {
   const { tela, parametro } = rotaAtual();
   mostrarTela(tela);
   TELAS[tela](parametro);
-  verificarTitulosNovos();
+  verificarAvisos();
 }
 
 function irPara(tela, parametro) {
