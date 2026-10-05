@@ -134,8 +134,11 @@ service cloud.firestore {
           : request.resource.data.placares.values().hasOnly([null]));
 
       allow update: if temApelido()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['placares'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['placares', 'lancadoEm'])
         && request.resource.data.placares.diff(resource.data.placares).affectedKeys().hasOnly([meuId()])
+        && request.resource.data.get('lancadoEm', {}).diff(resource.data.get('lancadoEm', {})).affectedKeys().hasOnly([meuId()])
+        && (!request.resource.data.get('lancadoEm', {}).diff(resource.data.get('lancadoEm', {})).affectedKeys().hasAny([meuId()])
+          || request.resource.data.lancadoEm[meuId()] == request.time)
         && meuId() in resource.data.placares
         && resource.data.placares.values().hasAny([null])
         && resource.data.mes == mesAtual()

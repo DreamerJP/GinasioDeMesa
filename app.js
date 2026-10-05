@@ -51,6 +51,8 @@ const INSIGNIAS = [
 
 const FOLGA_DO_ATROPELO = 1.5;
 const METAS_DE_MESTRE = [5, 10, 15, 20, 25];
+const MINIMO_PARA_TURISTA = 5;
+const ATRASO_DA_CONTA_PENDURADA = 2 * 60e3;
 const NIVEIS = ['bronze', 'prata', 'ouro', 'platina', 'lendario'];
 const NOME_DO_NIVEL = { bronze: 'Bronze', prata: 'Prata', ouro: 'Ouro', platina: 'Platina', lendario: 'Lendário' };
 
@@ -65,11 +67,18 @@ const TITULOS = [
   },
   { id: 'casa', nome: 'Casa Cheia', desenho: 'casa', metas: [1, 3, 6, 10, 20], medida: 'Vitórias em partidas com 6 ou mais jogadores.', unidade: ['vitória de casa cheia', 'vitórias de casa cheia'] },
   { id: 'volta', nome: 'Volta por Cima', desenho: 'volta', metas: [1, 3, 6, 10, 20], medida: 'Vitórias logo depois de ficar em último.', unidade: ['volta por cima', 'voltas por cima'] },
+  { id: 'sorte', nome: 'Sorte de Principiante', desenho: 'sorte', metas: [1, 2, 4, 6, 10], medida: 'Vitórias na primeira vez que jogou um jogo.', unidade: ['vitória de estreia', 'vitórias de estreia'] },
+  { id: 'recorde', nome: 'Recordista', desenho: 'recorde', metas: [1, 3, 6, 10, 20], medida: 'Vezes que bateu o maior placar já feito num jogo.', unidade: ['recorde', 'recordes'] },
+  { id: 'zebra', nome: 'Zebra', desenho: 'zebra', metas: [1, 3, 6, 10, 20], medida: 'Vitórias numa mesa em que você era o último do ranking do mês.', unidade: ['zebra', 'zebras'] },
   { id: 'trave', nome: 'Na Trave', desenho: 'trave', metas: [1, 3, 6, 10, 20], medida: 'Vezes em 2º a 1 ponto do vencedor.', unidade: ['vez', 'vezes'] },
   { id: 'cadeira', nome: 'Cadeira Cativa', desenho: 'cadeira', metas: [10, 30, 60, 100, 200], medida: 'Partidas jogadas.', unidade: ['partida', 'partidas'] },
+  { id: 'presenca', nome: 'Presença VIP', desenho: 'presenca', metas: [1, 3, 6, 9, 12], medida: 'Meses fechados em que jogou todas as partidas.', unidade: ['mês completo', 'meses completos'] },
   { id: 'mesa', nome: 'Dono da Mesa', desenho: 'mesa', metas: [5, 15, 30, 50, 100], medida: 'Partidas que abriu.', unidade: ['partida aberta', 'partidas abertas'] },
   { id: 'ecletico', nome: 'Eclético', desenho: 'ecletico', metas: [3, 5, 8, 12, 20], medida: 'Jogos diferentes jogados.', unidade: ['jogo', 'jogos'] },
   { id: 'vice', nome: 'Vice', desenho: 'vice', metas: [5, 10, 20, 35, 50], medida: 'Vezes em 2º lugar.', unidade: ['vez', 'vezes'], soPorEscolha: true },
+  { id: 'praia', nome: 'Morreu na Praia', desenho: 'praia', metas: [1, 2, 3, 5, 8], medida: 'Meses em que chegou ao último dia de jogo em 1º e não foi campeão.', unidade: ['mês', 'meses'], soPorEscolha: true },
+  { id: 'turista', nome: 'Turista', desenho: 'turista', metas: [1, 3, 6, 9, 12], medida: 'Meses em que jogou só 1 ou 2 partidas.', unidade: ['mês', 'meses'], soPorEscolha: true },
+  { id: 'pendurada', nome: 'Conta Pendurada', desenho: 'pendurada', metas: [1, 3, 6, 10, 20], medida: 'Vezes que lançou o placar mais de 2 minutos depois de todo mundo.', unidade: ['vez', 'vezes'], soPorEscolha: true },
   { id: 'lanterna', nome: 'Lanterninha', desenho: 'lanterna', metas: [5, 10, 20, 35, 50], medida: 'Vezes em último.', unidade: ['vez', 'vezes'], soPorEscolha: true },
   { id: 'estreante', nome: 'Estreante', desenho: 'estreante', metas: [1], medida: 'Jogou a primeira partida.', unidade: ['partida', 'partidas'] },
 ];
@@ -342,12 +351,16 @@ function calcularTitulos() {
     if (!contagens.has(id)) {
       contagens.set(id, {
         partidas: 0, jogos: new Set(), seguidas: 0, vitorias: new Map(), atropelos: 0, ultimo: 0, trave: 0, abertas: 0, campeao: 0, podio: 0,
-        vice: 0, casa: 0, voltas: 0, vinhaDeUltimo: false,
+        vice: 0, casa: 0, voltas: 0, vinhaDeUltimo: false, zebras: 0, praias: 0, presencas: 0, turismos: 0, sortes: 0, recordes: 0, penduradas: 0,
       });
     }
     return contagens.get(id);
   };
 
+  const ids = estado.jogadores.map(j => j.id);
+  const rankingDas = partidas => new Map(rankingDoMes(ids, partidas.map(partidaParaFormula)).linhas.map(l => [l.id, l]));
+  const jogadasDoMes = new Map();
+  const recordes = new Map();
   const fechadas = estado.partidas
     .filter(p => p.estado === 'fechada')
     .sort((a, b) => a.mes.localeCompare(b.mes) || a.abertaEm - b.abertaEm || a.id.localeCompare(b.id));
@@ -358,7 +371,21 @@ function calcularTitulos() {
     const pior = Math.max(...lugares.values());
     const media = partida.placares.reduce((soma, s) => soma + s.valor, 0) / partida.placares.length;
     const doPrimeiro = partida.placares.find(s => lugares.get(s.jogador) === 1).valor;
+    if (!jogadasDoMes.has(mes)) jogadasDoMes.set(mes, []);
+    const anteriores = jogadasDoMes.get(mes);
+    const rankingAntes = anteriores.length ? rankingDas(anteriores) : null;
+    const ehZebra = id => {
+      const meu = rankingAntes?.get(id);
+      if (!meu?.partidas) return false;
+      const outros = partida.placares.map(s => rankingAntes.get(s.jogador)).filter(l => l && l.id !== id && l.partidas);
+      return outros.length > 0 && outros.every(l => l.nota > meu.nota);
+    };
     if (jogador(partida.abertaPor)) marcar(partida.abertaPor, 'mesa', ++contagemDe(partida.abertaPor).abertas, mes);
+    const valores = partida.placares.map(s => s.valor);
+    const melhorDaMesa = jogo.menorVence ? Math.min(...valores) : Math.max(...valores);
+    const recordeAntes = recordes.get(partida.jogo);
+    const bateuRecorde = !jogo.semPlacar && recordeAntes !== undefined && (jogo.menorVence ? melhorDaMesa < recordeAntes : melhorDaMesa > recordeAntes);
+    if (!jogo.semPlacar && (recordeAntes === undefined || bateuRecorde)) recordes.set(partida.jogo, melhorDaMesa);
 
     for (const { jogador: id, valor } of partida.placares) {
       const conta = contagemDe(id);
@@ -366,6 +393,8 @@ function calcularTitulos() {
       const venceu = lugar === 1 && pior > 1;
       marcar(id, 'estreante', ++conta.partidas, mes);
       marcar(id, 'cadeira', conta.partidas, mes);
+      if (venceu && !conta.jogos.has(partida.jogo)) marcar(id, 'sorte', ++conta.sortes, mes);
+      if (bateuRecorde && valor === melhorDaMesa) marcar(id, 'recorde', ++conta.recordes, mes);
       conta.jogos.add(partida.jogo);
       marcar(id, 'ecletico', conta.jogos.size, mes);
       conta.seguidas = venceu ? conta.seguidas + 1 : 0;
@@ -385,15 +414,33 @@ function calcularTitulos() {
       conta.vinhaDeUltimo = lugar === pior && pior > 1;
       if (lugar === pior && pior > 1) marcar(id, 'lanterna', ++conta.ultimo, mes);
       if (!jogo.semPlacar && lugar === 2 && Math.abs(valor - doPrimeiro) <= 1) marcar(id, 'trave', ++conta.trave, mes);
+      if (venceu && ehZebra(id)) marcar(id, 'zebra', ++conta.zebras, mes);
     }
+    const lancamentos = partida.placares.map(s => partida.lancadoEm.get(s.jogador));
+    if (lancamentos.length > 1 && lancamentos.every(Boolean)) {
+      const [penultimo, ultimo] = lancamentos.map(m => m.getTime()).sort((a, b) => a - b).slice(-2);
+      if (ultimo - penultimo > ATRASO_DA_CONTA_PENDURADA) {
+        partida.placares.filter(s => partida.lancadoEm.get(s.jogador).getTime() === ultimo)
+          .forEach(s => marcar(s.jogador, 'pendurada', ++contagemDe(s.jogador).penduradas, mes));
+      }
+    }
+    anteriores.push(partida);
   }
 
+  const diaDe = partida => formatoDataLonga.format(partida.abertaEm);
   for (const mes of [...mesesFechados()].reverse()) {
+    const doMes = jogadasDoMes.get(mes) || [];
+    const ultimoDia = doMes.length ? diaDe(doMes.at(-1)) : '';
+    const antesDoUltimoDia = doMes.filter(p => diaDe(p) !== ultimoDia);
+    const lideres = antesDoUltimoDia.length ? [...rankingDas(antesDoUltimoDia).values()].filter(l => l.posicao === 1 && l.nota > 0).map(l => l.id) : [];
     for (const linha of rankingDe(mes).linhas) {
       if (linha.nota <= 0) continue;
       const conta = contagemDe(linha.id);
       if (linha.posicao === 1) marcar(linha.id, 'campeao', ++conta.campeao, mes);
       if (linha.posicao <= 3) marcar(linha.id, 'podio', ++conta.podio, mes);
+      if (linha.posicao !== 1 && lideres.includes(linha.id)) marcar(linha.id, 'praia', ++conta.praias, mes);
+      if (linha.partidas === doMes.length) marcar(linha.id, 'presenca', ++conta.presencas, mes);
+      if (doMes.length >= MINIMO_PARA_TURISTA && linha.partidas <= 2) marcar(linha.id, 'turista', ++conta.turismos, mes);
     }
   }
 
@@ -830,8 +877,11 @@ const ACOES = {
     const registro = partidaAbertaNoMes(partida);
     if (registro.mes !== mesDeHoje()) throw recusa('Essa partida é de um mês que já fechou e não conta mais.');
     if (!Number.isFinite(valor) || valor < 0 || valor > 1e9) throw recusa('Placar inválido.');
-    if (!registro.placares.some(s => s.jogador === estado.eu.id)) throw recusa('Você não está nessa partida.');
-    return updateDoc(doc(banco, 'partidas', partida), { [`placares.${estado.eu.id}`]: valor });
+    const meu = registro.placares.find(s => s.jogador === estado.eu.id);
+    if (!meu) throw recusa('Você não está nessa partida.');
+    const campos = { [`placares.${estado.eu.id}`]: valor };
+    if (meu.valor === null) campos[`lancadoEm.${estado.eu.id}`] = serverTimestamp();
+    return updateDoc(doc(banco, 'partidas', partida), campos);
   },
 
   cancelarPartida({ partida }) {
@@ -976,6 +1026,7 @@ function comoPartida(p) {
   return {
     id: p.id, mes: p.mes, jogo: p.jogo, abertaPor: p.abertaPor, abertaEm: p.abertaEm?.toDate?.() || new Date(0),
     estado: placares.some(s => s.valor === null) ? 'aberta' : 'fechada', placares,
+    lancadoEm: new Map(Object.entries(p.lancadoEm || {}).map(([id, momento]) => [id, momento?.toDate?.()]).filter(([, momento]) => momento)),
   };
 }
 
