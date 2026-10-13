@@ -162,6 +162,7 @@ let diaAberto = '';
 let mesDoDiaAberto = '';
 let tituloSendoVisto = '';
 let andamentoAbertoDe = '';
+let correcao = null;
 let jogoEscolhido = '';
 let selecao = null;
 let conviteDeFraseFeito = false;
@@ -882,6 +883,13 @@ const ACOES = {
     const campos = { [`placares.${estado.eu.id}`]: valor };
     if (meu.valor === null) campos[`lancadoEm.${estado.eu.id}`] = serverTimestamp();
     return updateDoc(doc(banco, 'partidas', partida), campos);
+  },
+
+  corrigirPlacares({ partida, mudancas }) {
+    if (!estado.eu.admin) throw recusa('Só o administrador corrige placares.');
+    if (!estado.partidas.some(p => p.id === partida)) throw recusa('Partida não encontrada.');
+    if (Object.values(mudancas).some(v => !Number.isFinite(v) || v < 0 || v > 1e9)) throw recusa('Placar inválido.');
+    return updateDoc(doc(banco, 'partidas', partida), Object.fromEntries(Object.entries(mudancas).map(([id, v]) => [`placares.${id}`, v])));
   },
 
   cancelarPartida({ partida }) {
@@ -1679,6 +1687,8 @@ function mostrarPartida(id) {
   if (aberta && !valeNoMes) situacao = 'Não conta: o mês fechou antes de todos lançarem.';
   document.getElementById('partida-situacao').textContent = situacao;
 
+  const podeCorrigir = eu.admin && !aberta && !jogo.semPlacar;
+  if (correcao && (correcao.partida !== id || !podeCorrigir)) correcao = null;
   const notas = aberta ? new Map() : new Map(notasDaPartida(partidaParaFormula(partida)));
   const lugares = aberta ? new Map() : lugaresDaPartida(partida);
   const placares = aberta ? partida.placares : [...partida.placares].sort((a, b) => lugares.get(a.jogador) - lugares.get(b.jogador));
@@ -1696,6 +1706,17 @@ function mostrarPartida(id) {
       if (s.jogador === eu.id) lancou.append(criar('span', '', formatoPlacar.format(s.valor)));
       lancou.append(criar('span', 'visto'));
       valor.append(lancou);
+    } else if (correcao) {
+      const campo = criar('input', 'campo campo-texto campo-correcao');
+      campo.inputMode = 'decimal';
+      campo.autocomplete = 'off';
+      campo.setAttribute('aria-label', `Placar de ${alguem?.apelido || '?'}`);
+      campo.value = correcao.rascunho.get(s.jogador) ?? String(s.valor).replace('.', ',');
+      campo.addEventListener('input', () => {
+        correcao.rascunho.set(s.jogador, campo.value);
+        validarCorrecao();
+      });
+      valor.append(campo);
     } else {
       if (!jogo.semPlacar) valor.append(criar('span', '', formatoPlacar.format(s.valor)));
       valor.append(criar('span', 'detalhe', `nota ${formatoNota.format(notas.get(s.jogador))}`));
@@ -1723,6 +1744,10 @@ function mostrarPartida(id) {
   if (jogo.menorVence && !comCampo) regras.push('Neste jogo, menor placar vence.');
   document.getElementById('partida-rodape').textContent = regras.join(' ');
   document.getElementById('partida-rodape').hidden = !regras.length;
+  document.getElementById('correcao-placar').hidden = !podeCorrigir;
+  document.getElementById('corrigir-placares').hidden = Boolean(correcao);
+  document.getElementById('botoes-correcao').hidden = !correcao;
+  if (correcao) validarCorrecao();
 
   const formulario = document.getElementById('form-placar');
   formulario.hidden = !comCampo;
@@ -1747,10 +1772,32 @@ function mostrarPartida(id) {
   document.getElementById('cancelar-partida').classList.remove('confirmando');
 }
 
-function valorDoPlacar() {
-  const texto = document.getElementById('campo-placar').value.trim().replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.');
+function numeroDoPlacar(digitado) {
+  const texto = digitado.trim().replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.');
   const numero = Number(texto);
   return texto !== '' && Number.isFinite(numero) && numero >= 0 ? numero : null;
+}
+
+function valorDoPlacar() {
+  return numeroDoPlacar(document.getElementById('campo-placar').value);
+}
+
+function mudancasDaCorrecao() {
+  const partida = estado.partidas.find(p => p.id === correcao.partida);
+  const mudancas = {};
+  for (const { jogador: id, valor } of partida.placares) {
+    const digitado = correcao.rascunho.get(id);
+    if (digitado === undefined) continue;
+    const numero = numeroDoPlacar(digitado);
+    if (numero === null) return null;
+    if (numero !== valor) mudancas[id] = numero;
+  }
+  return mudancas;
+}
+
+function validarCorrecao() {
+  const mudancas = mudancasDaCorrecao();
+  document.getElementById('salvar-correcao').disabled = !mudancas || !Object.keys(mudancas).length;
 }
 
 function validarPlacar() {
@@ -1767,6 +1814,27 @@ function ligarPartida() {
     const somDoSucesso = () => (estado.partidas.find(p => p.id === partidaAberta)?.estado === 'fechada' ? 'partidaFechada' : 'confirmar');
     await enviar(formulario.querySelector('button'), document.getElementById('aviso-placar'), 'lancarPlacar', { partida: partidaAberta, valor }, somDoSucesso);
     if (!formulario.hidden) validarPlacar();
+  });
+
+  const avisoDaCorrecao = document.getElementById('aviso-correcao');
+  document.getElementById('corrigir-placares').addEventListener('click', () => {
+    correcao = { partida: partidaAberta, rascunho: new Map() };
+    avisoDaCorrecao.textContent = '';
+    mostrarPartida(partidaAberta);
+    document.querySelector('.campo-correcao')?.focus();
+  });
+  document.getElementById('cancelar-correcao').addEventListener('click', () => {
+    correcao = null;
+    avisoDaCorrecao.textContent = '';
+    mostrarPartida(partidaAberta);
+  });
+  document.getElementById('salvar-correcao').addEventListener('click', async evento => {
+    const mudancas = mudancasDaCorrecao();
+    if (!mudancas || !Object.keys(mudancas).length) return;
+    if (await enviar(evento.currentTarget, avisoDaCorrecao, 'corrigirPlacares', { partida: correcao.partida, mudancas })) {
+      correcao = null;
+      mostrarPartida(partidaAberta);
+    }
   });
 
   const cancelar = document.getElementById('cancelar-partida');

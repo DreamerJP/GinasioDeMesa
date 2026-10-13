@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=52">
-<script type="module" src="app.js?v=56" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=53">
+<script type="module" src="app.js?v=57" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -162,6 +162,14 @@
         <ol class="lista-jogadores" id="partida-ausentes"></ol>
       </div>
       <p class="rodape" id="partida-rodape"></p>
+      <div class="correcao-placar" id="correcao-placar" hidden>
+        <button class="botao-menu" id="corrigir-placares" type="button">Corrigir placares</button>
+        <div class="linha-botoes" id="botoes-correcao" hidden>
+          <button class="botao" id="salvar-correcao" type="button" disabled>Salvar</button>
+          <button class="botao-menu" id="cancelar-correcao" type="button">Cancelar</button>
+        </div>
+        <p class="aviso" id="aviso-correcao" role="alert"></p>
+      </div>
     </section>
 
     <div class="cancelar-partida" id="caixa-cancelar" hidden>

@@ -486,6 +486,10 @@ select.campo {
 .lista-jogadores.aberta .jogador-linha { grid-template-columns: 32px 1fr auto; }
 .lista-jogadores.aberta .posicao { display: none; }
 .jogador-linha .foto { width: 32px; height: 32px; }
+.correcao-placar { display: grid; justify-items: center; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 2px solid var(--caixa-funda); }
+.correcao-placar .aviso:empty { display: none; }
+.campo-correcao { width: 84px; padding: 4px 8px; text-align: right; }
+
 .faltas-partida { margin-top: 8px; padding-top: 12px; border-top: 2px solid var(--caixa-funda); }
 .valor { display: grid; justify-items: end; }
 
