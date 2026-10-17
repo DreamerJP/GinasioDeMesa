@@ -67,7 +67,7 @@ const TITULOS = [
   },
   { id: 'casa', nome: 'Casa Cheia', desenho: 'casa', metas: [1, 3, 6, 10, 20], medida: 'Vitórias em partidas com 6 ou mais jogadores.', unidade: ['vitória de casa cheia', 'vitórias de casa cheia'] },
   { id: 'volta', nome: 'Volta por Cima', desenho: 'volta', metas: [1, 3, 6, 10, 20], medida: 'Vitórias logo depois de ficar em último.', unidade: ['volta por cima', 'voltas por cima'] },
-  { id: 'sorte', nome: 'Sorte de Principiante', desenho: 'sorte', metas: [1, 2, 4, 6, 10], medida: 'Vitórias na primeira vez que jogou um jogo (Mesmo se já conhecer as regras).', unidade: ['vitória de estreia', 'vitórias de estreia'] },
+  { id: 'sorte', nome: 'Sorte de Principiante', desenho: 'sorte', metas: [1, 2, 4, 6, 10], medida: 'Vitórias na primeira vez que jogou um jogo', nota: '(Mesmo se já conhecer as regras).', unidade: ['vitória de estreia', 'vitórias de estreia'] },
   { id: 'recorde', nome: 'Recordista', desenho: 'recorde', metas: [1, 3, 6, 10, 20], medida: 'Vezes que bateu o maior placar já feito num jogo.', unidade: ['recorde', 'recordes'] },
   { id: 'zebra', nome: 'Zebra', desenho: 'zebra', metas: [1, 3, 6, 10, 20], medida: 'Vitórias numa mesa em que você era o último do ranking do mês.', unidade: ['zebra', 'zebras'] },
   { id: 'trave', nome: 'Na Trave', desenho: 'trave', metas: [1, 3, 6, 10, 20], medida: 'Vezes em 2º a 1 ponto do vencedor.', unidade: ['vez', 'vezes'] },
@@ -2215,7 +2215,13 @@ function mostrarTitulo(id) {
   document.getElementById('titulo-quadro').replaceChildren(quadroDoTitulo(vitrine, true));
   document.getElementById('titulo-faixa').replaceChildren(faixaDoTitulo(vitrine, false));
   encaixarFaixa(document.getElementById('titulo-faixa'));
-  document.getElementById('titulo-medida').textContent = titulo.medida;
+  const medidaEl = document.getElementById('titulo-medida');
+  medidaEl.textContent = titulo.medida;
+  if (titulo.nota) {
+    const nota = criar('span', '', titulo.nota);
+    nota.style.cssText = 'display:block; font-size:12px;';
+    medidaEl.append(nota);
+  }
 
   const situacao = document.getElementById('titulo-meu');
   if (variosNiveis) {
