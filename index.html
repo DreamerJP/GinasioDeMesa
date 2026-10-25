@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=53">
-<script type="module" src="app.js?v=59" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=55">
+<script type="module" src="app.js?v=61" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -376,7 +376,7 @@
         <li><strong>Faltar um dia não tira ninguém da disputa.</strong><span class="detalhe">Quem joga bem continua na frente.</span></li>
         <li><strong>Quanto mais dias a pessoa falta, mais difícil fica passar quem foi a todos.</strong></li>
         <li><strong>Quem jogou pouco não fica no alto.</strong>
-          <p class="exemplo"><span class="rotulo">Exemplo</span>Quem vai a 1 de 3 dias, joga só 1 partida e vence fica perto de 0,24.</p></li>
+          <p class="exemplo"><span class="rotulo">Exemplo</span>Quem vai a 1 de 3 dias e vence a única partida que jogou fica atrás de quem foi todos os dias e ficou em último em todas.</p></li>
       </ul>
     </section>
 
@@ -442,6 +442,7 @@
     </section>
 
     <section class="caixa formulario" id="caixa-fechar-mes" hidden>
+      <h2 class="rotulo">Fim de <span data-mes></span></h2>
       <button class="botao" id="fechar-mes" type="button"></button>
       <p class="aviso" id="aviso-fechar-mes" role="alert"></p>
       <p class="rodape" id="rodape-fechar-mes"></p>
@@ -484,12 +485,13 @@
       <div class="podio-lugar" data-degrau="2"></div>
       <div class="podio-lugar" data-degrau="3"></div>
     </div>
-    <div class="celebracao-frases" id="celebracao-frases"></div>
-    <div class="celebracao-entrega">
+    <div class="celebracao-frases celebracao-depois" id="celebracao-frases"></div>
+    <p class="celebracao-subtitulo celebracao-depois" id="celebracao-premio"></p>
+    <div class="celebracao-entrega celebracao-depois">
       <div id="celebracao-insignia"></div>
-      <p class="celebracao-subtitulo" id="celebracao-subtitulo"></p>
+      <p class="detalhe" id="celebracao-subtitulo"></p>
     </div>
-    <button class="botao celebracao-fechar" id="celebracao-fechar">Continuar</button>
+    <button class="botao celebracao-fechar celebracao-depois" id="celebracao-fechar">Continuar</button>
   </div>
 </div>
 

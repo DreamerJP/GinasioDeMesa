@@ -142,6 +142,17 @@ const LADO_DO_ICONE = 26;
 const CASAS_DA_NOTA = 3;
 const FRACAO_DA_FALTA = 0.5;
 const HORA_QUE_O_DIA_VIRA = 8;
+const ATRASO_DA_ROLAGEM = 400;
+const DURACAO_DA_ROLAGEM = 1400;
+const PAUSA_ANTES_DO_PODIO = 600;
+const ENTRE_LUGARES_DO_PODIO = 1200;
+const SUSPENSE_DO_CAMPEAO = 800;
+const DURACAO_DA_QUEDA = 640;
+const CHEGADA_AO_PODIO = [
+  { opacity: 0, transform: 'translateY(-48px) scale(0.6)' },
+  { opacity: 1, transform: 'translateY(6px) scale(1.06)', offset: 0.6 },
+  { opacity: 1, transform: 'none' },
+];
 const formatoNota = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: CASAS_DA_NOTA, maximumFractionDigits: CASAS_DA_NOTA });
 const formatoPlacar = new Intl.NumberFormat('pt-BR');
 
@@ -933,8 +944,10 @@ const ACOES = {
 
   corrigirPlacares({ partida, mudancas }) {
     if (!estado.eu.admin) throw recusa('Só o administrador corrige placares.');
-    if (!estado.partidas.some(p => p.id === partida)) throw recusa('Partida não encontrada.');
+    const registro = estado.partidas.find(p => p.id === partida);
+    if (!registro) throw recusa('Partida não encontrada.');
     if (Object.values(mudancas).some(v => !Number.isFinite(v) || v < 0 || v > 1e9)) throw recusa('Placar inválido.');
+    if (jogoDe(registro).semPlacar && !ordemDeChegadaValida(registro, mudancas)) throw recusa(`Use cada colocação de 1 a ${registro.placares.length} uma vez.`);
     return updateDoc(doc(banco, 'partidas', partida), Object.fromEntries(Object.entries(mudancas).map(([id, v]) => [`placares.${id}`, v])));
   },
 
@@ -1228,7 +1241,6 @@ function convidarParaFrase() {
     return false;
   }
   marcarComoVisto([chave]);
-  tocar('campeao');
   mostrarCelebracao(ultimo, campeoes);
   return true;
 }
@@ -1272,22 +1284,33 @@ function mostrarCelebracao(mes, campeoes) {
     return [balao];
   }));
   const lugarDaInsignia = document.getElementById('celebracao-insignia');
-  lugarDaInsignia.replaceChildren();
-  if (daEntrega !== null) {
-    const insigniaDaEntrega = desenhoDaInsignia(daEntrega, true);
-    insigniaDaEntrega.classList.add('brilha');
-    insigniaDaEntrega.style.setProperty('--atraso', '0.8s');
-    lugarDaInsignia.append(insigniaDaEntrega);
-  }
+  const insigniaDaEntrega = daEntrega === null ? null : desenhoDaInsignia(daEntrega, true);
+  insigniaDaEntrega?.style.setProperty('--atraso', `${(ATRASO_DA_ROLAGEM + DURACAO_DA_ROLAGEM) / 1000 + 0.2}s`);
+  lugarDaInsignia.replaceChildren(...(insigniaDaEntrega ? [insigniaDaEntrega] : []));
   const nomeDaInsignia = daEntrega === null ? '' : INSIGNIAS[daEntrega].nome;
+  const linhaDoPremio = document.getElementById('celebracao-premio');
+  linhaDoPremio.textContent = premio ? `${nomes} ${varios ? 'dividem' : 'leva'}: ${premio}.` : '';
+  linhaDoPremio.hidden = !premio;
   let entrega;
-  if (varios) entrega = premio ? `${nomes} dividem: ${premio}. Cada um leva a sua próxima insígnia.` : `${nomes} levam, cada um, a sua próxima insígnia.`;
-  else if (nomeDaInsignia) entrega = premio ? `${nomes} leva: ${premio} e a ${nomeDaInsignia}.` : `${nomes} leva a ${nomeDaInsignia}.`;
-  else entrega = premio ? `${nomes} leva: ${premio}.` : `${nomes} fecha o mês em 1º.`;
-  document.getElementById('celebracao-subtitulo').textContent = entrega;
+  if (varios) entrega = premio ? 'E cada um leva a sua próxima insígnia.' : `${nomes} levam, cada um, a sua próxima insígnia.`;
+  else if (nomeDaInsignia) entrega = premio ? `E a ${nomeDaInsignia}.` : `${nomes} leva a ${nomeDaInsignia}.`;
+  else entrega = premio ? '' : `${nomes} fecha o mês em 1º.`;
+  const fraseDaEntrega = document.getElementById('celebracao-subtitulo');
+  fraseDaEntrega.textContent = entrega;
   botao.textContent = euVenci && !escreveu ? 'Escrever minha frase' : 'Continuar';
 
+  const entregar = () => {
+    insigniaDaEntrega?.classList.add('brilha');
+    if (insigniaDaEntrega && entrega && !POUCO_MOVIMENTO.matches) rolarInsignia(lugarDaInsignia, fraseDaEntrega);
+  };
+  const pararRevelacao = POUCO_MOVIMENTO.matches ? null : revelarPodio(overlay.querySelector('.celebracao-centro'), entregar);
+  if (!pararRevelacao) {
+    tocar('campeao');
+    entregar();
+  }
+
   const fechar = () => {
+    pararRevelacao?.();
     overlay.hidden = true;
     if (euVenci && !escreveu) irPara('campeoes');
     else renderizar();
@@ -1295,6 +1318,52 @@ function mostrarCelebracao(mes, campeoes) {
   botao.onclick = fechar;
   overlay.onclick = e => { if (e.target === overlay) fechar(); };
   overlay.hidden = false;
+}
+
+function revelarPodio(cartao, aoTerminar) {
+  const lugares = [3, 2, 1].map(degrau => cartao.querySelector(`.podio-lugar[data-degrau="${degrau}"]`)).filter(lugar => lugar.children.length);
+  const animacoes = [];
+  const relogios = [];
+  let tocou = false;
+  const soar = () => {
+    if (!tocou) tocar('campeao');
+    tocou = true;
+  };
+  let momento = PAUSA_ANTES_DO_PODIO;
+  for (const lugar of lugares) {
+    const campeao = lugar.dataset.degrau === '1';
+    if (campeao) momento += SUSPENSE_DO_CAMPEAO;
+    for (const pessoa of lugar.children) {
+      animacoes.push(pessoa.animate(CHEGADA_AO_PODIO, { duration: DURACAO_DA_QUEDA, delay: momento, easing: 'steps(8, end)', fill: 'backwards' }));
+      if (campeao) animacoes.push(pessoa.animate([{ filter: 'brightness(2.5)' }, { filter: 'none' }], { duration: 520, delay: momento + DURACAO_DA_QUEDA, easing: 'steps(4, end)' }));
+    }
+    if (campeao) relogios.push(setTimeout(soar, momento + DURACAO_DA_QUEDA / 2));
+    momento += ENTRE_LUGARES_DO_PODIO;
+  }
+  const parar = () => {
+    relogios.forEach(clearTimeout);
+    animacoes.forEach(animacao => animacao.finish());
+    cartao.classList.remove('revelando');
+    cartao.onclick = null;
+  };
+  const terminar = () => {
+    parar();
+    soar();
+    aoTerminar();
+  };
+  cartao.classList.add('revelando');
+  cartao.onclick = terminar;
+  relogios.push(setTimeout(terminar, momento));
+  return parar;
+}
+
+function rolarInsignia(insignia, frase) {
+  const lado = insignia.offsetWidth;
+  const distancia = insignia.parentElement.clientWidth - lado;
+  const giro = distancia / (lado / 2) * 180 / Math.PI;
+  const tempo = { duration: DURACAO_DA_ROLAGEM, delay: ATRASO_DA_ROLAGEM, easing: 'cubic-bezier(0.25, 0.6, 0.35, 1)', fill: 'backwards' };
+  insignia.animate([{ transform: `translateX(${distancia}px) rotate(${giro}deg)` }, { transform: 'none' }], tempo);
+  frase.animate([{ clipPath: `inset(0 0 0 ${frase.offsetWidth}px)` }, { clipPath: 'inset(0 0 0 0)' }], tempo);
 }
 
 function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
@@ -1746,7 +1815,7 @@ function mostrarPartida(id) {
   document.getElementById('partida-situacao').textContent = situacao;
 
   const faltaDeOutro = partida.placares.some(s => s.valor === null && s.jogador !== eu.id);
-  const modoDoAdmin = !eu.admin ? '' : aberta ? (valeNoMes && faltaDeOutro ? 'incluir' : '') : (jogo.semPlacar ? '' : 'corrigir');
+  const modoDoAdmin = !eu.admin ? '' : aberta ? (valeNoMes && faltaDeOutro ? 'incluir' : '') : 'corrigir';
   if (correcao && (correcao.partida !== id || correcao.modo !== modoDoAdmin)) correcao = null;
   const notas = aberta ? new Map() : new Map(notasDaPartida(partidaParaFormula(partida)));
   const lugares = aberta ? new Map() : lugaresDaPartida(partida);
@@ -1761,7 +1830,7 @@ function mostrarPartida(id) {
       const campo = criar('input', 'campo campo-texto campo-correcao');
       campo.inputMode = 'decimal';
       campo.autocomplete = 'off';
-      campo.setAttribute('aria-label', `Placar de ${alguem?.apelido || '?'}`);
+      campo.setAttribute('aria-label', `${jogo.semPlacar ? 'Colocação' : 'Placar'} de ${alguem?.apelido || '?'}`);
       campo.value = correcao.rascunho.get(s.jogador) ?? (falta ? '' : String(s.valor).replace('.', ','));
       campo.addEventListener('input', () => {
         correcao.rascunho.set(s.jogador, campo.value);
@@ -1806,7 +1875,7 @@ function mostrarPartida(id) {
   document.getElementById('partida-rodape').hidden = !regras.length;
   document.getElementById('correcao-placar').hidden = !modoDoAdmin;
   document.getElementById('corrigir-placares').hidden = Boolean(correcao);
-  document.getElementById('corrigir-placares').textContent = modoDoAdmin === 'incluir' ? 'Incluir placares' : 'Corrigir placares';
+  document.getElementById('corrigir-placares').textContent = modoDoAdmin === 'incluir' ? 'Incluir placares' : jogo.semPlacar ? 'Corrigir colocações' : 'Corrigir placares';
   document.getElementById('botoes-correcao').hidden = !correcao;
   if (correcao) validarCorrecao();
 
@@ -1854,12 +1923,22 @@ function mudancasDaCorrecao() {
     if (numero === null) return null;
     if (numero !== valor) mudancas[id] = numero;
   }
+  if (jogoDe(partida).semPlacar && !ordemDeChegadaValida(partida, mudancas)) return null;
   return mudancas;
+}
+
+function ordemDeChegadaValida(partida, mudancas) {
+  const lugares = partida.placares.map(s => mudancas[s.jogador] ?? s.valor).sort((a, b) => a - b);
+  return lugares.every((lugar, i) => lugar === i + 1);
 }
 
 function validarCorrecao() {
   const mudancas = mudancasDaCorrecao();
   document.getElementById('salvar-correcao').disabled = !mudancas || !Object.keys(mudancas).length;
+  const partida = estado.partidas.find(p => p.id === correcao.partida);
+  if (jogoDe(partida).semPlacar) {
+    document.getElementById('aviso-correcao').textContent = mudancas ? '' : `Use cada colocação de 1 a ${partida.placares.length} uma vez.`;
+  }
 }
 
 function validarPlacar() {
@@ -2654,7 +2733,7 @@ function mostrarAdministracao() {
   document.getElementById('caixa-fechar-mes').hidden = !podeFecharOMes();
   const temAberta = estado.partidas.some(p => p.mes === mesAtual && p.estado === 'aberta');
   const fecharMes = document.getElementById('fechar-mes');
-  fecharMes.textContent = `Fechar ${MESES[indiceDoMes(mesAtual)]} agora`;
+  fecharMes.textContent = 'Fechar o mês agora';
   fecharMes.classList.remove('botao-perigo');
   fecharMes.disabled = temAberta;
   document.getElementById('rodape-fechar-mes').textContent = temAberta

@@ -199,6 +199,7 @@ body {
 
 .formulario { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .linha-campo { display: flex; gap: 8px; }
+#fechar-mes { justify-self: stretch; text-align: center; }
 
 .campo {
   flex: 1;
@@ -807,8 +808,10 @@ select.campo {
 .balao + .balao::before,
 .balao + .balao::after { display: none; }
 .celebracao-entrega { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; }
+.celebracao-entrega:has(> p:empty) { display: none; }
 .celebracao-subtitulo { font-size: 16px; }
 .celebracao-fechar { justify-self: center; margin-top: 6px; }
+.celebracao-centro.revelando .celebracao-depois { visibility: hidden; }
 
 .nivel-ouro { --nivel-claro: #fff0a8; --nivel: #f2c14e; --nivel-escuro: #c48a1c; --nivel-letra: #4a2c00; --nivel-realce: #fbd97a; --nivel-texto: #8a5a08; }
 .nivel-prata { --nivel-claro: #ffffff; --nivel: #c9cde2; --nivel-escuro: #8d93b5; --nivel-letra: #23264a; --nivel-realce: #eef0f8; --nivel-texto: #535a80; }
