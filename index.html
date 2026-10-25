@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
 <link rel="stylesheet" href="estilo.css?v=53">
-<script type="module" src="app.js?v=58" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<script type="module" src="app.js?v=59" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -370,11 +370,12 @@
     <section class="caixa pergunta">
       <div class="pergunta-topo"><img src="midia/regra-faltas.png" alt=""><h2 class="pergunta-titulo">E se eu faltar?</h2></div>
       <ul class="respostas">
-        <li><strong>Quem vai e fica em último sempre leva mais do que quem faltou.</strong><span class="detalhe">Quem falta leva metade da nota do último colocado.</span></li>
-        <li><strong>Faltar algumas partidas não tira ninguém da disputa.</strong><span class="detalhe">Quem joga bem continua na frente.</span></li>
-        <li><strong>Quanto mais partidas a pessoa deixa de jogar, mais difícil fica passar quem foi a todas.</strong></li>
+        <li><strong>Quem vai e fica em último sempre leva mais do que quem faltou.</strong><span class="detalhe">Quem não vai no dia leva, em cada partida daquele dia, metade da nota do último colocado.</span></li>
+        <li><strong>Quem foi e estava em outra mesa não perde nada.</strong><span class="detalhe">As partidas da outra mesa ficam fora da sua conta.</span></li>
+        <li><strong>Faltar um dia não tira ninguém da disputa.</strong><span class="detalhe">Quem joga bem continua na frente.</span></li>
+        <li><strong>Quanto mais dias a pessoa falta, mais difícil fica passar quem foi a todos.</strong></li>
         <li><strong>Quem jogou pouco não fica no alto.</strong>
-          <p class="exemplo"><span class="rotulo">Exemplo</span>Quem vai a 1 de 11 partidas e vence fica perto de 0,23.</p></li>
+          <p class="exemplo"><span class="rotulo">Exemplo</span>Quem vai a 1 de 3 dias, joga só 1 partida e vence fica perto de 0,24.</p></li>
       </ul>
     </section>
 
@@ -410,7 +411,7 @@
     <section class="caixa">
       <h2 class="rotulo">Nota do mês</h2>
       <div class="formula" data-formula="G_i = \frac{1}{M}\sum_{j=1}^{M} P_{i,j}"></div>
-      <p class="detalhe">Quem faltou a uma partida leva nela <span data-formula-linha="\tfrac{1}{2}\min_k P_{k,j}"></span>, metade da nota do último colocado. Quem não jogou nenhuma partida no mês fica com 0.</p>
+      <p class="detalhe">Contam as partidas que o jogador jogou e as dos dias em que ele não foi. Nessas, leva <span data-formula-linha="\tfrac{1}{2}\min_k P_{k,j}"></span>, metade da nota do último colocado. Partida de um dia em que ele foi, mas jogou em outra mesa, fica fora. O dia vai das 8h às 8h. Quem não jogou nenhuma partida no mês fica com 0.</p>
     </section>
 
     <section class="caixa">
@@ -420,13 +421,13 @@
         <dt data-formula-linha="r">r</dt><dd>colocação na partida, 1 é o vencedor</dd>
         <dt data-formula-linha="x">x</dt><dd>placar do jogador na partida</dd>
         <dt data-formula-linha="\bar{x}">x̄</dt><dd>média dos placares da mesa naquela partida</dd>
-        <dt data-formula-linha="M">M</dt><dd>partidas do grupo no mês</dd>
+        <dt data-formula-linha="M">M</dt><dd>partidas que contam para o jogador no mês</dd>
         <dt data-formula-linha="P">P</dt><dd>nota da partida, de 0 a 1</dd>
         <dt data-formula-linha="G">G</dt><dd>nota do mês, de 0 a 1</dd>
         <dt data-formula-linha="i">i</dt><dd>o jogador da conta</dd>
-        <dt data-formula-linha="j">j</dt><dd>uma das partidas do mês</dd>
+        <dt data-formula-linha="j">j</dt><dd>uma das partidas que contam para o jogador</dd>
         <dt data-formula-linha="k">k</dt><dd>qualquer jogador daquela partida, usado para achar a menor nota</dd>
-        <dt data-formula-linha="\textstyle\sum">∑</dt><dd>soma; na nota do mês, soma as notas de todas as partidas, de j = 1 até M</dd>
+        <dt data-formula-linha="\textstyle\sum">∑</dt><dd>soma; na nota do mês, soma as notas das partidas que contam, de j = 1 até M</dd>
         <dt data-formula-linha="\min">min</dt><dd>o menor valor; aparece na nota da partida e na nota de quem faltou</dd>
       </dl>
     </section>

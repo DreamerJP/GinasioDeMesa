@@ -73,7 +73,7 @@ const TITULOS = [
   { id: 'zebra', nome: 'Zebra', desenho: 'zebra', metas: [1, 3, 6, 10, 20], medida: 'Vitórias numa mesa em que você era o último do ranking do mês.', unidade: ['zebra', 'zebras'] },
   { id: 'trave', nome: 'Na Trave', desenho: 'trave', metas: [1, 3, 6, 10, 20], medida: 'Vezes em 2º a 1 ponto do vencedor.', unidade: ['vez', 'vezes'] },
   { id: 'cadeira', nome: 'Cadeira Cativa', desenho: 'cadeira', metas: [10, 30, 60, 100, 200], medida: 'Partidas jogadas.', unidade: ['partida', 'partidas'] },
-  { id: 'presenca', nome: 'Presença VIP', desenho: 'presenca', metas: [1, 3, 6, 9, 12], medida: 'Meses fechados em que jogou todas as partidas.', unidade: ['mês completo', 'meses completos'] },
+  { id: 'presenca', nome: 'Presença VIP', desenho: 'presenca', metas: [1, 3, 6, 9, 12], medida: 'Meses fechados em que foi a todos os dias de jogo.', unidade: ['mês completo', 'meses completos'] },
   { id: 'mesa', nome: 'Dono da Mesa', desenho: 'mesa', metas: [5, 15, 30, 50, 100], medida: 'Partidas que abriu.', unidade: ['partida aberta', 'partidas abertas'] },
   { id: 'ecletico', nome: 'Eclético', desenho: 'ecletico', metas: [3, 5, 8, 12, 20], medida: 'Jogos diferentes jogados.', unidade: ['jogo', 'jogos'] },
   { id: 'vice', nome: 'Vice', desenho: 'vice', metas: [5, 10, 20, 35, 50], medida: 'Vezes em 2º lugar.', unidade: ['vez', 'vezes'], soPorEscolha: true },
@@ -141,6 +141,7 @@ const LADO_DO_ICONE = 26;
 
 const CASAS_DA_NOTA = 3;
 const FRACAO_DA_FALTA = 0.5;
+const HORA_QUE_O_DIA_VIRA = 8;
 const formatoNota = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: CASAS_DA_NOTA, maximumFractionDigits: CASAS_DA_NOTA });
 const formatoPlacar = new Intl.NumberFormat('pt-BR');
 
@@ -224,8 +225,17 @@ function notasDaPartida({ resultados, menorVence, semPlacar }) {
   });
 }
 
-function rankingDoMes(jogadores, partidas) {
-  const acumulado = new Map(jogadores.map(id => [id, { soma: 0, faltas: 0, partidas: 0 }]));
+function presentesPorDia(partidas) {
+  const presentes = new Map();
+  for (const { dia, resultados } of partidas) {
+    if (!presentes.has(dia)) presentes.set(dia, new Set());
+    Object.keys(resultados).forEach(id => presentes.get(dia).add(id));
+  }
+  return presentes;
+}
+
+function rankingDoMes(jogadores, partidas, presentes = presentesPorDia(partidas)) {
+  const acumulado = new Map(jogadores.map(id => [id, { soma: 0, faltas: 0, partidas: 0, contadas: 0 }]));
   for (const partida of partidas) {
     const notas = new Map(notasDaPartida(partida));
     const notaDaFalta = Math.min(...notas.values()) * FRACAO_DA_FALTA;
@@ -233,8 +243,10 @@ function rankingDoMes(jogadores, partidas) {
       if (notas.has(id)) {
         jogador.soma += notas.get(id);
         jogador.partidas++;
-      } else {
+        jogador.contadas++;
+      } else if (!presentes.get(partida.dia).has(id)) {
         jogador.faltas += notaDaFalta;
+        jogador.contadas++;
       }
     }
   }
@@ -242,8 +254,8 @@ function rankingDoMes(jogadores, partidas) {
   const total = partidas.length;
   const linhas = jogadores
     .map(id => {
-      const { soma, faltas, partidas: jogadas } = acumulado.get(id);
-      return { id, nota: jogadas ? (soma + faltas) / total : 0, partidas: jogadas };
+      const { soma, faltas, partidas: jogadas, contadas } = acumulado.get(id);
+      return { id, nota: jogadas ? (soma + faltas) / contadas : 0, partidas: jogadas };
     })
     .sort((a, b) => b.nota - a.nota);
 
@@ -265,7 +277,7 @@ function jogador(id) {
 
 function partidaParaFormula(partida) {
   const { menorVence, semPlacar } = jogoDe(partida);
-  return { menorVence, semPlacar, resultados: Object.fromEntries(partida.placares.map(s => [s.jogador, s.valor])) };
+  return { menorVence, semPlacar, dia: diaDaMesa(partida.abertaEm), resultados: Object.fromEntries(partida.placares.map(s => [s.jogador, s.valor])) };
 }
 
 function lugaresDaPartida(partida) {
@@ -275,9 +287,16 @@ function lugaresDaPartida(partida) {
   return new Map(partida.placares.map((s, i) => [s.jogador, lugares[i]]));
 }
 
+function fechadasDoMes(mes) {
+  return estado.partidas.filter(p => p.mes === mes && p.estado === 'fechada').map(partidaParaFormula);
+}
+
+function presentesEmCadaDia() {
+  return presentesPorDia(estado.partidas.filter(p => p.estado === 'fechada').map(partidaParaFormula));
+}
+
 function rankingDe(mes) {
-  const fechadas = estado.partidas.filter(p => p.mes === mes && p.estado === 'fechada');
-  return rankingDoMes(estado.jogadores.map(j => j.id), fechadas.map(partidaParaFormula));
+  return rankingDoMes(estado.jogadores.map(j => j.id), fechadasDoMes(mes), presentesEmCadaDia());
 }
 
 function mesesFechados() {
@@ -429,19 +448,20 @@ function calcularTitulos() {
     anteriores.push(partida);
   }
 
-  const diaDe = partida => formatoDataLonga.format(partida.abertaEm);
   for (const mes of [...mesesFechados()].reverse()) {
     const doMes = jogadasDoMes.get(mes) || [];
-    const ultimoDia = doMes.length ? diaDe(doMes.at(-1)) : '';
-    const antesDoUltimoDia = doMes.filter(p => diaDe(p) !== ultimoDia);
+    const ultimoDia = doMes.length ? diaDaMesa(doMes.at(-1).abertaEm) : '';
+    const antesDoUltimoDia = doMes.filter(p => diaDaMesa(p.abertaEm) !== ultimoDia);
     const lideres = antesDoUltimoDia.length ? [...rankingDas(antesDoUltimoDia).values()].filter(l => l.posicao === 1 && l.nota > 0).map(l => l.id) : [];
+    const presentesNoDia = presentesEmCadaDia();
+    const presentes = [...new Set(doMes.map(p => diaDaMesa(p.abertaEm)))].map(dia => presentesNoDia.get(dia));
     for (const linha of rankingDe(mes).linhas) {
       if (linha.nota <= 0) continue;
       const conta = contagemDe(linha.id);
       if (linha.posicao === 1) marcar(linha.id, 'campeao', ++conta.campeao, mes);
       if (linha.posicao <= 3) marcar(linha.id, 'podio', ++conta.podio, mes);
       if (linha.posicao !== 1 && lideres.includes(linha.id)) marcar(linha.id, 'praia', ++conta.praias, mes);
-      if (linha.partidas === doMes.length) marcar(linha.id, 'presenca', ++conta.presencas, mes);
+      if (presentes.every(dia => dia.has(linha.id))) marcar(linha.id, 'presenca', ++conta.presencas, mes);
       if (doMes.length >= MINIMO_PARA_TURISTA && linha.partidas <= 2) marcar(linha.id, 'turista', ++conta.turismos, mes);
     }
   }
@@ -542,6 +562,11 @@ function titulosNovos() {
 const formatoHora = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, hour: '2-digit', minute: '2-digit' });
 const formatoDia = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: 'long', day: 'numeric' });
 const formatoDataLonga = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+const formatoDiaDaMesa = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO, year: 'numeric', month: '2-digit', day: '2-digit' });
+
+function diaDaMesa(momento) {
+  return formatoDiaDaMesa.format(new Date(momento.getTime() - HORA_QUE_O_DIA_VIRA * 3600e3));
+}
 
 function quandoFoiAberta(partida) {
   if (!partida.abertaEm.getTime()) return '';
@@ -1760,7 +1785,8 @@ function mostrarPartida(id) {
   }));
 
   // Só conta como falta para quem jogou alguma partida no mês; quem não jogou nenhuma fica com nota 0 de qualquer jeito.
-  const ausentes = aberta ? [] : rankingDe(partida.mes).linhas.filter(l => l.partidas > 0 && !notas.has(l.id));
+  const presentes = aberta ? new Set() : presentesEmCadaDia().get(diaDaMesa(partida.abertaEm));
+  const ausentes = aberta ? [] : rankingDe(partida.mes).linhas.filter(l => l.partidas > 0 && !presentes.has(l.id));
   const notaDaFalta = aberta ? 0 : Math.min(...notas.values()) * FRACAO_DA_FALTA;
   document.getElementById('partida-faltas').hidden = !ausentes.length;
   document.getElementById('partida-ausentes').replaceChildren(...ausentes.map(l => {
