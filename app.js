@@ -13,6 +13,7 @@ const FIREBASE = {
 };
 const CHAVE_SOM = 'ginasio.som';
 const FUSO = 'America/Sao_Paulo';
+const DIAS_PARA_FECHAR_O_MES = 7;
 const AGUARDANDO = 'Seu pedido de entrada foi enviado. Assim que o administrador aprovar, o ginásio abre sozinho.';
 const DEMORA_DA_ENTRADA = 8000;
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
@@ -165,7 +166,7 @@ let andamentoAbertoDe = '';
 let correcao = null;
 let jogoEscolhido = '';
 let selecao = null;
-let conviteDeFraseFeito = false;
+let mesDoConvite = '';
 let mesDoCampeaoAberto = '';
 let carregamentoKatex = null;
 let titulosCalculados = { estado: null, valor: null };
@@ -553,15 +554,35 @@ function diaDaPartida(momento) {
   return `${partes.find(p => p.type === 'weekday').value}, dia ${partes.find(p => p.type === 'day').value}`;
 }
 
-function mesDeHoje() {
+function mesDoCalendario() {
   const partes = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO, year: 'numeric', month: '2-digit' }).formatToParts(new Date());
   return `${partes.find(p => p.type === 'year').value}-${partes.find(p => p.type === 'month').value}`;
 }
 
-function textoFechamento(mesAtual, hoje = new Date()) {
+function mesSeguinte(mes) {
+  const [ano, numero] = mes.split('-').map(Number);
+  return numero === 12 ? `${ano + 1}-01` : `${ano}-${String(numero + 1).padStart(2, '0')}`;
+}
+
+function mesDeHoje() {
+  const mes = mesDoCalendario();
+  return lidos.fechamentos?.some(f => f.id === mes) ? mesSeguinte(mes) : mes;
+}
+
+function diasAteOFim(mes, hoje = new Date()) {
+  const [ano, numero] = mes.split('-').map(Number);
+  return Math.round((new Date(ano, numero, 0) - new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate())) / 864e5);
+}
+
+function podeFecharOMes() {
+  const mes = mesDoCalendario();
+  return estado.eu.admin && estado.mesAtual === mes && diasAteOFim(mes) < DIAS_PARA_FECHAR_O_MES;
+}
+
+function textoFechamento(mesAtual) {
   const [ano, mes] = mesAtual.split('-').map(Number);
   const ultimoDia = new Date(ano, mes, 0).getDate();
-  const faltam = ultimoDia - hoje.getDate();
+  const faltam = diasAteOFim(mesAtual);
   if (faltam <= 0) return 'Fecha hoje à meia-noite';
   if (faltam === 1) return `Fecha amanhã, dia ${ultimoDia}`;
   return `Fecha em ${faltam} dias, dia ${ultimoDia}`;
@@ -892,10 +913,24 @@ const ACOES = {
     return updateDoc(doc(banco, 'partidas', partida), Object.fromEntries(Object.entries(mudancas).map(([id, v]) => [`placares.${id}`, v])));
   },
 
+  incluirPlacares({ partida, mudancas }) {
+    if (!estado.eu.admin) throw recusa('Só o administrador inclui placares.');
+    const registro = partidaAbertaNoMes(partida);
+    if (registro.mes !== mesDeHoje()) throw recusa('Essa partida é de um mês que já fechou e não conta mais.');
+    if (Object.keys(mudancas).some(id => registro.placares.find(s => s.jogador === id)?.valor !== null)) throw recusa('Esse placar já foi lançado.');
+    return this.corrigirPlacares({ partida, mudancas });
+  },
+
   cancelarPartida({ partida }) {
     const registro = partidaAbertaNoMes(partida);
     if (registro.abertaPor !== estado.eu.id && !estado.eu.admin) throw recusa('Só quem abriu a partida pode cancelar.');
     return deleteDoc(doc(banco, 'partidas', partida));
+  },
+
+  fecharMes() {
+    if (!podeFecharOMes()) throw recusa('O mês só pode ser fechado na última semana.');
+    if (estado.partidas.some(p => p.mes === estado.mesAtual && p.estado === 'aberta')) throw recusa('Feche ou cancele a partida aberta antes.');
+    return setDoc(doc(banco, 'fechamentos', estado.mesAtual), { fechadoEm: serverTimestamp() });
   },
 
   definirPremio({ mes, texto }) {
@@ -975,7 +1010,7 @@ function pararEscutas() {
 
 function acompanharConta(usuario) {
   pararEscutas();
-  conviteDeFraseFeito = false;
+  mesDoConvite = '';
   fotoCompletada = false;
   if (!usuario) {
     mostrarEntrada('Entre com a conta Google que o administrador liberou.', 'google');
@@ -1013,7 +1048,7 @@ async function pedirEntrada(usuario, email) {
 
 function escutarDados() {
   pararDados();
-  const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', ...(conta.admin ? ['acessos', 'pedidos'] : [])];
+  const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', 'fechamentos', ...(conta.admin ? ['acessos', 'pedidos'] : [])];
   // Nas partidas, escutar a confirmação do servidor: título só é anunciado depois que o placar gravou.
   escutasDosDados = nomes.map(nome => onSnapshot(collection(banco, nome), { includeMetadataChanges: nome === 'partidas' }, retrato => {
     lidos[nome] = retrato.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
@@ -1150,15 +1185,13 @@ function aplicarEstado(novo) {
   document.querySelectorAll('[data-mes]').forEach(el => { el.textContent = MESES[indiceDoMes(estado.mesAtual)]; });
   document.querySelector('[data-item="perfil"]').textContent = estado.eu.apelido;
   document.querySelector('[data-item="administracao"]').hidden = !estado.eu.admin;
-  if (convidarParaFrase()) return;
   renderizar();
 }
 
 function convidarParaFrase() {
-  if (conviteDeFraseFeito) return false;
-  conviteDeFraseFeito = true;
   const [ultimo] = mesesFechados();
-  if (!ultimo) return false;
+  if (!ultimo || ultimo === mesDoConvite) return false;
+  mesDoConvite = ultimo;
   const campeoes = campeoesDe(ultimo);
   if (!campeoes.length) return false;
 
@@ -1347,7 +1380,7 @@ function avisoAberto() {
 }
 
 function verificarAvisos() {
-  if (!estado?.eu.apelido || estado.gravando || avisoAberto()) return;
+  if (!estado?.eu.apelido || estado.gravando || avisoAberto() || convidarParaFrase()) return;
   const pendentes = resultadosPendentes();
   if (pendentes.length) mostrarResultado(pendentes[0], pendentes.length - 1);
   else verificarTitulosNovos();
@@ -1687,8 +1720,9 @@ function mostrarPartida(id) {
   if (aberta && !valeNoMes) situacao = 'Não conta: o mês fechou antes de todos lançarem.';
   document.getElementById('partida-situacao').textContent = situacao;
 
-  const podeCorrigir = eu.admin && !aberta && !jogo.semPlacar;
-  if (correcao && (correcao.partida !== id || !podeCorrigir)) correcao = null;
+  const faltaDeOutro = partida.placares.some(s => s.valor === null && s.jogador !== eu.id);
+  const modoDoAdmin = !eu.admin ? '' : aberta ? (valeNoMes && faltaDeOutro ? 'incluir' : '') : (jogo.semPlacar ? '' : 'corrigir');
+  if (correcao && (correcao.partida !== id || correcao.modo !== modoDoAdmin)) correcao = null;
   const notas = aberta ? new Map() : new Map(notasDaPartida(partidaParaFormula(partida)));
   const lugares = aberta ? new Map() : lugaresDaPartida(partida);
   const placares = aberta ? partida.placares : [...partida.placares].sort((a, b) => lugares.get(a.jogador) - lugares.get(b.jogador));
@@ -1698,7 +1732,18 @@ function mostrarPartida(id) {
     const falta = aberta && s.valor === null;
     const linha = criar('li', `jogador-linha${!aberta && lugares.get(s.jogador) === 1 ? ' vencedor' : ''}${falta ? ' pendente' : ''}`);
     const valor = criar('span', 'valor');
-    if (falta) {
+    if (correcao && (!aberta || (falta && s.jogador !== eu.id))) {
+      const campo = criar('input', 'campo campo-texto campo-correcao');
+      campo.inputMode = 'decimal';
+      campo.autocomplete = 'off';
+      campo.setAttribute('aria-label', `Placar de ${alguem?.apelido || '?'}`);
+      campo.value = correcao.rascunho.get(s.jogador) ?? (falta ? '' : String(s.valor).replace('.', ','));
+      campo.addEventListener('input', () => {
+        correcao.rascunho.set(s.jogador, campo.value);
+        validarCorrecao();
+      });
+      valor.append(campo);
+    } else if (falta) {
       valor.append(criar('span', 'detalhe', 'falta'));
     } else if (aberta) {
       const lancou = criar('span', 'lancou');
@@ -1706,17 +1751,6 @@ function mostrarPartida(id) {
       if (s.jogador === eu.id) lancou.append(criar('span', '', formatoPlacar.format(s.valor)));
       lancou.append(criar('span', 'visto'));
       valor.append(lancou);
-    } else if (correcao) {
-      const campo = criar('input', 'campo campo-texto campo-correcao');
-      campo.inputMode = 'decimal';
-      campo.autocomplete = 'off';
-      campo.setAttribute('aria-label', `Placar de ${alguem?.apelido || '?'}`);
-      campo.value = correcao.rascunho.get(s.jogador) ?? String(s.valor).replace('.', ',');
-      campo.addEventListener('input', () => {
-        correcao.rascunho.set(s.jogador, campo.value);
-        validarCorrecao();
-      });
-      valor.append(campo);
     } else {
       if (!jogo.semPlacar) valor.append(criar('span', '', formatoPlacar.format(s.valor)));
       valor.append(criar('span', 'detalhe', `nota ${formatoNota.format(notas.get(s.jogador))}`));
@@ -1744,8 +1778,9 @@ function mostrarPartida(id) {
   if (jogo.menorVence && !comCampo) regras.push('Neste jogo, menor placar vence.');
   document.getElementById('partida-rodape').textContent = regras.join(' ');
   document.getElementById('partida-rodape').hidden = !regras.length;
-  document.getElementById('correcao-placar').hidden = !podeCorrigir;
+  document.getElementById('correcao-placar').hidden = !modoDoAdmin;
   document.getElementById('corrigir-placares').hidden = Boolean(correcao);
+  document.getElementById('corrigir-placares').textContent = modoDoAdmin === 'incluir' ? 'Incluir placares' : 'Corrigir placares';
   document.getElementById('botoes-correcao').hidden = !correcao;
   if (correcao) validarCorrecao();
 
@@ -1788,6 +1823,7 @@ function mudancasDaCorrecao() {
   for (const { jogador: id, valor } of partida.placares) {
     const digitado = correcao.rascunho.get(id);
     if (digitado === undefined) continue;
+    if (correcao.modo === 'incluir' && (valor !== null || !digitado.trim())) continue;
     const numero = numeroDoPlacar(digitado);
     if (numero === null) return null;
     if (numero !== valor) mudancas[id] = numero;
@@ -1806,19 +1842,20 @@ function validarPlacar() {
 
 function ligarPartida() {
   const formulario = document.getElementById('form-placar');
+  const somDoSucesso = () => (estado.partidas.find(p => p.id === partidaAberta)?.estado === 'fechada' ? 'partidaFechada' : 'confirmar');
   document.getElementById('campo-placar').addEventListener('input', validarPlacar);
   formulario.addEventListener('submit', async evento => {
     evento.preventDefault();
     const valor = valorDoPlacar();
     if (valor === null) return;
-    const somDoSucesso = () => (estado.partidas.find(p => p.id === partidaAberta)?.estado === 'fechada' ? 'partidaFechada' : 'confirmar');
     await enviar(formulario.querySelector('button'), document.getElementById('aviso-placar'), 'lancarPlacar', { partida: partidaAberta, valor }, somDoSucesso);
     if (!formulario.hidden) validarPlacar();
   });
 
   const avisoDaCorrecao = document.getElementById('aviso-correcao');
   document.getElementById('corrigir-placares').addEventListener('click', () => {
-    correcao = { partida: partidaAberta, rascunho: new Map() };
+    const aberta = estado.partidas.find(p => p.id === partidaAberta)?.estado === 'aberta';
+    correcao = { partida: partidaAberta, modo: aberta ? 'incluir' : 'corrigir', rascunho: new Map() };
     avisoDaCorrecao.textContent = '';
     mostrarPartida(partidaAberta);
     document.querySelector('.campo-correcao')?.focus();
@@ -1829,9 +1866,12 @@ function ligarPartida() {
     mostrarPartida(partidaAberta);
   });
   document.getElementById('salvar-correcao').addEventListener('click', async evento => {
+    aplicarEstadoEmEspera();
+    if (!correcao) return;
     const mudancas = mudancasDaCorrecao();
     if (!mudancas || !Object.keys(mudancas).length) return;
-    if (await enviar(evento.currentTarget, avisoDaCorrecao, 'corrigirPlacares', { partida: correcao.partida, mudancas })) {
+    const incluindo = correcao.modo === 'incluir';
+    if (await enviar(evento.currentTarget, avisoDaCorrecao, incluindo ? 'incluirPlacares' : 'corrigirPlacares', { partida: correcao.partida, mudancas }, incluindo ? somDoSucesso : undefined)) {
       correcao = null;
       mostrarPartida(partidaAberta);
     }
@@ -2585,6 +2625,16 @@ function mostrarAdministracao() {
   premio.value = premios[mesAtual] || '';
   validarPremio();
 
+  document.getElementById('caixa-fechar-mes').hidden = !podeFecharOMes();
+  const temAberta = estado.partidas.some(p => p.mes === mesAtual && p.estado === 'aberta');
+  const fecharMes = document.getElementById('fechar-mes');
+  fecharMes.textContent = `Fechar ${MESES[indiceDoMes(mesAtual)]} agora`;
+  fecharMes.classList.remove('botao-perigo');
+  fecharMes.disabled = temAberta;
+  document.getElementById('rodape-fechar-mes').textContent = temAberta
+    ? 'Feche ou cancele a partida aberta antes.'
+    : `O campeão aparece para todos na hora e as partidas novas já contam para ${MESES[indiceDoMes(mesSeguinte(mesAtual))]}.`;
+
   const vinculo = document.getElementById('campo-vinculo');
   const semEmail = liberados.filter(l => !l.email && l.apelido);
   const opcoesDeVinculo = () => [new Option('Jogador novo', ''), ...semEmail.map(l => new Option(l.apelido, l.id))];
@@ -2644,6 +2694,24 @@ function ligarAdministracao() {
     const dados = { email: email.value.trim(), jogador: document.getElementById('campo-vinculo').value || undefined };
     if (await enviar(formLiberar.querySelector('button'), document.getElementById('aviso-liberar'), 'liberarEmail', dados)) email.value = '';
     validarEmail();
+  });
+
+  const fecharMes = document.getElementById('fechar-mes');
+  let confirmando = null;
+  fecharMes.addEventListener('click', async () => {
+    if (!confirmando) {
+      fecharMes.textContent = 'Toque de novo para fechar';
+      fecharMes.classList.add('botao-perigo');
+      confirmando = setTimeout(() => {
+        confirmando = null;
+        mostrarAdministracao();
+      }, 4000);
+      return;
+    }
+    clearTimeout(confirmando);
+    confirmando = null;
+    await enviar(fecharMes, document.getElementById('aviso-fechar-mes'), 'fecharMes', {});
+    mostrarAdministracao();
   });
 }
 

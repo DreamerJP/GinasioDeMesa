@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
 <link rel="stylesheet" href="estilo.css?v=53">
-<script type="module" src="app.js?v=57" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<script type="module" src="app.js?v=58" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -437,6 +437,12 @@
       <h2 class="rotulo">Pedidos de entrada</h2>
       <ul class="lista-pedidos" id="lista-pedidos"></ul>
       <p class="rodape">Escolha de quem é cada conta antes de aprovar. Jogador novo escolhe o apelido quando entrar.</p>
+    </section>
+
+    <section class="caixa formulario" id="caixa-fechar-mes" hidden>
+      <button class="botao" id="fechar-mes" type="button"></button>
+      <p class="aviso" id="aviso-fechar-mes" role="alert"></p>
+      <p class="rodape" id="rodape-fechar-mes"></p>
     </section>
 
     <form class="caixa formulario" id="form-premio">

@@ -33,9 +33,20 @@ service cloud.firestore {
       return membro() && exists(/databases/$(database)/documents/jogadores/$(meuId()));
     }
 
-    function mesAtual() {
+    function mesDoCalendario() {
       let hoje = request.time - duration.value(3, 'h');
       return string(hoje.year()) + (hoje.month() < 10 ? '-0' : '-') + string(hoje.month());
+    }
+
+    function mesSeguinte() {
+      let hoje = request.time - duration.value(3, 'h');
+      let ano = hoje.month() == 12 ? hoje.year() + 1 : hoje.year();
+      let mes = hoje.month() == 12 ? 1 : hoje.month() + 1;
+      return string(ano) + (mes < 10 ? '-0' : '-') + string(mes);
+    }
+
+    function mesAtual() {
+      return exists(/databases/$(database)/documents/fechamentos/$(mesDoCalendario())) ? mesSeguinte() : mesDoCalendario();
     }
 
     function texto(valor, minimo, maximo) {
@@ -151,6 +162,15 @@ service cloud.firestore {
         && resource.data.placares.values().hasAny([null]);
 
       allow write: if admin();
+    }
+
+    match /fechamentos/{mes} {
+      allow read: if membro();
+      allow create: if admin()
+        && mes == mesDoCalendario()
+        && request.resource.data.keys().hasOnly(['fechadoEm'])
+        && request.resource.data.fechadoEm == request.time;
+      allow delete: if admin();
     }
 
     match /premios/{mes} {
