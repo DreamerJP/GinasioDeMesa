@@ -258,7 +258,7 @@ select.campo {
 }
 
 .disputa { display: grid; justify-items: center; gap: 4px; text-align: center; }
-.disputa .cabecalho { justify-self: stretch; }
+.disputa .cabecalho { justify-self: stretch; flex-wrap: wrap; }
 .linha-rodape { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .linha-rodape > :only-child { margin-left: auto; }
 .botao-limpo { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
@@ -297,6 +297,8 @@ select.campo {
 .podio-lugar:has(> :nth-child(3)) .foto { width: 32px; height: 32px; }
 .podio-lugar:has(> :nth-child(3)) .podio-pessoa > span { display: none; }
 .podio-lugar:empty { display: none; }
+.podio-pessoa.vaga { color: var(--tinta-apagada); cursor: default; }
+.podio-pessoa.vaga .foto { background: none; filter: brightness(0); opacity: 0.15; }
 
 .pendente { --moldura: var(--ouro); display: grid; gap: 10px; }
 
@@ -448,7 +450,7 @@ select.campo {
 .lista-duelos > .item-duelo:first-child { border-top: 0; }
 .item-duelo .item-corpo { justify-items: start; gap: 4px; }
 .item-duelo .linha-botoes { margin-top: 2px; }
-.item-duelo .botao { padding: 6px 12px; }
+.item-duelo .botao-menu { padding: 6px 10px; letter-spacing: 1px; }
 .duelo-rostos, .duelo-palco { display: flex; align-items: center; gap: 6px; }
 .duelo-rostos .foto { width: 28px; height: 28px; }
 .duelo-palco { gap: 14px; }

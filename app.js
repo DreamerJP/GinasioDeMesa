@@ -76,7 +76,7 @@ const TITULOS = [
   },
   { id: 'casa', nome: 'Casa Cheia', desenho: 'casa', metas: [1, 3, 6, 10, 20], medida: 'Vitórias em partidas com 6 ou mais jogadores.', unidade: ['vitória de casa cheia', 'vitórias de casa cheia'] },
   { id: 'volta', nome: 'Volta por Cima', desenho: 'volta', metas: [1, 3, 6, 10, 20], medida: 'Vitórias logo depois de ficar em último.', unidade: ['volta por cima', 'voltas por cima'] },
-  { id: 'sorte', nome: 'Sorte de Principiante', desenho: 'sorte', metas: [1, 2, 4, 6, 10], medida: 'Vitórias na primeira vez que jogou um jogo', nota: '(Mesmo se já conhecer as regras).', unidade: ['vitória de estreia', 'vitórias de estreia'] },
+  { id: 'sorte', nome: 'Sorte de Principiante', desenho: 'sorte', metas: [1, 2, 4, 6, 10], medida: 'Vitórias na primeira vez que jogou um jogo.', nota: '(Mesmo se já conhecer as regras).', unidade: ['vitória de estreia', 'vitórias de estreia'] },
   { id: 'recorde', nome: 'Recordista', desenho: 'recorde', metas: [1, 3, 6, 10, 20], medida: 'Vezes que bateu o maior placar já feito num jogo.', unidade: ['recorde', 'recordes'] },
   { id: 'zebra', nome: 'Zebra', desenho: 'zebra', metas: [1, 3, 6, 10, 20], medida: 'Vitórias numa mesa em que você era o último do ranking do mês.', unidade: ['zebra', 'zebras'] },
   { id: 'trave', nome: 'Na Trave', desenho: 'trave', metas: [1, 3, 6, 10, 20], medida: 'Vezes em 2º a 1 ponto do vencedor.', unidade: ['vez', 'vezes'] },
@@ -656,12 +656,10 @@ function podeFecharOMes() {
 }
 
 function textoFechamento(mesAtual) {
-  const [ano, mes] = mesAtual.split('-').map(Number);
-  const ultimoDia = new Date(ano, mes, 0).getDate();
   const faltam = diasAteOFim(mesAtual);
   if (faltam <= 0) return 'Fecha hoje à meia-noite';
-  if (faltam === 1) return `Fecha amanhã, dia ${ultimoDia}`;
-  return `Fecha em ${faltam} dias, dia ${ultimoDia}`;
+  if (faltam === 1) return 'Fecha amanhã';
+  return `Fecha em ${faltam} dias`;
 }
 
 function criar(tag, classe, texto) {
@@ -1310,6 +1308,15 @@ function desenharPodio(podio, linhas) {
   });
 }
 
+function vagaNoPodio() {
+  const vaga = criar('span', 'podio-pessoa vaga');
+  const imagem = criar('img', 'foto');
+  imagem.src = 'midia/meeple-1.png';
+  imagem.alt = '';
+  vaga.append(criar('span', '', '?'), imagem);
+  return vaga;
+}
+
 function mostrarCelebracao(mes, campeoes) {
   const indice = indiceDoMes(mes);
   const euVenci = campeoes.some(l => l.id === estado.eu.id);
@@ -1442,7 +1449,7 @@ function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
 }
 
 function linhaDoMes(linha, total) {
-  return linhaDoRanking(linha.id, linha.posicao, formatoNota.format(linha.nota), `${linha.partidas} de ${total} partidas`, linha.nota);
+  return linhaDoRanking(linha.id, linha.posicao, formatoNota.format(linha.nota), `${linha.partidas} de ${total} ${total === 1 ? 'partida' : 'partidas'}`, linha.nota);
 }
 
 function rankingGeral() {
@@ -1470,7 +1477,7 @@ function rankingGeral() {
 function mostrarInicio() {
   const { mesAtual, eu, premios, partidas } = estado;
   const indice = indiceDoMes(mesAtual);
-  document.getElementById('premio-texto').textContent = premios[mesAtual] || 'Prêmio ainda não definido.';
+  document.getElementById('premio-texto').textContent = premios[mesAtual] || 'Prêmio a definir';
   document.getElementById('premio-fecha').textContent = textoFechamento(mesAtual);
   const proxima = proximaInsignia(eu.id);
   document.getElementById('premio-insignia-imagem').hidden = proxima === null;
@@ -1513,8 +1520,9 @@ function mostrarInicio() {
   document.getElementById('meus-duelos').replaceChildren(...[...convidado, ...valendo, ...terminados].map(cartaoDoDuelo));
 
   const { linhas, total } = rankingDe(mesAtual);
-  document.getElementById('podio-vazio').hidden = total > 0;
-  desenharPodio(document.getElementById('podio-do-mes'), linhas);
+  const podio = document.getElementById('podio-do-mes');
+  if (total) desenharPodio(podio, linhas);
+  else podio.querySelectorAll('.podio-lugar').forEach(lugar => lugar.replaceChildren(vagaNoPodio()));
 
   const geral = rankingGeral();
   const proximo = MESES[(indice + 1) % 12];
@@ -1907,7 +1915,7 @@ function mostrarPartida(id) {
       });
       valor.append(campo);
     } else if (falta) {
-      valor.append(criar('span', 'detalhe', 'falta'));
+      valor.append(criar('span', 'detalhe', 'aguardando'));
     } else if (aberta) {
       const lancou = criar('span', 'lancou');
       lancou.setAttribute('aria-label', 'lançou');
@@ -2093,7 +2101,7 @@ function desenharFichas() {
   document.getElementById('instrucao-jogadores').textContent = semPlacar
     ? 'Toque na ordem de chegada, começando pelo vencedor.'
     : 'Toque em quem jogou.';
-  document.getElementById('contagem-jogadores').textContent = `${selecao.length} marcados, de 3 a 10`;
+  document.getElementById('contagem-jogadores').textContent = `${selecao.length} ${selecao.length === 1 ? 'marcado' : 'marcados'}, de 3 a 10`;
   document.getElementById('rodape-partida').textContent = semPlacar
     ? 'Jogo sem placar: a ordem de chegada já fecha a partida.'
     : 'Cada jogador lança o próprio placar depois. A partida só conta quando todos lançarem.';
@@ -2238,7 +2246,7 @@ function mostrarPerfil(id) {
   const linha = linhas.find(l => l.id === alguem.id);
   const nomeMes = MESES[indice][0].toUpperCase() + MESES[indice].slice(1);
   document.getElementById('perfil-mes').textContent = total
-    ? `${nomeMes}: ${linha.posicao}º lugar, ${linha.partidas} de ${total} partidas`
+    ? `${nomeMes}: ${linha.posicao}º lugar, ${linha.partidas} de ${total} ${total === 1 ? 'partida' : 'partidas'}`
     : `Nenhuma partida em ${MESES[indice]} ainda.`;
 
   const ganhas = colecaoDe(alguem.id).length;
@@ -2998,7 +3006,7 @@ function botoesDoDuelo(duelo) {
   };
   const acao = (rotulo, classe, nome, valores) => botao(rotulo, classe, elemento => enviar(elemento, aviso, nome, valores));
   if (duelo.fase === 'convite' && duelo.desafiado === eu.id) {
-    linha.append(acao('Aceitar', 'botao', 'responderDuelo', { duelo: duelo.id, aceitar: true }), acao('Recusar', 'botao-menu', 'responderDuelo', { duelo: duelo.id, aceitar: false }));
+    linha.append(acao('Aceitar', 'botao-menu', 'responderDuelo', { duelo: duelo.id, aceitar: true }), acao('Recusar', 'botao-menu', 'responderDuelo', { duelo: duelo.id, aceitar: false }));
   }
   if (duelo.fase === 'convite' && duelo.desafiante === eu.id) linha.append(acao('Cancelar convite', 'botao-menu', 'cancelarDuelo', { duelo: duelo.id }));
   if (duelo.partida) linha.append(botao('Ver partida', 'botao-menu', () => irPara('partida', duelo.partida.id)));

@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=59">
-<script type="module" src="app.js?v=66" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=60">
+<script type="module" src="app.js?v=67" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -89,7 +89,6 @@
         <div class="podio-lugar" data-degrau="2"></div>
         <div class="podio-lugar" data-degrau="3"></div>
       </div>
-      <p class="detalhe" id="podio-vazio" hidden>Nenhuma partida neste mês ainda.</p>
       <button class="botao-menu" data-ir="ranking">Ver ranking completo</button>
     </section>
 
@@ -243,7 +242,7 @@
       <select class="campo campo-texto" id="duelo-jogador" aria-label="Quem você desafia"></select>
       <select class="campo campo-texto" id="duelo-jogo" aria-label="Jogo do duelo"></select>
       <div class="linha-campo">
-        <input class="campo campo-texto" id="duelo-provocacao" maxlength="60" autocomplete="off" placeholder="Provocação (opcional)" aria-label="Provocação">
+        <input class="campo campo-texto" id="duelo-provocacao" maxlength="60" autocomplete="off" placeholder="Provocação" aria-label="Provocação">
         <button class="botao" disabled>Desafiar</button>
       </div>
       <p class="aviso" id="aviso-duelo" role="alert"></p>
