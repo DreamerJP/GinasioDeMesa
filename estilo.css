@@ -442,6 +442,22 @@ select.campo {
 .item-jogadores .mais { align-self: center; color: var(--tinta-suave); }
 .item-partida .capa { width: 104px; height: 70px; object-position: top; }
 
+.lista-duelos { padding: 0; list-style: none; }
+.item-duelo { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: start; padding: 10px 0; border-top: 2px solid var(--caixa-funda); }
+.lista-duelos > .item-duelo:first-child { border-top: 0; }
+.item-duelo .item-corpo { justify-items: start; gap: 4px; }
+.item-duelo .linha-botoes { margin-top: 2px; }
+.item-duelo .botao { padding: 6px 12px; }
+.duelo-rostos, .duelo-palco { display: flex; align-items: center; gap: 6px; }
+.duelo-rostos .foto { width: 28px; height: 28px; }
+.duelo-palco { gap: 14px; }
+.duelo-palco .foto { width: 72px; height: 72px; }
+.duelo-rostos:has(.vencedor) .foto:not(.vencedor), .duelo-palco:has(.vencedor) .foto:not(.vencedor) { opacity: 0.45; filter: grayscale(1); }
+.contra { font-size: 13px; color: var(--tinta-suave); text-transform: uppercase; }
+.duelo-palco .contra { font-size: 20px; }
+.provocacao { font-size: 14px; }
+.linha-do-duelo { padding: 6px 10px; background: var(--caixa-marcada); box-shadow: inset 4px 0 0 var(--ouro); color: var(--tinta); font-size: 14px; text-align: left; }
+
 .escolha-capa { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; }
 
 .capa {
@@ -1023,6 +1039,7 @@ select.campo {
 .conquista-degraus .degrau { width: 14px; height: 14px; }
 .conquista-botoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; margin-top: 4px; }
 .conquista-botoes .botao { justify-self: stretch; padding-inline: 8px; text-align: center; }
+.conquista-botoes:has(> :nth-child(2):not([hidden])) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 
 .conquista.animando .conquista-palco > .quadro-titulo { animation: quadro-chega 480ms steps(6, end) both; }

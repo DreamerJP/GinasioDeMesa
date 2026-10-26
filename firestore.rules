@@ -164,6 +164,31 @@ service cloud.firestore {
       allow write: if admin();
     }
 
+    match /duelos/{id} {
+      allow read: if membro();
+      allow create: if temApelido()
+        && request.resource.data.keys().hasOnly(['desafiante', 'desafiado', 'jogo', 'provocacao', 'criadoEm', 'situacao', 'respondidoEm'])
+        && request.resource.data.desafiante == meuId()
+        && request.resource.data.desafiado is string
+        && request.resource.data.desafiado != meuId()
+        && exists(/databases/$(database)/documents/jogadores/$(request.resource.data.desafiado))
+        && request.resource.data.jogo is string
+        && exists(/databases/$(database)/documents/jogos/$(request.resource.data.jogo))
+        && texto(request.resource.data.provocacao, 0, 60)
+        && request.resource.data.criadoEm == request.time
+        && request.resource.data.situacao == 'convite'
+        && request.resource.data.respondidoEm == null;
+      allow update: if temApelido()
+        && resource.data.situacao == 'convite'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['situacao', 'respondidoEm'])
+        && request.resource.data.respondidoEm == request.time
+        && ((resource.data.desafiado == meuId()
+            && request.resource.data.situacao in ['aceito', 'recusado']
+            && request.time < resource.data.criadoEm + duration.value(7, 'd'))
+          || (resource.data.desafiante == meuId() && request.resource.data.situacao == 'cancelado'));
+      allow write: if admin();
+    }
+
     match /fechamentos/{mes} {
       allow read: if membro();
       allow create: if admin()

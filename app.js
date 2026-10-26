@@ -50,6 +50,13 @@ const INSIGNIAS = [
   { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa', lore: 'Bússola achada nos confins do mapa. A agulha não aponta para o norte, aponta o caminho de volta.' },
 ].map((insignia, i) => ({ ...insignia, imagem: `midia/insignia-${String(i + 1).padStart(2, '0')}.webp` }));
 
+const PRAZO_DO_CONVITE = 7 * 864e5;
+const PRAZO_DO_DUELO = 14 * 864e5;
+const LIMITE_DE_DUELOS = 3;
+const MAXIMO_DE_RESULTADOS_DE_DUELO = 10;
+const DUELOS_EM_ANDAMENTO = ['convite', 'valendo', 'em jogo'];
+const DUELOS_TERMINADOS = ['decidido', 'recusado', 'expirado', 'sem jogo'];
+
 const FOLGA_DO_ATROPELO = 1.5;
 const METAS_DE_MESTRE = [5, 10, 15, 20, 25];
 const MINIMO_PARA_TURISTA = 5;
@@ -76,6 +83,7 @@ const TITULOS = [
   { id: 'presenca', nome: 'Presença VIP', desenho: 'presenca', metas: [1, 3, 6, 9, 12], medida: 'Meses fechados em que foi a todos os dias de jogo.', unidade: ['mês completo', 'meses completos'] },
   { id: 'mesa', nome: 'Dono da Mesa', desenho: 'mesa', metas: [5, 15, 30, 50, 100], medida: 'Partidas que abriu.', unidade: ['partida aberta', 'partidas abertas'] },
   { id: 'ecletico', nome: 'Eclético', desenho: 'ecletico', metas: [3, 5, 8, 12, 20], medida: 'Jogos diferentes jogados.', unidade: ['jogo', 'jogos'] },
+  { id: 'duelista', nome: 'Duelista', desenho: 'duelista', metas: [1, 3, 6, 10, 20], medida: 'Duelos vencidos.', unidade: ['duelo vencido', 'duelos vencidos'] },
   { id: 'vice', nome: 'Vice', desenho: 'vice', metas: [5, 10, 20, 35, 50], medida: 'Vezes em 2º lugar.', unidade: ['vez', 'vezes'], soPorEscolha: true },
   { id: 'praia', nome: 'Morreu na Praia', desenho: 'praia', metas: [1, 2, 3, 5, 8], medida: 'Meses em que chegou ao último dia de jogo em 1º e não foi campeão.', unidade: ['mês', 'meses'], soPorEscolha: true },
   { id: 'turista', nome: 'Turista', desenho: 'turista', metas: [1, 3, 6, 9, 12], medida: 'Meses em que jogou só 1 ou 2 partidas.', unidade: ['mês', 'meses'], soPorEscolha: true },
@@ -83,61 +91,6 @@ const TITULOS = [
   { id: 'lanterna', nome: 'Lanterninha', desenho: 'lanterna', metas: [5, 10, 20, 35, 50], medida: 'Vezes em último.', unidade: ['vez', 'vezes'], soPorEscolha: true },
   { id: 'estreante', nome: 'Estreante', desenho: 'estreante', metas: [1], medida: 'Jogou a primeira partida.', unidade: ['partida', 'partidas'] },
 ];
-
-const CORES_DOS_ICONES = {
-  k: '#1c1e3b',
-  1: '#fff6c8', 2: '#ffe38a', 3: '#f2c14e', 4: '#c98f1f', 5: '#8a5a10',
-  q: '#ff9a8a', r: '#ec5b5b', R: '#b53a3a', e: '#7a2233',
-  a: '#d4e4ff', b: '#9cc2ff', B: '#5a86e8', D: '#3553a8', E: '#25306e',
-  h: '#c8f5a8', g: '#8fdc72', G: '#4aa85a', H: '#2f6e3b',
-  w: '#ffffff', s: '#e4e6f2', S: '#b3b7cf', d: '#7b80a0', x: '#50557a',
-  m: '#f0c088', n: '#d99a5b', N: '#a8672f', M: '#6e3f1a',
-  y: '#ffd84a', f: '#ffa23a', F: '#f2602b', Z: '#b83224',
-};
-
-const DESENHOS_DOS_TITULOS = {
-  estreante: {
-    base: [
-      '.......abB........', '......aabbBB......', '......abbbBB......', '......bbbbBD......', '.......bbBD.......',
-      '..abbbbbbbbbbBBD..', '.abbbbbbbbbbbbBBD.', 'abbbbbbbbbbbbbbBDD', '.bbbbbbbbbbbbbBBD.', '.....bbbbbBD......',
-      '.....bbbbbBD......', '....bbbbbbbBBD....', '...bbbbbbbbbBBD...', '..bbbbbbbbbbbBBD..', '..bbbbbb..bbbBBD..',
-      '.bbbbbb....bbbBBD.', '.BBBBBD....BBBBDD.',
-    ],
-    sobre: ['..................', '...............2..', '..............212.', '...............2..'],
-  },
-  ecletico: {
-    base: [
-      '............swwws.....', '............wkwwS.....', '............wwkwS.....', '............wwwkS.....', '............SSSSd.....',
-      '...qqqqqqqqqqqqqqqR...', '...rrrrrrrrrrrrrrRR...', '...rr2222rrrrrrrrRR...', '...rrrrrrrrrrrrrrRR...', '...RRRRRRRRRRRRRRee...',
-      '.aaaaaaaaaaaaaaaaaaaB.', '.bbbbbbbbbbbbbbbbbbBB.', '.bbwwwwwwbbbbbbbbbbBB.', '.bbbbbbbbbbbbbbbbbbBB.', '.DDDDDDDDDDDDDDDDDDEE.',
-      'hhhhhhhhhhhhhhhhhhhhhG', 'ggggggggggggggggggggGG', 'gggggggggggg2222ggggGG', 'ggggggggggggggggggggGG', 'HHHHHHHHHHHHHHHHHHHHHH',
-    ],
-  },
-  atropelo: {
-    base: [
-      '.........12223..', '........12233...', '.......12233....', '......12233.....', '.....12233......',
-      '....12233.......', '...122333333344.', '...4444443334...', '........12234...', '.......1234.....',
-      '......1234......', '.....1234.......', '....123.........', '...124..........', '..13............',
-      '..3.............',
-    ],
-    sobre: [
-      '................', '................', '.2..............', '...............2', '..............2.',
-      '................', '................', '................', '................', '................',
-      '..............2.', '...............2',
-    ],
-  },
-  podio: {
-    base: [
-      '...........2..........', '..........212.........', '........2211122.......', '.........21112........', '........212.212.......',
-      '......................', '.......12222223.......', '.......33333334.......', '.......33334334.......', '.......33344334.......',
-      'wwwwwww33334334.......', 'sssssSd33334334.......', 'ssddsSd33344434.......', 'ssssdSd33333334mmmmmmm', 'sssdsSd33333334nnnnnnN',
-      'ssdssSd33333334nnMMnnN', 'ssdddSd33333334nnnnMnN', 'sssssSd33333334nnnMMnN', 'sssssSd33333334nnnnMnN', 'sssssSd33333334nnMMnnN',
-      'SSSSSdd44444445NNNNNNM',
-    ],
-  },
-};
-
-const LADO_DO_ICONE = 26;
 
 const CASAS_DA_NOTA = 3;
 const FRACAO_DA_FALTA = 0.5;
@@ -182,6 +135,8 @@ let mesDoConvite = '';
 let mesDoCampeaoAberto = '';
 let carregamentoKatex = null;
 let titulosCalculados = { estado: null, valor: null };
+let duelosCalculados = { estado: null, valor: null };
+let desafio = { jogador: '', jogo: '' };
 const imagensDosIcones = new Map();
 const tocadores = {};
 let somLigado = lerPreferenciaDeSom();
@@ -383,7 +338,7 @@ function calcularTitulos() {
     if (!contagens.has(id)) {
       contagens.set(id, {
         partidas: 0, jogos: new Set(), seguidas: 0, vitorias: new Map(), atropelos: 0, ultimo: 0, trave: 0, abertas: 0, campeao: 0, podio: 0,
-        vice: 0, casa: 0, voltas: 0, vinhaDeUltimo: false, zebras: 0, praias: 0, presencas: 0, turismos: 0, sortes: 0, recordes: 0, penduradas: 0,
+        vice: 0, casa: 0, voltas: 0, vinhaDeUltimo: false, zebras: 0, praias: 0, presencas: 0, turismos: 0, sortes: 0, recordes: 0, penduradas: 0, duelos: 0,
       });
     }
     return contagens.get(id);
@@ -477,12 +432,89 @@ function calcularTitulos() {
     }
   }
 
+  const vencidos = duelosDoGinasio().filter(d => d.fase === 'decidido' && d.vencedor).sort((a, b) => a.partida.abertaEm - b.partida.abertaEm);
+  for (const duelo of vencidos) marcar(duelo.vencedor, 'duelista', ++contagemDe(duelo.vencedor).duelos, duelo.partida.mes);
+
   return { catalogo, porId: new Map(catalogo.map(t => [t.id, t])), porJogador };
 }
 
 function titulosDoGinasio() {
   if (titulosCalculados.estado !== estado) titulosCalculados = { estado, valor: calcularTitulos() };
   return titulosCalculados.valor;
+}
+
+function participa(partida, id) {
+  return partida.placares.some(s => s.jogador === id);
+}
+
+function envolve(duelo, id) {
+  return duelo.desafiante === id || duelo.desafiado === id;
+}
+
+function situacaoDoDuelo(duelo) {
+  const agora = Date.now();
+  const comJogo = { ...duelo, jogoDoDuelo: jogoDe(duelo) };
+  if (duelo.situacao === 'convite') {
+    const ate = new Date(duelo.criadoEm.getTime() + PRAZO_DO_CONVITE);
+    return { ...comJogo, ate, fase: agora > ate.getTime() ? 'expirado' : 'convite' };
+  }
+  if (duelo.situacao !== 'aceito' || !duelo.respondidoEm) return { ...comJogo, fase: duelo.situacao };
+  const aceitoEm = duelo.respondidoEm.getTime();
+  const ate = new Date(aceitoEm + PRAZO_DO_DUELO);
+  const partida = estado.partidas.find(p => p.jogo === duelo.jogo && p.abertaEm.getTime() > aceitoEm && p.abertaEm <= ate
+    && participa(p, duelo.desafiante) && participa(p, duelo.desafiado) && (p.estado === 'fechada' || p.mes === estado.mesAtual));
+  if (!partida) return { ...comJogo, ate, fase: agora > ate.getTime() ? 'sem jogo' : 'valendo' };
+  if (partida.estado === 'aberta') return { ...comJogo, ate, partida, fase: 'em jogo' };
+  const lugares = lugaresDaPartida(partida);
+  const [doDesafiante, doDesafiado] = [lugares.get(duelo.desafiante), lugares.get(duelo.desafiado)];
+  let vencedor = '';
+  if (doDesafiante !== doDesafiado) vencedor = doDesafiante < doDesafiado ? duelo.desafiante : duelo.desafiado;
+  return { ...comJogo, ate, partida, lugares, vencedor, fase: 'decidido' };
+}
+
+function fimDoDuelo(duelo) {
+  if (DUELOS_EM_ANDAMENTO.includes(duelo.fase)) return Infinity;
+  return momentoDoDuelo(duelo);
+}
+
+function repetido(duelo, todos) {
+  return todos.some(outro => outro !== duelo && envolve(outro, duelo.desafiante) && envolve(outro, duelo.desafiado)
+    && (outro.criadoEm - duelo.criadoEm || outro.id.localeCompare(duelo.id)) < 0 && duelo.criadoEm.getTime() < fimDoDuelo(outro));
+}
+
+function duelosDoGinasio() {
+  if (duelosCalculados.estado !== estado) {
+    const todos = estado.duelos.map(situacaoDoDuelo);
+    duelosCalculados = { estado, valor: todos.filter(d => !repetido(d, todos)) };
+  }
+  return duelosCalculados.valor;
+}
+
+function duelosEmAndamento(id) {
+  return duelosDoGinasio().filter(d => DUELOS_EM_ANDAMENTO.includes(d.fase) && envolve(d, id));
+}
+
+function motivoParaNaoDesafiar(id) {
+  const alguem = jogador(id);
+  const meus = duelosEmAndamento(estado.eu.id);
+  if (meus.some(d => envolve(d, id))) return `Você e ${alguem.apelido} já têm um duelo em andamento.`;
+  if (meus.length >= LIMITE_DE_DUELOS) return `Você já tem ${LIMITE_DE_DUELOS} duelos em andamento.`;
+  if (duelosEmAndamento(id).length >= LIMITE_DE_DUELOS) return `${alguem.apelido} já tem ${LIMITE_DE_DUELOS} duelos em andamento.`;
+  return '';
+}
+
+function placarDeDuelos(id, contra = '') {
+  const decididos = duelosDoGinasio().filter(d => d.fase === 'decidido' && envolve(d, id) && (!contra || envolve(d, contra)));
+  return {
+    vitorias: decididos.filter(d => d.vencedor === id).length,
+    derrotas: decididos.filter(d => d.vencedor && d.vencedor !== id).length,
+    empates: decididos.filter(d => !d.vencedor).length,
+  };
+}
+
+function momentoDoDuelo(duelo) {
+  if (duelo.fase === 'sem jogo' || duelo.fase === 'expirado') return duelo.ate.getTime();
+  return (duelo.partida?.abertaEm || duelo.respondidoEm || duelo.criadoEm).getTime();
 }
 
 function nivelInicial(titulo) {
@@ -574,6 +606,7 @@ const formatoHora = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, hour: '2-
 const formatoDia = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: 'long', day: 'numeric' });
 const formatoDataLonga = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 const formatoDiaDaMesa = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO, year: 'numeric', month: '2-digit', day: '2-digit' });
+const formatoDiaCurto = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit' });
 
 function diaDaMesa(momento) {
   return formatoDiaDaMesa.format(new Date(momento.getTime() - HORA_QUE_O_DIA_VIRA * 3600e3));
@@ -720,38 +753,11 @@ function svgEmImagem(largura, altura, pontos) {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
-function imagemDoIcone(nome) {
-  if (imagensDosIcones.has(nome)) return imagensDosIcones.get(nome);
-  const { base, sobre = [] } = DESENHOS_DOS_TITULOS[nome];
-  const lado = LADO_DO_ICONE;
-  const ox = Math.floor((lado - base[0].length) / 2);
-  const oy = Math.floor((lado - base.length) / 2);
-  const grade = Array.from({ length: lado }, () => Array(lado).fill(''));
-  const cheio = (x, y) => Boolean(grade[y]?.[x]) && grade[y][x] !== '_';
-  base.forEach((linha, y) => [...linha].forEach((ponto, x) => { if (ponto !== '.') grade[y + oy][x + ox] = ponto; }));
-  const contorno = [];
-  const sombra = [];
-  for (let y = 0; y < lado; y++) {
-    for (let x = 0; x < lado; x++) {
-      if (!grade[y][x] && (cheio(x - 1, y) || cheio(x + 1, y) || cheio(x, y - 1) || cheio(x, y + 1))) contorno.push([x, y]);
-    }
-  }
-  contorno.forEach(([x, y]) => { grade[y][x] = 'k'; });
-  for (let y = 0; y < lado; y++) {
-    for (let x = 0; x < lado; x++) if (!grade[y][x] && cheio(x - 1, y - 1)) sombra.push([x, y]);
-  }
-  sombra.forEach(([x, y]) => { grade[y][x] = '_'; });
-  sobre.forEach((linha, y) => [...linha].forEach((ponto, x) => { if (ponto !== '.') grade[y + oy][x + ox] = ponto; }));
-  const cores = grade.map(linha => linha.map(p => (p === '_' ? '#0a0a1e59' : CORES_DOS_ICONES[p] || '')));
-  imagensDosIcones.set(nome, svgEmImagem(lado, lado, cores));
-  return imagensDosIcones.get(nome);
-}
-
 function figuraDoTitulo(titulo, classe = '') {
   if (titulo.jogo) return imagemDaCapa(titulo.jogo, `capa-titulo ${classe}`);
   const figura = criar('img', `icone-titulo ${classe}`);
   figura.alt = '';
-  figura.src = DESENHOS_DOS_TITULOS[titulo.desenho] ? imagemDoIcone(titulo.desenho) : `midia/titulo-${titulo.desenho}.png`;
+  figura.src = `midia/titulo-${titulo.desenho}.png`;
   return figura;
 }
 
@@ -1000,6 +1006,31 @@ const ACOES = {
     if (!/^\d{4}-\d{2}$/.test(mes) || mes >= mesDeHoje()) throw recusa('Só dá para escrever a frase de um mês que já fechou.');
     return setDoc(doc(banco, 'frases', `${mes}_${estado.eu.id}`), { mes, jogador: estado.eu.id, texto: textoLivre(texto, 2, 120, 'A frase') });
   },
+
+  desafiar({ desafiado, jogo, provocacao }) {
+    if (!jogador(desafiado) || desafiado === estado.eu.id) throw recusa('Escolha quem você quer desafiar.');
+    if (!estado.jogos.some(j => j.id === jogo)) throw recusa('Escolha o jogo do duelo.');
+    const motivo = motivoParaNaoDesafiar(desafiado);
+    if (motivo) throw recusa(motivo);
+    return setDoc(doc(banco, 'duelos', novoId('duelos')), {
+      desafiante: estado.eu.id, desafiado, jogo, provocacao: textoLivre(provocacao, 0, 60, 'A provocação'),
+      criadoEm: serverTimestamp(), situacao: 'convite', respondidoEm: null,
+    });
+  },
+
+  responderDuelo({ duelo, aceitar }) {
+    const registro = duelosDoGinasio().find(d => d.id === duelo);
+    if (registro?.fase !== 'convite') throw recusa('Esse convite não está mais valendo.');
+    if (registro.desafiado !== estado.eu.id) throw recusa('Só quem foi desafiado responde.');
+    return updateDoc(doc(banco, 'duelos', duelo), { situacao: aceitar ? 'aceito' : 'recusado', respondidoEm: serverTimestamp() });
+  },
+
+  cancelarDuelo({ duelo }) {
+    const registro = duelosDoGinasio().find(d => d.id === duelo);
+    if (registro?.fase !== 'convite') throw recusa('Esse convite não está mais valendo.');
+    if (registro.desafiante !== estado.eu.id) throw recusa('Só quem desafiou cancela.');
+    return updateDoc(doc(banco, 'duelos', duelo), { situacao: 'cancelado', respondidoEm: serverTimestamp() });
+  },
 };
 
 function mensagemDeErro(erro) {
@@ -1086,7 +1117,7 @@ async function pedirEntrada(usuario, email) {
 
 function escutarDados() {
   pararDados();
-  const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', 'fechamentos', ...(conta.admin ? ['acessos', 'pedidos'] : [])];
+  const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', 'fechamentos', 'duelos', ...(conta.admin ? ['acessos', 'pedidos'] : [])];
   // Nas partidas, escutar a confirmação do servidor: título só é anunciado depois que o placar gravou.
   escutasDosDados = nomes.map(nome => onSnapshot(collection(banco, nome), { includeMetadataChanges: nome === 'partidas' }, retrato => {
     lidos[nome] = retrato.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
@@ -1128,6 +1159,10 @@ function montarEstado() {
     partidas: lidos.partidas.map(comoPartida).sort((a, b) => a.abertaEm - b.abertaEm),
     premios: Object.fromEntries(lidos.premios.map(p => [p.id, p.texto])),
     frases: lidos.frases.map(({ mes, jogador: id, texto }) => ({ mes, jogador: id, texto })),
+    duelos: lidos.duelos.map(d => ({
+      id: d.id, desafiante: d.desafiante, desafiado: d.desafiado, jogo: d.jogo, provocacao: d.provocacao || '', situacao: d.situacao,
+      criadoEm: d.criadoEm?.toDate?.() || new Date(0), respondidoEm: d.respondidoEm?.toDate?.() || null,
+    })).sort((a, b) => b.criadoEm - a.criadoEm),
     liberados: conta.admin
       ? [
         ...lidos.acessos.map(a => ({ id: a.jogador, email: a.id, apelido: apelidoDe(a.jogador) })),
@@ -1450,6 +1485,17 @@ function mostrarInicio() {
     document.getElementById('pendente-botao').onclick = () => irPara('partida', primeira.id);
   }
 
+  const recente = Date.now() - PRAZO_DO_RESULTADO;
+  const meusDuelos = duelosDoGinasio().filter(d => envolve(d, eu.id));
+  const convidado = meusDuelos.filter(d => d.fase === 'convite' && d.desafiado === eu.id);
+  const valendo = meusDuelos.filter(d => d.fase === 'valendo' || d.fase === 'em jogo').sort((a, b) => a.ate - b.ate);
+  const terminados = meusDuelos.filter(d => DUELOS_TERMINADOS.includes(d.fase) && momentoDoDuelo(d) > recente)
+    .sort((a, b) => momentoDoDuelo(b) - momentoDoDuelo(a));
+  const caixaDeDuelos = document.getElementById('caixa-meus-duelos');
+  caixaDeDuelos.hidden = !convidado.length && !valendo.length && !terminados.length;
+  caixaDeDuelos.classList.toggle('pendente', convidado.length > 0);
+  document.getElementById('meus-duelos').replaceChildren(...[...convidado, ...valendo, ...terminados].map(cartaoDoDuelo));
+
   const { linhas, total } = rankingDe(mesAtual);
   document.getElementById('podio-vazio').hidden = total > 0;
   desenharPodio(document.getElementById('podio-do-mes'), linhas);
@@ -1477,7 +1523,7 @@ function verificarAvisos() {
   if (!estado?.eu.apelido || estado.gravando || avisoAberto() || convidarParaFrase()) return;
   const pendentes = resultadosPendentes();
   if (pendentes.length) mostrarResultado(pendentes[0], pendentes.length - 1);
-  else verificarTitulosNovos();
+  else if (!avisarDuelo()) verificarTitulosNovos();
 }
 
 function chaveDoResultado(partida) {
@@ -1535,6 +1581,7 @@ function mostrarResultado(partida, restantes) {
     return { linha, numero, valor };
   });
   document.getElementById('resultado-placar').replaceChildren(...linhas.map(l => l.linha));
+  mostrarLinhaDoDuelo(document.getElementById('resultado-duelo'), partida);
 
   relogiosDoResultado.forEach(clearTimeout);
   relogiosDoResultado = [];
@@ -1586,7 +1633,7 @@ function verificarTitulosNovos() {
 
 function imagemDoBrilho() {
   const linhas = ['...w...', '...w...', '..wyw..', 'wwy3yww', '..wyw..', '...w...', '...w...'];
-  const cor = { w: '#ffffff', y: CORES_DOS_ICONES[2], 3: CORES_DOS_ICONES[3] };
+  const cor = { w: '#ffffff', y: '#ffe38a', 3: '#f2c14e' };
   if (!imagensDosIcones.has('brilho')) imagensDosIcones.set('brilho', svgEmImagem(7, 7, linhas.map(l => [...l].map(p => cor[p] || ''))));
   return imagensDosIcones.get('brilho');
 }
@@ -1602,7 +1649,7 @@ function brilhos() {
   });
 }
 
-function abrirConquista({ topo, palco, faixa, degraus, texto, detalhe, botaoVer, aoConcluir }) {
+function abrirConquista({ topo, palco, faixa, degraus, texto, detalhe, botaoVer, botaoOutro = '', botaoContinuar = 'Continuar', som = 'campeao', aoConcluir }) {
   const tela = document.getElementById('conquista');
   document.getElementById('conquista-topo').textContent = topo;
   document.getElementById('conquista-palco').replaceChildren(...palco);
@@ -1611,18 +1658,23 @@ function abrirConquista({ topo, palco, faixa, degraus, texto, detalhe, botaoVer,
   document.getElementById('conquista-texto').textContent = texto;
   document.getElementById('conquista-detalhe').textContent = detalhe;
   const continuar = document.getElementById('conquista-continuar');
+  const outro = document.getElementById('conquista-outro');
   const ver = document.getElementById('conquista-ver');
+  continuar.textContent = botaoContinuar;
+  outro.textContent = botaoOutro;
+  outro.hidden = !botaoOutro;
   ver.textContent = botaoVer;
   const abertaEm = Date.now();
   const espera = POUCO_MOVIMENTO.matches ? 400 : ESPERA_DOS_BOTOES;
-  const concluir = indoVer => {
+  const concluir = escolha => {
     if (Date.now() - abertaEm < espera) return;
     tela.hidden = true;
-    aoConcluir(indoVer);
+    aoConcluir(escolha);
     verificarAvisos();
   };
-  continuar.onclick = () => concluir(false);
-  ver.onclick = () => concluir(true);
+  continuar.onclick = () => concluir('continuar');
+  outro.onclick = () => concluir('outro');
+  ver.onclick = () => concluir('ver');
   // Forçar o recálculo do layout reinicia as animações quando um aviso vem logo depois do outro.
   const caixa = tela.firstElementChild;
   caixa.classList.remove('animando', 'pronta');
@@ -1632,7 +1684,7 @@ function abrirConquista({ topo, palco, faixa, degraus, texto, detalhe, botaoVer,
   relogioDaConquista = setTimeout(() => caixa.classList.add('pronta'), espera);
   tela.hidden = false;
   encaixarFaixa(document.getElementById('conquista-faixa'));
-  setTimeout(() => tocar('campeao'), POUCO_MOVIMENTO.matches ? 0 : 380);
+  setTimeout(() => tocar(som), POUCO_MOVIMENTO.matches ? 0 : 380);
 }
 
 function mostrarConquista(situacao) {
@@ -1675,9 +1727,9 @@ function mostrarConquista(situacao) {
     texto: titulo.medida,
     detalhe,
     botaoVer: 'Ver título',
-    aoConcluir: indoVer => {
+    aoConcluir: escolha => {
       marcarComoVisto([situacao.chave]);
-      if (!indoVer) return;
+      if (escolha !== 'ver') return;
       tituloSendoVisto = titulo.id;
       irPara('titulo', titulo.id);
     },
@@ -1813,6 +1865,7 @@ function mostrarPartida(id) {
   if (aberta && valeNoMes) situacao = `Aberta${autor ? ` por ${autor}` : ''}. ${lancados} de ${partida.placares.length} lançaram.`;
   if (aberta && !valeNoMes) situacao = 'Não conta: o mês fechou antes de todos lançarem.';
   document.getElementById('partida-situacao').textContent = situacao;
+  mostrarLinhaDoDuelo(document.getElementById('partida-duelo'), partida);
 
   const faltaDeOutro = partida.placares.some(s => s.valor === null && s.jogador !== eu.id);
   const modoDoAdmin = !eu.admin ? '' : aberta ? (valeNoMes && faltaDeOutro ? 'incluir' : '') : 'corrigir';
@@ -2045,6 +2098,11 @@ function desenharFichas() {
     return ficha;
   }));
 
+  const decide = duelosDoGinasio().filter(d => d.fase === 'valendo' && d.jogo === jogoEscolhido && selecao.includes(d.desafiante) && selecao.includes(d.desafiado));
+  const linhaDoDuelo = document.getElementById('duelo-da-partida');
+  linhaDoDuelo.hidden = !decide.length;
+  linhaDoDuelo.textContent = `Esta partida decide ${decide.length > 1 ? 'os duelos' : 'o duelo'} ${decide.map(nomesDoDuelo).join(' e ')}.`;
+
   document.querySelector('#form-partida > .botao').disabled = !jogoEscolhido || selecao.length < 3;
 }
 
@@ -2172,6 +2230,22 @@ function mostrarPerfil(id) {
   document.getElementById('perfil-insignias').replaceChildren(...trilhaDeInsignias({ ganhas, destacarProxima: alguem.id === eu.id }));
 
   const proprio = alguem.id === eu.id;
+  document.getElementById('perfil-duelos-placar').textContent = textoDoPlacar(placarDeDuelos(alguem.id)) || 'Nenhum decidido';
+  const entreNos = placarDeDuelos(eu.id, alguem.id);
+  const contra = document.getElementById('perfil-duelos-contra');
+  contra.hidden = proprio || !textoDoPlacar(entreNos);
+  const empates = entreNos.empates ? `, ${quantidade(entreNos.empates, ['empate', 'empates'])}` : '';
+  contra.textContent = `Entre vocês: você ${entreNos.vitorias} x ${entreNos.derrotas} ${alguem.apelido}${empates}`;
+  const desafiar = document.getElementById('perfil-desafiar');
+  const motivo = proprio ? '' : motivoParaNaoDesafiar(alguem.id);
+  desafiar.textContent = proprio ? 'Desafiar alguém' : `Desafiar ${alguem.apelido}`;
+  desafiar.disabled = Boolean(motivo);
+  desafiar.onclick = () => {
+    if (!proprio) desafio = { ...desafio, jogador: alguem.id };
+    irPara('duelos');
+  };
+  document.getElementById('perfil-desafiar-motivo').hidden = !motivo;
+  document.getElementById('perfil-desafiar-motivo').textContent = motivo;
   const exibido = tituloExibido(alguem);
   document.getElementById('perfil-titulo').replaceChildren(...(exibido ? [faixaDoTitulo(exibido)] : []));
   const comMoldura = Boolean(exibido) && alguem.moldura;
@@ -2820,8 +2894,249 @@ function ligarAdministracao() {
   });
 }
 
+function nomeNoDuelo(id, comecaFrase = true) {
+  if (id === estado.eu.id) return comecaFrase ? 'Você' : 'você';
+  return jogador(id)?.apelido || '?';
+}
+
+function tituloDoDuelo(duelo) {
+  const { eu } = estado;
+  const [quemDesafiou, quemFoiDesafiado] = [nomeNoDuelo(duelo.desafiante), nomeNoDuelo(duelo.desafiado, false)];
+  if (duelo.fase === 'convite') return `${quemDesafiou} desafiou ${quemFoiDesafiado}`;
+  if (duelo.fase === 'recusado') {
+    const quemRecusou = nomeNoDuelo(duelo.desafiado);
+    return duelo.desafiante === eu.id ? `${quemRecusou} recusou o seu desafio` : `${quemRecusou} recusou o desafio de ${nomeNoDuelo(duelo.desafiante, false)}`;
+  }
+  if (duelo.fase === 'expirado') {
+    const quemNaoRespondeu = nomeNoDuelo(duelo.desafiado);
+    return duelo.desafiante === eu.id ? `${quemNaoRespondeu} não respondeu ao seu desafio` : `${quemNaoRespondeu} não respondeu ao desafio de ${nomeNoDuelo(duelo.desafiante, false)}`;
+  }
+  if (duelo.fase === 'decidido' && duelo.vencedor) {
+    const perdedor = duelo.vencedor === duelo.desafiante ? duelo.desafiado : duelo.desafiante;
+    return `${nomeNoDuelo(duelo.vencedor)} venceu ${nomeNoDuelo(perdedor, false)}`;
+  }
+  if (duelo.fase === 'decidido') return `${quemDesafiou} e ${quemFoiDesafiado} empataram`;
+  return `${quemDesafiou} x ${quemFoiDesafiado}`;
+}
+
+function detalheDoDuelo(duelo) {
+  const jogo = duelo.jogoDoDuelo.nome;
+  if (duelo.fase === 'convite') return `${jogo}, responder até ${formatoDiaCurto.format(duelo.ate)}`;
+  if (duelo.fase === 'valendo') return `${jogo}, jogar até ${formatoDiaCurto.format(duelo.ate)}`;
+  if (duelo.fase === 'em jogo') return `${jogo}, partida em andamento`;
+  if (duelo.fase === 'sem jogo') return `${jogo}, terminou sem partida`;
+  if (duelo.fase !== 'decidido') return jogo;
+  const primeiro = duelo.vencedor || duelo.desafiante;
+  const segundo = primeiro === duelo.desafiante ? duelo.desafiado : duelo.desafiante;
+  return `${jogo}, ${duelo.lugares.get(primeiro)}º x ${duelo.lugares.get(segundo)}º`;
+}
+
+function nomesDoDuelo(duelo) {
+  return `${jogador(duelo.desafiante)?.apelido || '?'} x ${jogador(duelo.desafiado)?.apelido || '?'}`;
+}
+
+function textoDoPlacar({ vitorias, derrotas, empates }) {
+  return [
+    vitorias && quantidade(vitorias, ['vitória', 'vitórias']),
+    derrotas && quantidade(derrotas, ['derrota', 'derrotas']),
+    empates && quantidade(empates, ['empate', 'empates']),
+  ].filter(Boolean).join(', ');
+}
+
+function rostosDoDuelo(duelo, classe) {
+  const rostos = criar('span', classe);
+  const [primeiro, segundo] = [duelo.desafiante, duelo.desafiado].map(id => {
+    const foto = imagemDe(jogador(id), 'foto');
+    if (duelo.fase === 'decidido' && duelo.vencedor === id) foto.classList.add('vencedor');
+    return foto;
+  });
+  rostos.append(primeiro, criar('span', 'contra', 'x'), segundo);
+  return rostos;
+}
+
+function pedirRevanche(duelo) {
+  const oponente = duelo.desafiante === estado.eu.id ? duelo.desafiado : duelo.desafiante;
+  desafio = { jogador: oponente, jogo: duelo.jogo };
+  irPara('duelos');
+}
+
+function botoesDoDuelo(duelo) {
+  const { eu } = estado;
+  const linha = criar('span', 'linha-botoes');
+  const aviso = criar('p', 'aviso');
+  const botao = (rotulo, classe, aoTocar) => {
+    const elemento = criar('button', classe, rotulo);
+    elemento.type = 'button';
+    elemento.addEventListener('click', () => aoTocar(elemento));
+    return elemento;
+  };
+  const acao = (rotulo, classe, nome, valores) => botao(rotulo, classe, elemento => enviar(elemento, aviso, nome, valores));
+  if (duelo.fase === 'convite' && duelo.desafiado === eu.id) {
+    linha.append(acao('Aceitar', 'botao', 'responderDuelo', { duelo: duelo.id, aceitar: true }), acao('Recusar', 'botao-menu', 'responderDuelo', { duelo: duelo.id, aceitar: false }));
+  }
+  if (duelo.fase === 'convite' && duelo.desafiante === eu.id) linha.append(acao('Cancelar convite', 'botao-menu', 'cancelarDuelo', { duelo: duelo.id }));
+  if (duelo.partida) linha.append(botao('Ver partida', 'botao-menu', () => irPara('partida', duelo.partida.id)));
+  if (duelo.fase === 'decidido' && duelo.vencedor && duelo.vencedor !== eu.id && envolve(duelo, eu.id)) linha.append(botao('Revanche', 'botao-menu', () => pedirRevanche(duelo)));
+  return linha.children.length ? [linha, aviso] : [];
+}
+
+function cartaoDoDuelo(duelo) {
+  const item = criar('li', 'item-duelo');
+  const corpo = criar('span', 'item-corpo');
+  corpo.append(criar('span', '', tituloDoDuelo(duelo)), criar('span', 'detalhe', detalheDoDuelo(duelo)), rostosDoDuelo(duelo, 'duelo-rostos'));
+  if (duelo.provocacao && ['convite', 'valendo', 'em jogo'].includes(duelo.fase)) corpo.append(criar('span', 'provocacao', `"${duelo.provocacao}"`));
+  corpo.append(...botoesDoDuelo(duelo));
+  item.append(imagemDaCapa(duelo.jogoDoDuelo), corpo);
+  return item;
+}
+
+function mostrarLinhaDoDuelo(lugar, partida) {
+  const duelos = duelosDoGinasio().filter(d => d.partida?.id === partida.id);
+  lugar.hidden = !duelos.length;
+  lugar.textContent = duelos.map(d => (d.fase === 'em jogo' ? `Vale o duelo ${nomesDoDuelo(d)}.` : `Duelo: ${tituloDoDuelo(d)}.`)).join(' ');
+}
+
+function preencherDuelos(caixa, lista, duelos) {
+  document.getElementById(caixa).hidden = !duelos.length;
+  document.getElementById(lista).replaceChildren(...duelos.map(cartaoDoDuelo));
+}
+
+function validarDesafio() {
+  const motivo = desafio.jogador ? motivoParaNaoDesafiar(desafio.jogador) : '';
+  document.getElementById('aviso-duelo').textContent = motivo;
+  document.querySelector('#form-duelo button').disabled = !desafio.jogador || !desafio.jogo || Boolean(motivo);
+}
+
+function mostrarDuelos() {
+  const { eu } = estado;
+  if (!jogador(desafio.jogador) || desafio.jogador === eu.id) desafio.jogador = '';
+  if (!estado.jogos.some(j => j.id === desafio.jogo)) desafio.jogo = '';
+  const outros = estado.jogadores.filter(j => j.id !== eu.id).sort((a, b) => a.apelido.localeCompare(b.apelido, 'pt-BR'));
+  const campoJogador = document.getElementById('duelo-jogador');
+  campoJogador.replaceChildren(new Option('Quem você desafia', ''), ...outros.map(j => new Option(j.apelido, j.id)));
+  campoJogador.value = desafio.jogador;
+  const jogos = [...estado.jogos].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  const campoJogo = document.getElementById('duelo-jogo');
+  campoJogo.replaceChildren(new Option('Em qual jogo', ''), ...jogos.map(j => new Option(j.nome, j.id)));
+  campoJogo.value = desafio.jogo;
+  validarDesafio();
+
+  const todos = duelosDoGinasio();
+  preencherDuelos('caixa-convites', 'lista-convites', todos.filter(d => d.fase === 'convite'));
+  preencherDuelos('caixa-valendo', 'lista-valendo', todos.filter(d => d.fase === 'valendo' || d.fase === 'em jogo').sort((a, b) => a.ate - b.ate));
+  const terminados = todos.filter(d => DUELOS_TERMINADOS.includes(d.fase)).sort((a, b) => momentoDoDuelo(b) - momentoDoDuelo(a));
+  preencherDuelos('caixa-resultados-duelos', 'lista-resultados-duelos', terminados.slice(0, MAXIMO_DE_RESULTADOS_DE_DUELO));
+}
+
+function ligarDuelos() {
+  const formulario = document.getElementById('form-duelo');
+  const campoJogador = document.getElementById('duelo-jogador');
+  const campoJogo = document.getElementById('duelo-jogo');
+  const provocacao = document.getElementById('duelo-provocacao');
+  campoJogador.addEventListener('change', () => {
+    desafio.jogador = campoJogador.value;
+    validarDesafio();
+  });
+  campoJogo.addEventListener('change', () => {
+    desafio.jogo = campoJogo.value;
+    validarDesafio();
+  });
+  formulario.addEventListener('submit', async evento => {
+    evento.preventDefault();
+    const dados = { desafiado: desafio.jogador, jogo: desafio.jogo, provocacao: provocacao.value };
+    if (await enviar(formulario.querySelector('button'), document.getElementById('aviso-duelo'), 'desafiar', dados)) {
+      provocacao.value = '';
+      desafio = { jogador: '', jogo: '' };
+      renderizar();
+    }
+  });
+}
+
+function palcoDoDuelo(duelo) {
+  return rostosDoDuelo(duelo, 'duelo-palco');
+}
+
+function marcarDueloVisto(chave) {
+  marcarComoVisto([chave]);
+  const limite = Date.now() - PRAZO_DO_RESULTADO;
+  const atuais = new Set(duelosDoGinasio().flatMap(d => {
+    if (d.fase === 'convite') return [`convite:${d.id}`];
+    if (d.fase === 'decidido' && d.partida.abertaEm.getTime() > limite) return [`duelo:${d.id}`];
+    return [];
+  }));
+  const velhas = estado.eu.vistos.filter(c => (c.startsWith('convite:') || c.startsWith('duelo:')) && !atuais.has(c));
+  if (velhas.length) updateDoc(doc(banco, 'jogadores', estado.eu.id), { vistos: arrayRemove(...velhas) }).catch(() => {});
+}
+
+async function responderPeloAviso(duelo, aceitar) {
+  try {
+    await ACOES.responderDuelo({ duelo, aceitar });
+    tocar('confirmar');
+  } catch {
+    tocar('erro');
+  }
+  irPara('duelos');
+}
+
+function mostrarDueloDecidido(duelo) {
+  const { eu } = estado;
+  const oponente = duelo.desafiante === eu.id ? duelo.desafiado : duelo.desafiante;
+  const venci = duelo.vencedor === eu.id;
+  const perdi = duelo.vencedor === oponente;
+  let topo = 'Duelo empatado';
+  if (venci) topo = 'Duelo vencido!';
+  if (perdi) topo = 'Duelo perdido';
+  abrirConquista({
+    topo,
+    palco: [palcoDoDuelo(duelo)],
+    texto: `${tituloDoDuelo(duelo)} em ${duelo.jogoDoDuelo.nome}.`,
+    detalhe: `Você em ${duelo.lugares.get(eu.id)}º, ${nomeNoDuelo(oponente)} em ${duelo.lugares.get(oponente)}º.`,
+    botaoVer: perdi ? 'Revanche' : 'Ver duelos',
+    som: venci ? 'campeao' : 'partidaFechada',
+    aoConcluir: escolha => {
+      marcarDueloVisto(`duelo:${duelo.id}`);
+      if (escolha !== 'ver') return;
+      if (perdi) pedirRevanche(duelo);
+      else irPara('duelos');
+    },
+  });
+}
+
+function mostrarConvite(duelo) {
+  abrirConquista({
+    topo: 'Desafio!',
+    palco: [palcoDoDuelo(duelo)],
+    texto: `${nomeNoDuelo(duelo.desafiante)} desafiou você em ${duelo.jogoDoDuelo.nome}.`,
+    detalhe: duelo.provocacao ? `"${duelo.provocacao}"` : `Responda até ${formatoDiaCurto.format(duelo.ate)}.`,
+    botaoContinuar: 'Depois',
+    botaoOutro: 'Aceitar',
+    botaoVer: 'Recusar',
+    aoConcluir: escolha => {
+      marcarDueloVisto(`convite:${duelo.id}`);
+      if (escolha !== 'continuar') responderPeloAviso(duelo.id, escolha === 'outro');
+    },
+  });
+}
+
+function avisarDuelo() {
+  const { eu } = estado;
+  const vistos = avisosVistos();
+  const limite = Date.now() - PRAZO_DO_RESULTADO;
+  const duelos = duelosDoGinasio();
+  const decidido = duelos.find(d => d.fase === 'decidido' && envolve(d, eu.id) && d.partida.abertaEm.getTime() > limite && !vistos.includes(`duelo:${d.id}`));
+  if (decidido) {
+    mostrarDueloDecidido(decidido);
+    return true;
+  }
+  const convite = duelos.find(d => d.fase === 'convite' && d.desafiado === eu.id && !vistos.includes(`convite:${d.id}`));
+  if (!convite) return false;
+  mostrarConvite(convite);
+  return true;
+}
+
 const TELAS = {
   inicio: mostrarInicio,
+  duelos: mostrarDuelos,
   ranking: mostrarRanking,
   partida: mostrarPartida,
   'nova-partida': mostrarNovaPartida,
@@ -2939,6 +3254,7 @@ function iniciar() {
   ligarNovaPartida();
   ligarPerfil();
   ligarAdministracao();
+  ligarDuelos();
   document.getElementById('botao-google').addEventListener('click', entrarComGoogle);
   window.addEventListener('hashchange', renderizar);
   document.addEventListener('focusout', () => setTimeout(() => {

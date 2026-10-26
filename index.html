@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=55">
-<script type="module" src="app.js?v=61" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=56">
+<script type="module" src="app.js?v=62" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -23,6 +23,7 @@
     <button role="menuitem" data-item="inicio">Início</button>
     <button role="menuitem" data-item="ranking">Ranking</button>
     <button role="menuitem" data-item="nova-partida">Nova partida</button>
+    <button role="menuitem" data-item="duelos">Duelos</button>
     <div class="menu-bloco" role="group" aria-labelledby="menu-ginasio">
       <p class="rotulo menu-rotulo" id="menu-ginasio">Ginásio</p>
       <button role="menuitem" data-item="campeoes">Campeões</button>
@@ -103,6 +104,14 @@
       <button class="botao" id="pendente-botao">Lançar meu placar</button>
     </section>
 
+    <section class="caixa" id="caixa-meus-duelos" hidden>
+      <div class="cabecalho">
+        <h2 class="rotulo">Seus duelos</h2>
+        <button class="botao-menu" data-ir="duelos">Todos</button>
+      </div>
+      <ul class="lista-duelos" id="meus-duelos"></ul>
+    </section>
+
     <section class="caixa">
       <h2 class="rotulo">Ranking geral</h2>
       <ol class="ranking" id="ranking-geral"></ol>
@@ -142,6 +151,7 @@
         <h2 class="titulo-caixa" id="partida-jogo"></h2>
         <p class="detalhe" id="partida-data"></p>
         <p class="detalhe" id="partida-situacao"></p>
+        <p class="linha-do-duelo" id="partida-duelo" hidden></p>
       </div>
     </section>
 
@@ -220,10 +230,40 @@
       </div>
       <p class="detalhe" id="instrucao-jogadores"></p>
       <div class="escolha-jogadores" id="escolha-jogadores"></div>
+      <p class="linha-do-duelo" id="duelo-da-partida" hidden></p>
       <button class="botao" disabled>Abrir partida</button>
       <p class="aviso" id="aviso-partida" role="alert"></p>
       <p class="rodape" id="rodape-partida"></p>
     </form>
+  </main>
+
+  <main class="conteudo" data-tela="duelos" hidden>
+    <form class="caixa formulario" id="form-duelo">
+      <p class="rotulo">Novo desafio</p>
+      <select class="campo campo-texto" id="duelo-jogador" aria-label="Quem você desafia"></select>
+      <select class="campo campo-texto" id="duelo-jogo" aria-label="Jogo do duelo"></select>
+      <div class="linha-campo">
+        <input class="campo campo-texto" id="duelo-provocacao" maxlength="60" autocomplete="off" placeholder="Provocação (opcional)" aria-label="Provocação">
+        <button class="botao" disabled>Desafiar</button>
+      </div>
+      <p class="aviso" id="aviso-duelo" role="alert"></p>
+      <p class="rodape">Vale a primeira partida desse jogo em que vocês dois jogarem, aberta em até 14 dias depois do aceite. O resultado fica fora do ranking.</p>
+    </form>
+
+    <section class="caixa" id="caixa-convites" hidden>
+      <h2 class="rotulo">Convites</h2>
+      <ul class="lista-duelos" id="lista-convites"></ul>
+    </section>
+
+    <section class="caixa" id="caixa-valendo" hidden>
+      <h2 class="rotulo">Valendo</h2>
+      <ul class="lista-duelos" id="lista-valendo"></ul>
+    </section>
+
+    <section class="caixa" id="caixa-resultados-duelos" hidden>
+      <h2 class="rotulo">Últimos resultados</h2>
+      <ul class="lista-duelos" id="lista-resultados-duelos"></ul>
+    </section>
   </main>
 
   <main class="conteudo" data-tela="perfil" hidden>
@@ -271,6 +311,16 @@
           <p class="aviso" id="aviso-titulo" role="alert"></p>
         </div>
       </div>
+    </section>
+
+    <section class="caixa formulario">
+      <div class="cabecalho">
+        <h2 class="rotulo">Duelos</h2>
+        <p class="detalhe" id="perfil-duelos-placar"></p>
+      </div>
+      <p id="perfil-duelos-contra" hidden></p>
+      <button class="botao" id="perfil-desafiar" type="button"></button>
+      <p class="detalhe" id="perfil-desafiar-motivo" hidden></p>
     </section>
 
     <section class="caixa">
@@ -398,6 +448,15 @@
       </ul>
     </section>
 
+    <section class="caixa pergunta">
+      <div class="pergunta-topo"><img src="midia/titulo-duelista.png" alt=""><h2 class="pergunta-titulo">E os duelos?</h2></div>
+      <ul class="respostas">
+        <li><strong>Você desafia alguém num jogo, e vale a primeira partida desse jogo com vocês dois.</strong><span class="detalhe">Ela tem de ser aberta em até 14 dias depois do aceite.</span></li>
+        <li><strong>Vence quem ficar mais bem colocado nessa partida.</strong><span class="detalhe">Mesma colocação é empate.</span></li>
+        <li><strong>O duelo fica fora do ranking.</strong><span class="detalhe">Cada duelo vencido conta para o título Duelista.</span></li>
+      </ul>
+    </section>
+
     <p class="para-curiosos">Quer ver a conta por dentro? As fórmulas estão logo abaixo.</p>
 
     <section class="caixa">
@@ -506,6 +565,7 @@
       </div>
     </div>
     <ol class="lista-jogadores resultado-placar" id="resultado-placar"></ol>
+    <p class="linha-do-duelo resultado-depois" id="resultado-duelo" hidden></p>
     <button class="botao resultado-depois" id="resultado-continuar" type="button">Continuar</button>
   </div>
 </div>
@@ -520,6 +580,7 @@
     <p class="detalhe conquista-depois" id="conquista-detalhe"></p>
     <div class="linha-botoes conquista-botoes conquista-depois">
       <button class="botao" id="conquista-continuar" type="button">Continuar</button>
+      <button class="botao" id="conquista-outro" type="button" hidden></button>
       <button class="botao" id="conquista-ver" type="button">Ver título</button>
     </div>
   </div>
