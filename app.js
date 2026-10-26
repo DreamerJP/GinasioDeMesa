@@ -23,6 +23,7 @@ const LADO_FOTO = 320;
 const MAXIMO_DE_ROSTOS = 8;
 const MAXIMO_DE_INSIGNIAS = 6;
 const MAXIMO_DE_MESTRES_NO_PERFIL = 3;
+const TITULOS_A_VISTA_NO_PERFIL = 3;
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const SONS = {
@@ -129,7 +130,7 @@ let partidaAberta = '';
 let diaAberto = '';
 let mesDoDiaAberto = '';
 let tituloSendoVisto = '';
-let andamentoAbertoDe = '';
+let faixaAbertaNoPerfil = '';
 let correcao = null;
 let jogoEscolhido = '';
 let selecao = null;
@@ -822,7 +823,7 @@ function barraDoProgresso(situacao) {
   return progresso;
 }
 
-function cartaoDoTitulo(situacao, { emUso = false, destino = situacao.titulo.id } = {}) {
+function cartaoDoTitulo(situacao, { emUso = false, aoTocar = () => irPara('titulo', situacao.titulo.id) } = {}) {
   const { titulo, nivel, alcancados } = situacao;
   const cartao = criar('button', `cartao-titulo nivel-${nivel}${alcancados ? '' : ' falta'}`);
   cartao.type = 'button';
@@ -832,7 +833,7 @@ function cartaoDoTitulo(situacao, { emUso = false, destino = situacao.titulo.id 
   const texto = criar('span', 'cartao-texto');
   texto.append(etiquetas, criar('span', 'cartao-nome', titulo.nome), criar('span', 'cartao-regra', titulo.medida), barraDoProgresso(situacao));
   cartao.append(quadroDoTitulo(situacao), texto);
-  cartao.addEventListener('click', () => (destino ? irPara('titulo', destino) : irPara('titulos')));
+  cartao.addEventListener('click', aoTocar);
   return cartao;
 }
 
@@ -2291,7 +2292,7 @@ function cartaoDosMestres(comVitoria) {
   const qualquerMestre = situacaoNoTitulo({
     nome: 'Mestre de um jogo', jogo: comVitoria[0].titulo.jogo, metas: METAS_DE_MESTRE, medida: 'Vitórias num mesmo jogo.', unidade: ['vitória', 'vitórias'],
   }, { atual: comVitoria[0].atual, niveis: [] });
-  const cartao = cartaoDoTitulo(qualquerMestre, { destino: '' });
+  const cartao = cartaoDoTitulo(qualquerMestre, { aoTocar: () => irPara('titulos', 'mestres') });
   const jogos = criar('span', 'mestres-perto');
   jogos.append(...comVitoria.slice(0, MAXIMO_DE_MESTRES_NO_PERFIL).map(s => {
     const linha = criar('span', 'mestre-perto');
@@ -2316,28 +2317,39 @@ function mostrarTitulosDoPerfil(alguem, exibido) {
   andamento.sort((a, b) => b.parte - a.parte);
 
   document.getElementById('perfil-titulos-conta').textContent = quantidade(ganhos.length, ['título', 'títulos']);
-  document.getElementById('perfil-titulos').replaceChildren(...(ganhos.length
-    ? ganhos.map(s => cartaoDoTitulo(s, { emUso: exibido?.titulo.id === s.titulo.id }))
-    : [criar('p', 'detalhe', 'Nenhum título ainda.')]));
+  const cartoes = ganhos.map(s => cartaoDoTitulo(s, { emUso: exibido?.titulo.id === s.titulo.id }));
+  const recolhidos = ganhos.length > TITULOS_A_VISTA_NO_PERFIL + 1 ? cartoes.slice(TITULOS_A_VISTA_NO_PERFIL) : [];
+  document.getElementById('perfil-titulos').replaceChildren(...(ganhos.length ? cartoes : [criar('p', 'detalhe', 'Nenhum título ainda.')]));
 
-  const lugar = document.getElementById('perfil-andamento');
-  lugar.replaceChildren();
-  if (!andamento.length) return;
-  const aberto = andamentoAbertoDe === alguem.id;
+  const emAndamento = criar('div', 'colecao-titulos');
+  emAndamento.append(...andamento.map(a => a.cartao));
+  const vizinhas = [];
+  const faixaDosGanhos = faixaQueRecolhe([`Mais ${quantidade(recolhidos.length, ['título', 'títulos'])}`, 'Mostrar menos'], '', recolhidos, `ganhos:${alguem.id}`, vizinhas);
+  faixaDosGanhos.classList.add('faixa-no-fim');
+  const faixaDoAndamento = faixaQueRecolhe(['A conquistar', 'A conquistar'], quantidade(andamento.length, ['título', 'títulos']), [emAndamento], `andamento:${alguem.id}`, vizinhas);
+  document.getElementById('perfil-andamento').replaceChildren(
+    ...(recolhidos.length ? [faixaDosGanhos] : []),
+    ...(andamento.length ? [faixaDoAndamento, emAndamento] : []));
+}
+
+function faixaQueRecolhe(rotulos, detalhe, recolhiveis, chave, vizinhas) {
   const faixa = criar('button', 'faixa-recolhivel');
   faixa.type = 'button';
-  faixa.setAttribute('aria-expanded', aberto);
-  faixa.append(criar('span', 'rotulo', 'A conquistar'), criar('span', 'detalhe', quantidade(andamento.length, ['título', 'títulos'])), criar('span', 'seta-redonda'));
-  const cartoes = criar('div', 'colecao-titulos');
-  cartoes.hidden = !aberto;
-  cartoes.append(...andamento.map(a => a.cartao));
+  const rotulo = criar('span', 'rotulo');
+  faixa.append(rotulo, criar('span', 'detalhe', detalhe), criar('span', 'seta-redonda'));
+  const mostrar = () => {
+    const aberto = faixaAbertaNoPerfil === chave;
+    recolhiveis.forEach(r => { r.hidden = !aberto; });
+    rotulo.textContent = rotulos[aberto ? 1 : 0];
+    faixa.setAttribute('aria-expanded', aberto);
+  };
+  vizinhas.push(mostrar);
+  mostrar();
   faixa.addEventListener('click', () => {
-    const abrir = cartoes.hidden;
-    andamentoAbertoDe = abrir ? alguem.id : '';
-    cartoes.hidden = !abrir;
-    faixa.setAttribute('aria-expanded', abrir);
+    faixaAbertaNoPerfil = faixaAbertaNoPerfil === chave ? '' : chave;
+    vizinhas.forEach(atualizar => atualizar());
   });
-  lugar.append(faixa, cartoes);
+  return faixa;
 }
 
 function mostrarEscolhaDeTitulo() {
@@ -2410,7 +2422,7 @@ function donosDoTitulo(id) {
     .sort(([, a], [, b]) => b.alcancados - a.alcancados || a.desde.localeCompare(b.desde));
 }
 
-function mostrarTitulos() {
+function mostrarTitulos(parametro) {
   const { catalogo } = titulosDoGinasio();
   const linha = titulo => {
     const donos = donosDoTitulo(titulo.id);
@@ -2442,6 +2454,10 @@ function mostrarTitulos() {
   document.getElementById('lista-mestres').replaceChildren(...(mestres.length
     ? mestres.map(linha)
     : [criar('li', 'detalhe', 'Nenhum jogo cadastrado ainda.')]));
+  if (parametro === 'mestres') {
+    history.replaceState(null, '', '#titulos');
+    window.scrollTo(0, document.getElementById('lista-mestres').closest('section').getBoundingClientRect().top + window.scrollY - 12);
+  }
 }
 
 function mostrarTitulo(id) {

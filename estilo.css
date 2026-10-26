@@ -433,6 +433,7 @@ select.campo {
 
 .seta-redonda::before { margin-left: 2px; }
 [aria-expanded="true"] > .seta-redonda::before { margin: 2px 0 0; }
+.faixa-no-fim[aria-expanded="true"] > .seta-redonda::before { margin: 0 0 2px; transform: rotate(180deg); }
 .troca-mes { display: flex; gap: 8px; }
 .troca-mes #mes-seguinte { margin-left: auto; }
 [data-tela="ranking"] .cabecalho { flex-wrap: wrap; }
