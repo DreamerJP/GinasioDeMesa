@@ -313,6 +313,10 @@ function nomeDoMes(mes) {
   return `${MESES[indiceDoMes(mes)]} de ${mes.slice(0, 4)}`;
 }
 
+function nomeDoMesComAnoSeOutro(mes) {
+  return mes.slice(0, 4) === estado.mesAtual.slice(0, 4) ? MESES[indiceDoMes(mes)] : `${MESES[indiceDoMes(mes)]}/${mes.slice(0, 4)}`;
+}
+
 function tituloDeMestre(jogo) {
   return {
     id: `mestre:${jogo.id}`, nome: `Mestre de ${jogo.nome}`, jogo, metas: METAS_DE_MESTRE,
@@ -1761,7 +1765,7 @@ function insigniasEmMiniatura(id, total) {
 function ligarTrocaDeMes(botao, mes, texto) {
   botao.hidden = !mes;
   if (!mes) return;
-  botao.textContent = texto(MESES[indiceDoMes(mes)]);
+  botao.textContent = texto(nomeDoMesComAnoSeOutro(mes));
   botao.onclick = () => irPara('ranking', mes === estado.mesAtual ? '' : mes);
 }
 
@@ -1773,11 +1777,11 @@ function mostrarRanking(pedido) {
   ligarTrocaDeMes(document.getElementById('mes-anterior'), meses[posicao - 1], nome => `◀ ${nome}`);
   ligarTrocaDeMes(document.getElementById('mes-seguinte'), meses[posicao + 1], nome => `${nome} ▶`);
   document.getElementById('troca-mes').hidden = meses.length < 2;
-  document.getElementById('ranking-mes').textContent = MESES[indiceDoMes(mes)];
-  document.getElementById('partidas-mes').textContent = MESES[indiceDoMes(mes)];
+  document.getElementById('ranking-mes').textContent = nomeDoMesComAnoSeOutro(mes);
+  document.getElementById('partidas-mes').textContent = nomeDoMesComAnoSeOutro(mes);
   const doMes = partidas.filter(p => p.mes === mes);
   const { linhas, total } = rankingDe(mes);
-  document.getElementById('total-partidas').textContent = `${total} ${total === 1 ? 'partida' : 'partidas'} no mês`;
+  document.getElementById('total-partidas').textContent = `${total} ${total === 1 ? 'partida' : 'partidas'}`;
   document.getElementById('ranking').replaceChildren(...linhas.filter(l => l.partidas > 0).map(l => linhaDoMes(l, total)));
 
   // Partidas lançadas pelo administrador trazem o dia certo, mas não a hora em que foram abertas.
