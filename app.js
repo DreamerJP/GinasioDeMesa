@@ -2230,7 +2230,7 @@ function mostrarPerfil(id) {
   document.getElementById('perfil-insignias').replaceChildren(...trilhaDeInsignias({ ganhas, destacarProxima: alguem.id === eu.id }));
 
   const proprio = alguem.id === eu.id;
-  document.getElementById('perfil-duelos-placar').textContent = textoDoPlacar(placarDeDuelos(alguem.id)) || 'Nenhum decidido';
+  document.getElementById('perfil-duelos-placar').textContent = textoDoPlacar(placarDeDuelos(alguem.id));
   const entreNos = placarDeDuelos(eu.id, alguem.id);
   const contra = document.getElementById('perfil-duelos-contra');
   contra.hidden = proprio || !textoDoPlacar(entreNos);
