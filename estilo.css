@@ -745,6 +745,9 @@ select.campo {
 }
 
 .lista-acessos li:first-child { border-top: 0; }
+.acesso-quem { display: grid; gap: 2px; min-width: 0; }
+.acesso-quem .email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acesso-quando { align-self: center; text-align: right; }
 .email, #campo-email { font-family: 'Pixelify Sans Digitos', 'Pixelify Sans', monospace; font-weight: 400; letter-spacing: 0; }
 
 .lista-pedidos { padding: 0; list-style: none; }

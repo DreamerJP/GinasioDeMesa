@@ -16,6 +16,7 @@ const FUSO = 'America/Sao_Paulo';
 const DIAS_PARA_FECHAR_O_MES = 7;
 const AGUARDANDO = 'Seu pedido de entrada foi enviado. Assim que o administrador aprovar, o ginásio abre sozinho.';
 const DEMORA_DA_ENTRADA = 8000;
+const INTERVALO_DO_ACESSO = 30 * 60e3;
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const LIMITE_FOTO = 45000;
 const LADO_FOTO = 320;
@@ -117,6 +118,7 @@ const banco = initializeFirestore(app, { localCache: memoryLocalCache() });
 let conta = null;
 let lidos = {};
 let fotoCompletada = false;
+let acessoRegistradoEm = 0;
 let escutaDoAcesso = null;
 let escutasDosDados = [];
 let estado = null;
@@ -607,6 +609,7 @@ const formatoDia = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: '
 const formatoDataLonga = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 const formatoDiaDaMesa = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO, year: 'numeric', month: '2-digit', day: '2-digit' });
 const formatoDiaCurto = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit' });
+const formatoDataDoDia = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO, year: 'numeric', month: '2-digit', day: '2-digit' });
 
 function diaDaMesa(momento) {
   return formatoDiaDaMesa.format(new Date(momento.getTime() - HORA_QUE_O_DIA_VIRA * 3600e3));
@@ -1081,6 +1084,7 @@ function acompanharConta(usuario) {
   pararEscutas();
   mesDoConvite = '';
   fotoCompletada = false;
+  acessoRegistradoEm = 0;
   if (!usuario) {
     mostrarEntrada('Entre com a conta Google que o administrador liberou.', 'google');
     return;
@@ -1117,7 +1121,7 @@ async function pedirEntrada(usuario, email) {
 
 function escutarDados() {
   pararDados();
-  const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', 'fechamentos', 'duelos', ...(conta.admin ? ['acessos', 'pedidos'] : [])];
+  const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', 'fechamentos', 'duelos', ...(conta.admin ? ['acessos', 'pedidos', 'ultimosAcessos'] : [])];
   // Nas partidas, escutar a confirmação do servidor: título só é anunciado depois que o placar gravou.
   escutasDosDados = nomes.map(nome => onSnapshot(collection(banco, nome), { includeMetadataChanges: nome === 'partidas' }, retrato => {
     lidos[nome] = retrato.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
@@ -1126,6 +1130,13 @@ function escutarDados() {
     receberEstado(montarEstado());
     completarFoto();
   }, falhaDeLeitura));
+  registrarAcesso();
+}
+
+function registrarAcesso() {
+  if (!conta || document.visibilityState !== 'visible' || Date.now() - acessoRegistradoEm < INTERVALO_DO_ACESSO) return;
+  acessoRegistradoEm = Date.now();
+  setDoc(doc(banco, 'ultimosAcessos', conta.id), { em: serverTimestamp() }).catch(() => {});
 }
 
 function falhaDeLeitura() {
@@ -1147,6 +1158,7 @@ function montarEstado() {
   const jogadores = lidos.jogadores.filter(j => j.apelido).map(({ id, apelido, foto, titulo, moldura }) => ({ id, apelido, foto, titulo: titulo || '', moldura: moldura !== false }));
   const apelidoDe = id => jogadores.find(j => j.id === id)?.apelido || '';
   const comEmail = new Set((lidos.acessos || []).map(a => a.jogador));
+  const ultimoAcessoDe = id => lidos.ultimosAcessos?.find(u => u.id === id)?.em?.toDate?.() || null;
   return {
     mesAtual: mesDeHoje(),
     gravando: Boolean(lidos.partidasGravando),
@@ -1165,7 +1177,7 @@ function montarEstado() {
     })).sort((a, b) => b.criadoEm - a.criadoEm),
     liberados: conta.admin
       ? [
-        ...lidos.acessos.map(a => ({ id: a.jogador, email: a.id, apelido: apelidoDe(a.jogador) })),
+        ...lidos.acessos.map(a => ({ id: a.jogador, email: a.id, apelido: apelidoDe(a.jogador), ultimoAcesso: ultimoAcessoDe(a.jogador) })),
         ...jogadores.filter(j => !comEmail.has(j.id)).map(j => ({ id: j.id, email: '', apelido: j.apelido })),
       ]
       : [],
@@ -2837,12 +2849,22 @@ function mostrarAdministracao() {
     return item;
   }));
 
-  const ordenados = [...liberados].sort((a, b) => Boolean(b.email) - Boolean(a.email));
+  const ordenados = [...liberados].sort((a, b) => Boolean(b.email) - Boolean(a.email) || (b.ultimoAcesso || 0) - (a.ultimoAcesso || 0));
   document.getElementById('lista-acessos').replaceChildren(...ordenados.map(l => {
     const item = criar('li');
-    item.append(criar('span', l.email ? 'email' : 'detalhe', l.email || 'sem e-mail'), criar('span', l.apelido ? '' : 'detalhe', l.apelido || 'ainda não entrou'));
+    const quem = criar('span', 'acesso-quem');
+    quem.append(criar('span', l.apelido ? '' : 'detalhe', l.apelido || 'ainda não entrou'), criar('span', l.email ? 'detalhe email' : 'detalhe', l.email || 'sem e-mail'));
+    item.append(quem, criar('span', 'detalhe acesso-quando', l.email ? quandoFoiOAcesso(l.ultimoAcesso) : ''));
     return item;
   }));
+}
+
+function quandoFoiOAcesso(momento) {
+  if (!momento) return 'sem registro';
+  const dias = Math.round((Date.parse(formatoDataDoDia.format(new Date())) - Date.parse(formatoDataDoDia.format(momento))) / 864e5);
+  if (dias <= 0) return `hoje, ${formatoHora.format(momento)}`;
+  if (dias === 1) return `ontem, ${formatoHora.format(momento)}`;
+  return `há ${dias} dias`;
 }
 
 function validarPremio() {
@@ -3257,6 +3279,7 @@ function iniciar() {
   ligarDuelos();
   document.getElementById('botao-google').addEventListener('click', entrarComGoogle);
   window.addEventListener('hashchange', renderizar);
+  document.addEventListener('visibilitychange', registrarAcesso);
   document.addEventListener('focusout', () => setTimeout(() => {
     if (!digitando()) aplicarEstadoEmEspera();
   }));

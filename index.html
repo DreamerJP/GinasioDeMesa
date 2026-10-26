@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=57">
-<script type="module" src="app.js?v=63" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=58">
+<script type="module" src="app.js?v=64" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -528,7 +528,10 @@
     </form>
 
     <section class="caixa">
-      <h2 class="rotulo">Com acesso</h2>
+      <div class="cabecalho">
+        <h2 class="rotulo">Com acesso</h2>
+        <p class="detalhe">Último acesso</p>
+      </div>
       <ul class="lista-acessos" id="lista-acessos"></ul>
       <p class="rodape">Para tirar o acesso de alguém, apague o e&#8209;mail dele na coleção acessos do Firebase.</p>
     </section>
