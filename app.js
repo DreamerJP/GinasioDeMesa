@@ -1896,9 +1896,12 @@ function mostrarPartida(id) {
   data.textContent = quandoFoiAberta(partida);
   data.hidden = !data.textContent;
   let situacao = `Fechada, ranking ${partida.mes.slice(5)}/${partida.mes.slice(0, 4)}`;
-  if (aberta && valeNoMes) situacao = `Aberta${autor ? ` por ${autor}` : ''}. ${lancados} de ${partida.placares.length} lançaram.`;
+  if (aberta && valeNoMes) situacao = `Aberta${autor ? ` por ${autor}` : ''}.`;
   if (aberta && !valeNoMes) situacao = 'Não conta: o mês fechou antes de todos lançarem.';
   document.getElementById('partida-situacao').textContent = situacao;
+  const progresso = document.getElementById('partida-progresso');
+  progresso.hidden = !(aberta && valeNoMes);
+  progresso.textContent = `${lancados} de ${partida.placares.length} lançaram.`;
   mostrarLinhaDoDuelo(document.getElementById('partida-duelo'), partida);
 
   const faltaDeOutro = partida.placares.some(s => s.valor === null && s.jogador !== eu.id);
