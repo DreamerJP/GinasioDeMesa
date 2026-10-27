@@ -187,7 +187,7 @@ function notasDaPartida({ resultados, menorVence, semPlacar }) {
   const media = valores.reduce((a, b) => a + b, 0) / n;
 
   return nomes.map((nome, i) => {
-    const colocacao = (n - lugares[i] + 1) / n;
+    const colocacao = (n - lugares[i] + 0.5) / n;
     if (soColocacao) return [nome, colocacao];
     const placar = menorVence ? media / (2 * valores[i]) : valores[i] / (2 * media);
     return [nome, (colocacao + Math.min(1, placar)) / 2];
@@ -221,19 +221,27 @@ function rankingDoMes(jogadores, partidas, presentes = presentesPorDia(partidas)
   }
 
   const total = partidas.length;
+  const dias = [...new Set(partidas.map(p => p.dia))];
   const linhas = jogadores
     .map(id => {
       const { soma, faltas, partidas: jogadas, contadas } = acumulado.get(id);
-      return { id, nota: jogadas ? (soma + faltas) / contadas : 0, partidas: jogadas };
+      const diasQueFoi = dias.filter(dia => presentes.get(dia).has(id)).length;
+      return { id, nota: jogadas ? (soma + faltas) / contadas : 0, partidas: jogadas, podePodio: 2 * diasQueFoi >= dias.length };
     })
     .sort((a, b) => b.nota - a.nota);
 
   const exibida = nota => nota.toFixed(CASAS_DA_NOTA);
-  linhas.forEach((linha, i) => {
-    const empatado = i > 0 && exibida(linhas[i - 1].nota) === exibida(linha.nota);
-    linha.posicao = empatado ? linhas[i - 1].posicao : i + 1;
+  const numerar = (lista, primeira) => lista.forEach((linha, i) => {
+    const empatado = i > 0 && exibida(lista[i - 1].nota) === exibida(linha.nota);
+    linha.posicao = empatado ? lista[i - 1].posicao : primeira + i;
   });
-  return { linhas, total };
+  numerar(linhas.filter(l => l.podePodio), 1);
+  const podio = linhas.filter(l => l.podePodio && l.posicao <= 3);
+  const resto = linhas.filter(l => !podio.includes(l));
+  numerar(resto, podio.length + 1);
+  const corte = Math.min(...podio.map(l => l.nota));
+  resto.forEach(l => { l.foraDoPodio = !l.podePodio && l.nota > corte; });
+  return { linhas: [...podio, ...resto], total };
 }
 
 function jogoDe(partida) {
@@ -1450,7 +1458,8 @@ function linhaDoRanking(id, posicao, principal, secundario, nota = null) {
 }
 
 function linhaDoMes(linha, total) {
-  return linhaDoRanking(linha.id, linha.posicao, formatoNota.format(linha.nota), `${linha.partidas} de ${total} ${total === 1 ? 'partida' : 'partidas'}`, linha.nota);
+  const foraDoPodio = linha.foraDoPodio ? ', fora do pódio' : '';
+  return linhaDoRanking(linha.id, linha.posicao, formatoNota.format(linha.nota), `${linha.partidas} de ${total} ${total === 1 ? 'partida' : 'partidas'}${foraDoPodio}`, linha.nota);
 }
 
 function rankingGeral() {

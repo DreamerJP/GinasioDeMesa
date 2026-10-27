@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
 <link rel="stylesheet" href="estilo.css?v=61">
-<script type="module" src="app.js?v=71" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<script type="module" src="app.js?v=73" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -411,6 +411,7 @@
       <ul class="respostas">
         <li><strong>Cada partida dá pontos a quem jogou.</strong><span class="detalhe">Quem soma mais no mês vence.</span></li>
         <li><strong>Vencer com folga vale mais que vencer apertado.</strong></li>
+        <li><strong>Vencer uma mesa grande vale mais que vencer uma pequena.</strong><span class="detalhe">Você deixou mais gente para trás.</span></li>
         <li><strong>Não importa se o jogo dá poucos ou muitos pontos.</strong><span class="detalhe">O que conta é quanto você fez comparado com os outros da mesa.</span>
           <p class="exemplo"><span class="rotulo">Exemplo</span>5 pontos no Saboteur podem valer tanto quanto 200 no Fantasy Realms.</p></li>
       </ul>
@@ -424,8 +425,8 @@
         <li><strong>Quem vem para a jogatina joga junto.</strong><span class="detalhe">Uma partida já livra das faltas do dia, então ficar de fora de propósito para proteger a nota vai contra o combinado do grupo.</span></li>
         <li><strong>Faltar um dia não tira ninguém da disputa.</strong><span class="detalhe">Quem joga bem continua na frente.</span></li>
         <li><strong>Quanto mais dias a pessoa falta, mais difícil fica passar quem foi a todos.</strong></li>
-        <li><strong>Quem jogou pouco não fica no alto.</strong>
-          <p class="exemplo"><span class="rotulo">Exemplo</span>Quem vai a 1 de 3 dias e vence a única partida que jogou fica atrás de quem foi todos os dias e ficou em último em todas.</p></li>
+        <li><strong>Para ficar no pódio, é preciso ir a pelo menos metade dos dias de jogo do mês.</strong><span class="detalhe">Quem foi a menos continua no ranking com a nota dele, mas fica fora dos 3 primeiros.</span>
+          <p class="exemplo"><span class="rotulo">Exemplo</span>Quem vai a 1 de 3 dias e vence a única partida que jogou não entra no pódio.</p></li>
       </ul>
     </section>
 
@@ -461,17 +462,17 @@
 
     <section class="caixa">
       <h2 class="rotulo">Nota do jogador na partida</h2>
-      <div class="formula" data-formula="P_{i,j} = \frac{1}{2}\left[\frac{N - r_i + 1}{N} + \min\left(1,\ \frac{x_i}{2\,\bar{x}}\right)\right]"></div>
+      <div class="formula" data-formula="P_{i,j} = \frac{1}{2}\left[\frac{N - r_i + \tfrac{1}{2}}{N} + \min\left(1,\ \frac{x_i}{2\,\bar{x}}\right)\right]"></div>
       <p class="detalhe">Jogo em que menor placar vence, a fração do placar vira:</p>
       <div class="formula formula-menor" data-formula="\frac{\bar{x}}{2\,x_i}"></div>
       <p class="detalhe">Jogo sem placar ou empate geral, vale só a colocação:</p>
-      <div class="formula formula-menor" data-formula="\frac{N - r_i + 1}{N}"></div>
+      <div class="formula formula-menor" data-formula="\frac{N - r_i + \tfrac{1}{2}}{N}"></div>
     </section>
 
     <section class="caixa">
       <h2 class="rotulo">Nota do mês</h2>
       <div class="formula" data-formula="G_i = \frac{1}{M}\sum_{j=1}^{M} P_{i,j}"></div>
-      <p class="detalhe">Contam as partidas que o jogador jogou e as dos dias em que ele não foi. Nessas, leva <span data-formula-linha="\tfrac{1}{2}\min_k P_{k,j}"></span>, metade da nota do último colocado. Partida de um dia em que ele foi, mas jogou em outra mesa, fica fora. O dia vai das 8h às 8h. Quem não jogou nenhuma partida no mês fica com 0.</p>
+      <p class="detalhe">Contam as partidas que o jogador jogou e as dos dias em que ele não foi. Nessas, leva <span data-formula-linha="\tfrac{1}{2}\min_k P_{k,j}"></span>, metade da nota do último colocado. Partida de um dia em que ele foi, mas jogou em outra mesa, fica fora. O dia vai das 8h às 8h. Quem não jogou nenhuma partida no mês fica com 0. Para o pódio, só entra quem foi a pelo menos metade dos dias de jogo do mês.</p>
     </section>
 
     <section class="caixa">
