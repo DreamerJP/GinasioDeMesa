@@ -3305,6 +3305,19 @@ function ligarMenu() {
   });
 }
 
+function ligarRegras() {
+  const perguntas = [...document.querySelectorAll('[data-tela="regras"] .pergunta-topo')];
+  perguntas.forEach(pergunta => pergunta.addEventListener('click', () => {
+    const abrir = pergunta.getAttribute('aria-expanded') !== 'true';
+    perguntas.forEach(outra => {
+      const aberta = outra === pergunta && abrir;
+      outra.setAttribute('aria-expanded', aberta);
+      document.getElementById(outra.getAttribute('aria-controls')).hidden = !aberta;
+    });
+    if (abrir && pergunta.getBoundingClientRect().top < 0) pergunta.scrollIntoView();
+  }));
+}
+
 function iniciar() {
   mostrarItemDeSom();
   ligarMenu();
@@ -3314,6 +3327,7 @@ function iniciar() {
   ligarPerfil();
   ligarAdministracao();
   ligarDuelos();
+  ligarRegras();
   document.getElementById('botao-google').addEventListener('click', entrarComGoogle);
   window.addEventListener('hashchange', renderizar);
   document.addEventListener('visibilitychange', registrarAcesso);

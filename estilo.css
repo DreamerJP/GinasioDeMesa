@@ -718,6 +718,7 @@ select.campo {
 .simbolos dd { margin: 0; font-size: 14px; }
 
 .chamada { display: grid; gap: 6px; text-align: center; }
+.chamada .respostas { margin-top: 8px; text-align: left; }
 .previa-apelido { display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: var(--caixa-marcada); clip-path: var(--canto); }
 .previa-apelido .foto { width: 40px; height: 40px; }
 .previa-apelido span { font-size: 20px; letter-spacing: 2px; }
@@ -727,7 +728,8 @@ select.campo {
 .chamada-texto { font-size: 15px; color: var(--tinta-suave); }
 .chamada-texto b { font-weight: 400; color: var(--tinta); background: linear-gradient(transparent 60%, #f2c14e66 0); }
 .pergunta { display: grid; gap: 10px; }
-.pergunta-topo { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; align-items: center; }
+.pergunta-topo { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; padding: 0; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; }
+.conta-por-dentro { display: grid; gap: 14px; }
 .pergunta-topo img { width: 48px; height: 48px; padding: 4px; background: var(--caixa-funda); clip-path: var(--canto); }
 .pergunta-titulo { font-size: 18px; line-height: 1.2; }
 .respostas { display: grid; gap: 8px; padding: 0; list-style: none; }
@@ -736,7 +738,6 @@ select.campo {
 .respostas strong { font-size: 15px; }
 .exemplo { display: grid; gap: 2px; margin-top: 4px; padding: 8px 10px; background: var(--caixa-marcada); border-left: 4px solid var(--ouro); font-size: 14px; }
 .exemplo .rotulo { font-size: 11px; }
-.para-curiosos { text-align: center; font-size: 13px; color: var(--caixa-funda); }
 
 .lista-acessos li {
   display: grid;

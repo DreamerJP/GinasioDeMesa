@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=61">
-<script type="module" src="app.js?v=73" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=64">
+<script type="module" src="app.js?v=74" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -404,11 +404,16 @@
     <section class="caixa chamada">
       <h2 class="chamada-titulo">Como se vence o mês</h2>
       <p class="chamada-texto">A conta premia duas coisas: <b>jogar bem</b> e <b>aparecer</b>.</p>
+      <ul class="respostas">
+        <li><strong>Quem precisa faltar um dia continua na disputa.</strong></li>
+        <li><strong>Qualquer jogo vale igual, dê ele poucos ou muitos pontos.</strong></li>
+        <li><strong>Mesa pequena ou grande, ninguém sai na vantagem.</strong></li>
+      </ul>
     </section>
 
     <section class="caixa pergunta">
-      <div class="pergunta-topo"><img src="midia/regra-pontos.png" alt=""><h2 class="pergunta-titulo">Como eu ganho pontos?</h2></div>
-      <ul class="respostas">
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-pontos"><img src="midia/regra-pontos.png" alt=""><span class="pergunta-titulo">Pontos</span><span class="seta-redonda"></span></button>
+      <ul class="respostas" id="regra-pontos" hidden>
         <li><strong>Cada partida dá pontos a quem jogou.</strong><span class="detalhe">Quem soma mais no mês vence.</span></li>
         <li><strong>Vencer com folga vale mais que vencer apertado.</strong></li>
         <li><strong>Vencer uma mesa grande vale mais que vencer uma pequena.</strong><span class="detalhe">Você deixou mais gente para trás.</span></li>
@@ -418,8 +423,8 @@
     </section>
 
     <section class="caixa pergunta">
-      <div class="pergunta-topo"><img src="midia/regra-faltas.png" alt=""><h2 class="pergunta-titulo">E se eu faltar?</h2></div>
-      <ul class="respostas">
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-faltas"><img src="midia/regra-faltas.png" alt=""><span class="pergunta-titulo">Faltas</span><span class="seta-redonda"></span></button>
+      <ul class="respostas" id="regra-faltas" hidden>
         <li><strong>Quem vai e fica em último sempre leva mais do que quem faltou.</strong><span class="detalhe">Quem não vai no dia leva, em cada partida daquele dia, metade da nota do último colocado.</span></li>
         <li><strong>Quem foi e estava em outra mesa não perde nada.</strong><span class="detalhe">As partidas da outra mesa ficam fora da sua conta.</span></li>
         <li><strong>Quem vem para a jogatina joga junto.</strong><span class="detalhe">Uma partida já livra das faltas do dia, então ficar de fora de propósito para proteger a nota vai contra o combinado do grupo.</span></li>
@@ -431,16 +436,16 @@
     </section>
 
     <section class="caixa pergunta">
-      <div class="pergunta-topo"><img src="midia/regra-fim.png" alt=""><h2 class="pergunta-titulo">E no fim do mês?</h2></div>
-      <ul class="respostas">
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-fim"><img src="midia/regra-fim.png" alt=""><span class="pergunta-titulo">Fim do mês</span><span class="seta-redonda"></span></button>
+      <ul class="respostas" id="regra-fim" hidden>
         <li><strong>A partida conta no mês em que foi aberta.</strong><span class="detalhe">Partida incompleta no fim do mês não conta.</span></li>
         <li><strong>Empate no fim do mês divide o prêmio.</strong></li>
       </ul>
     </section>
 
     <section class="caixa pergunta">
-      <div class="pergunta-topo"><img src="midia/insignia-01.webp" alt=""><h2 class="pergunta-titulo">E o ranking geral?</h2></div>
-      <ul class="respostas">
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-geral"><img src="midia/insignia-01.webp" alt=""><span class="pergunta-titulo">Ranking geral</span><span class="seta-redonda"></span></button>
+      <ul class="respostas" id="regra-geral" hidden>
         <li><strong>Cada mês vencido vale uma insígnia.</strong><span class="detalhe">Quem tem mais fica na frente.</span></li>
         <li><strong>Empate em insígnias: fica na frente quem terminou mais meses no pódio.</strong><span class="detalhe">Ficar em 2º ou em 3º vale o mesmo aqui.</span></li>
         <li><strong>Se ainda empatar, os dois dividem a posição.</strong>
@@ -449,8 +454,8 @@
     </section>
 
     <section class="caixa pergunta">
-      <div class="pergunta-topo"><img src="midia/titulo-duelista.png" alt=""><h2 class="pergunta-titulo">E os duelos?</h2></div>
-      <ul class="respostas">
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-duelos"><img src="midia/titulo-duelista.png" alt=""><span class="pergunta-titulo">Duelos</span><span class="seta-redonda"></span></button>
+      <ul class="respostas" id="regra-duelos" hidden>
         <li><strong>Você desafia alguém num jogo, e vale a primeira partida desse jogo com vocês dois.</strong><span class="detalhe">Ela tem de ser aberta em até 14 dias depois do aceite.</span></li>
         <li><strong>Vence quem ficar mais bem colocado nessa partida.</strong><span class="detalhe">Mesma colocação é empate.</span></li>
         <li><strong>Cada um pode ter até 3 duelos em andamento, e só 1 com a mesma pessoa.</strong><span class="detalhe">Convite esperando resposta já conta. Sem resposta, ele vence em 7 dias.</span></li>
@@ -458,8 +463,11 @@
       </ul>
     </section>
 
-    <p class="para-curiosos">Quer ver a conta por dentro? As fórmulas estão logo abaixo.</p>
+    <section class="caixa pergunta">
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="conta-por-dentro"><img src="midia/regra-formulas.png" alt=""><span class="pergunta-titulo">Fórmulas</span><span class="seta-redonda"></span></button>
+    </section>
 
+    <div class="conta-por-dentro" id="conta-por-dentro" hidden>
     <section class="caixa">
       <h2 class="rotulo">Nota do jogador na partida</h2>
       <div class="formula" data-formula="P_{i,j} = \frac{1}{2}\left[\frac{N - r_i + \tfrac{1}{2}}{N} + \min\left(1,\ \frac{x_i}{2\,\bar{x}}\right)\right]"></div>
@@ -472,7 +480,14 @@
     <section class="caixa">
       <h2 class="rotulo">Nota do mês</h2>
       <div class="formula" data-formula="G_i = \frac{1}{M}\sum_{j=1}^{M} P_{i,j}"></div>
-      <p class="detalhe">Contam as partidas que o jogador jogou e as dos dias em que ele não foi. Nessas, leva <span data-formula-linha="\tfrac{1}{2}\min_k P_{k,j}"></span>, metade da nota do último colocado. Partida de um dia em que ele foi, mas jogou em outra mesa, fica fora. O dia vai das 8h às 8h. Quem não jogou nenhuma partida no mês fica com 0. Para o pódio, só entra quem foi a pelo menos metade dos dias de jogo do mês.</p>
+      <ul class="respostas">
+        <li class="detalhe">Contam as partidas que o jogador jogou.</li>
+        <li class="detalhe"><span>Contam também as dos dias em que ele não foi. Em cada uma, leva <span data-formula-linha="\tfrac{1}{2}\min_k P_{k,j}"></span>, metade da nota do último colocado.</span></li>
+        <li class="detalhe">Partida de outra mesa, num dia em que ele foi, fica fora.</li>
+        <li class="detalhe">O dia vai das 8h às 8h.</li>
+        <li class="detalhe">Quem não jogou nenhuma partida no mês fica com 0.</li>
+        <li class="detalhe">Para o pódio, só entra quem foi a pelo menos metade dos dias de jogo do mês.</li>
+      </ul>
     </section>
 
     <section class="caixa">
@@ -492,6 +507,7 @@
         <dt data-formula-linha="\min">min</dt><dd>o menor valor; aparece na nota da partida e na nota de quem faltou</dd>
       </dl>
     </section>
+    </div>
   </main>
 
   <main class="conteudo" data-tela="administracao" hidden>
