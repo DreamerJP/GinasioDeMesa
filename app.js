@@ -1097,7 +1097,7 @@ function acompanharConta(usuario) {
   fotoCompletada = false;
   acessoRegistradoEm = 0;
   if (!usuario) {
-    mostrarEntrada('Entre com a conta Google que o administrador liberou.', 'google');
+    mostrarEntrada('', 'google');
     return;
   }
   mostrarEntrada('Abrindo o ginásio…');
@@ -1230,15 +1230,18 @@ async function entrarComGoogle() {
     await signInWithPopup(auth, provedor);
   } catch (erro) {
     if (['auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(erro.code)) return;
-    document.getElementById('aviso-entrada').textContent = erro.code === 'auth/popup-blocked'
+    const aviso = document.getElementById('aviso-entrada');
+    aviso.textContent = erro.code === 'auth/popup-blocked'
       ? 'O navegador bloqueou a janela do Google. Toque no botão de novo.'
       : 'Não consegui entrar com o Google. Tente de novo.';
+    aviso.hidden = false;
   }
 }
 
 function mostrarTela(nome) {
   document.querySelectorAll('[data-tela]').forEach(tela => { tela.hidden = tela.dataset.tela !== nome; });
   document.getElementById('abrir-menu').hidden = !TELAS[nome];
+  if (nome !== 'entrada') document.getElementById('apresentacao').pause();
   if (nome !== telaVisivel) window.scrollTo(0, 0);
   telaVisivel = nome;
 }
@@ -1247,6 +1250,7 @@ function mostrarEntrada(mensagem, saida = null) {
   const carregando = !saida && mensagem.endsWith('…');
   const aviso = document.getElementById('aviso-entrada');
   aviso.textContent = carregando ? mensagem.slice(0, -1) : mensagem;
+  aviso.hidden = !mensagem;
   if (carregando) {
     const pontos = criar('span', 'pontos');
     pontos.append(criar('span', '', '.'), criar('span', '', '.'), criar('span', '', '.'));
@@ -1265,8 +1269,8 @@ function mostrarEntrada(mensagem, saida = null) {
   }
   document.getElementById('botao-google').hidden = saida !== 'google';
   tentar.hidden = saida !== 'tentar';
-  document.getElementById('dica-pedido').hidden = saida !== 'google' || mensagem === AGUARDANDO;
-  document.getElementById('rodape-entrada').hidden = saida !== 'google';
+  document.getElementById('rodape-entrada').hidden = saida !== 'google' || mensagem === AGUARDANDO;
+  document.getElementById('video-entrada').hidden = saida !== 'google';
   mostrarTela('entrada');
 }
 
@@ -3321,8 +3325,19 @@ function ligarRegras() {
   }));
 }
 
+function ligarApresentacao() {
+  const video = document.getElementById('apresentacao');
+  const tocar = document.getElementById('tocar-apresentacao');
+  tocar.addEventListener('click', () => {
+    tocar.hidden = true;
+    video.controls = true;
+    video.play();
+  });
+}
+
 function iniciar() {
   mostrarItemDeSom();
+  ligarApresentacao();
   ligarMenu();
   ligarApelido();
   ligarPartida();

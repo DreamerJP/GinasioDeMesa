@@ -229,9 +229,14 @@ select.campo {
 .tela:has(> [data-tela="entrada"]:not([hidden])) > .topo { display: none; }
 .entrada { display: grid; gap: 14px; justify-items: center; padding-block: 24px; text-align: center; }
 .entrada .botao { justify-self: center; }
-.entrada-icone { width: 120px; height: 120px; }
+.entrada-icone { width: 150px; height: 150px; }
+.entrada-rodape { justify-self: stretch; margin-top: 4px; padding-top: 14px; border-top: 2px solid var(--caixa-funda); font-size: 13px; color: var(--tinta-suave); }
+.entrada-video { display: grid; gap: 10px; }
+.entrada-video video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+.video-capa { position: relative; }
+.video-tocar { position: absolute; inset: 0; display: grid; place-items: center; padding: 0; border: 0; background: rgb(14 14 38 / 45%); cursor: pointer; }
+.video-tocar .seta-redonda { transform: scale(2.2); }
 #botao-google { min-height: 44px; }
-.rodape-entrada { padding: 0 8px; font-size: 12px; text-align: center; color: var(--caixa-funda); }
 .pontos span { opacity: 0; animation: 1.6s steps(1, end) infinite; }
 .pontos span:nth-child(1) { animation-name: ponto-1; }
 .pontos span:nth-child(2) { animation-name: ponto-2; }
