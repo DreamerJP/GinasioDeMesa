@@ -536,8 +536,8 @@ select.campo {
 .pagina .marca { display: flex; align-items: center; min-height: 36px; padding-top: 2px; font: 600 14px/1 'Pixelify Sans', sans-serif; letter-spacing: 1.4px; text-shadow: none; }
 .pagina .voltar-inicio { display: grid; place-items: center; min-width: 38px; min-height: 44px; color: var(--caixa); text-decoration: none; touch-action: manipulation; }
 .pagina .voltar-inicio > span { display: block; width: 8px; height: 14px; background: currentColor; -webkit-mask: var(--seta-direita) center / 100% 100% no-repeat; mask: var(--seta-direita) center / 100% 100% no-repeat; transform: rotate(180deg); }
-.pagina .som { display: inline-flex; align-items: center; justify-content: center; min-height: 24px; padding: 3px 6px; border: 1px solid var(--tinta-suave); background: #4a4b63; color: #e9e8f2; font-size: 13px; line-height: 1; white-space: nowrap; }
-.pagina .som[aria-pressed="true"] { background: #2f3155; border-color: var(--ouro); color: var(--ouro); }
+.pagina .abre-menu { display: inline-flex; align-items: center; justify-content: center; min-height: 24px; padding: 3px 8px; border: 1px solid var(--tinta-suave); background: #4a4b63; color: #e9e8f2; font-size: 13px; line-height: 1; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+.pagina .abre-menu[aria-expanded="true"] { background: #2f3155; border-color: var(--ouro); color: var(--ouro); }
 .pagina .abertura { padding: calc(8px + var(--folga-grande)) 18px calc(10px + var(--folga-grande)); }
 .pagina .abertura h2 { font: 600 30px/1.05 'Pixelify Sans', sans-serif; letter-spacing: .4px; color: var(--caixa); }
 .pagina .papel { margin: 0 0 12px; padding: calc(10px + var(--folga-media)) 16px; border: 2px solid var(--tinta); background: var(--caixa); color: var(--tinta); box-shadow: inset 0 0 0 2px var(--moldura), 3px 3px 0 var(--tinta); }
@@ -779,7 +779,11 @@ select.campo {
 .campeao-nome { font-size: 34px; line-height: 1.1; overflow-wrap: anywhere; }
 .campeao-nota { color: var(--tinta-suave); font-size: 13px; }
 .campeao-pessoa .campeao-nota { font-size: 16px; }
-.campeao-fala { margin: 0; padding: 10px 12px; background: var(--caixa-marcada); box-shadow: inset 3px 0 0 var(--ouro); font-size: 16px; }
+.campeao .balao { margin-top: 8px; }
+.campeao .balao::before { left: 36px; }
+.campeao .balao::after { left: 41px; }
+.campeao:has(.campeao-pessoa + .campeao-pessoa) .balao::before,
+.campeao:has(.campeao-pessoa + .campeao-pessoa) .balao::after { display: none; }
 .campeao-entrega { display: grid; gap: 4px; margin: 0; padding-top: 10px; border-top: 1px solid var(--caixa-funda); }
 .campeao-entrega > div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; align-items: baseline; }
 .campeao-entrega dt { color: var(--tinta-suave); font-size: 13px; }

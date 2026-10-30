@@ -162,12 +162,7 @@ function alternarSom() {
 }
 
 function mostrarSom() {
-  const texto = `Som: ${somLigado ? 'ligado' : 'desligado'}`;
-  document.querySelector('[data-item="som"]').textContent = texto;
-  for (const botao of document.querySelectorAll('.pagina .som')) {
-    botao.textContent = texto;
-    botao.setAttribute('aria-pressed', somLigado);
-  }
+  document.querySelector('[data-item="som"]').textContent = `Som: ${somLigado ? 'ligado' : 'desligado'}`;
 }
 
 function tocar(nome) {
@@ -2867,10 +2862,10 @@ function cartaoDeCampeao(mes) {
   for (const linha of campeoes) {
     const frase = estado.frases.find(f => f.mes === mes && f.jogador === linha.id);
     if (!frase) continue;
-    const fala = criar('blockquote', 'campeao-fala');
-    if (campeoes.length > 1) fala.append(criar('span', 'campeao-nota', jogador(linha.id).apelido));
-    fala.append(criar('p', '', frase.texto));
-    cartao.append(fala);
+    const balao = criar('div', 'balao');
+    if (campeoes.length > 1) balao.append(criar('span', 'campeao-nota', jogador(linha.id).apelido));
+    balao.append(criar('p', 'frase', frase.texto));
+    cartao.append(balao);
   }
 
   const entrega = criar('dl', 'campeao-entrega');
@@ -3370,10 +3365,11 @@ async function sairDaConta() {
 }
 
 function ligarMenu() {
-  const botao = document.getElementById('abrir-menu');
+  const botoes = [document.getElementById('abrir-menu'), ...document.querySelectorAll('.pagina .abre-menu')];
   const menu = document.getElementById('menu');
   const itensAtivos = () => [...menu.querySelectorAll('button:not([hidden])')];
   const acoes = { som: alternarSom, sair: sairDaConta };
+  let botao = botoes[0];
 
   const alternar = aberto => {
     if (aberto) tocar('mover');
@@ -3384,7 +3380,12 @@ function ligarMenu() {
     (aberto ? atual || itensAtivos()[0] : botao).focus();
   };
 
-  botao.addEventListener('click', () => alternar(menu.hidden));
+  for (const cada of botoes) {
+    cada.addEventListener('click', () => {
+      botao = cada;
+      alternar(menu.hidden);
+    });
+  }
   menu.addEventListener('click', e => {
     const item = e.target.closest('button');
     if (!item) return;
@@ -3405,7 +3406,7 @@ function ligarMenu() {
     e.preventDefault();
   });
   document.addEventListener('pointerdown', e => {
-    if (!menu.hidden && !menu.contains(e.target) && !botao.contains(e.target)) alternar(false);
+    if (!menu.hidden && !menu.contains(e.target) && !botoes.some(cada => cada.contains(e.target))) alternar(false);
   });
   document.addEventListener('click', e => {
     const atalho = e.target.closest('[data-ir]');
@@ -3447,7 +3448,6 @@ function iniciar() {
   ligarAdministracao();
   ligarDuelos();
   ligarRegras();
-  document.querySelectorAll('.pagina .som').forEach(botao => botao.addEventListener('click', alternarSom));
   document.getElementById('botao-google').addEventListener('click', entrarComGoogle);
   window.addEventListener('hashchange', renderizar);
   document.addEventListener('visibilitychange', registrarAcesso);
