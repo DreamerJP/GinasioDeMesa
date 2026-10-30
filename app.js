@@ -163,10 +163,11 @@ function alternarSom() {
 
 function mostrarSom() {
   const texto = `Som: ${somLigado ? 'ligado' : 'desligado'}`;
-  const botao = document.getElementById('som-partida');
   document.querySelector('[data-item="som"]').textContent = texto;
-  botao.textContent = texto;
-  botao.setAttribute('aria-pressed', somLigado);
+  for (const botao of document.querySelectorAll('.pagina .som')) {
+    botao.textContent = texto;
+    botao.setAttribute('aria-pressed', somLigado);
+  }
 }
 
 function tocar(nome) {
@@ -2205,7 +2206,6 @@ function mostrarCatalogo() {
 function ligarNovaPartida() {
   const catalogo = document.getElementById('catalogo-jogos');
   const busca = document.getElementById('buscar-jogo');
-  document.getElementById('som-partida').addEventListener('click', alternarSom);
   document.getElementById('escolher-jogo').addEventListener('click', () => {
     busca.value = '';
     mostrarCatalogo();
@@ -2781,7 +2781,7 @@ function mostrarCampeoes() {
   const meses = mesesFechados();
   if (!meses.length) {
     const proximo = MESES[(indiceDoMes(estado.mesAtual) + 1) % 12];
-    const vazio = criar('section', 'caixa');
+    const vazio = criar('section', 'papel');
     vazio.append(criar('p', '', `Nenhum mês fechou ainda. O primeiro campeão aparece em 1º de ${proximo}.`));
     lista.replaceChildren(vazio);
     return;
@@ -2789,22 +2789,27 @@ function mostrarCampeoes() {
   const [recente, ...anteriores] = meses;
   const partes = [cartaoDeCampeao(recente)];
   if (anteriores.length) {
-    const caixa = criar('section', 'caixa');
+    const caixa = criar('section', 'papel');
+    const topo = criar('div', 'secao-topo');
+    topo.append(criar('h3', '', 'Meses anteriores'));
     const linhas = criar('ul', 'lista-campeoes-antigos');
     for (const mes of anteriores) {
       const item = criar('li');
       if (mes === mesDoCampeaoAberto) {
         const cartao = cartaoDeCampeao(mes);
-        cartao.classList.remove('caixa');
-        cartao.classList.add('campeao-aberto');
-        cartao.querySelector('.rotulo').addEventListener('click', () => abrirCampeao(''));
+        cartao.classList.replace('papel', 'campeao-aberto');
+        const recolher = criar('button', 'botao-texto', 'Recolher');
+        recolher.type = 'button';
+        const topo = cartao.querySelector('.secao-topo');
+        topo.append(recolher);
+        topo.addEventListener('click', () => abrirCampeao(''));
         item.append(cartao);
       } else {
         item.append(linhaDeCampeao(mes));
       }
       linhas.append(item);
     }
-    caixa.append(criar('h2', 'rotulo', 'Meses anteriores'), linhas);
+    caixa.append(topo, linhas);
     partes.push(caixa);
   }
   lista.replaceChildren(...partes);
@@ -2834,51 +2839,61 @@ function cartaoDeCampeao(mes) {
   const campeoes = linhas.filter(l => l.posicao === 1 && l.nota > 0);
   const euVenci = campeoes.some(l => l.id === estado.eu.id);
   const indice = insigniaDaVitoria(euVenci ? estado.eu.id : campeoes[0].id, mes);
-  const cartao = criar('section', 'caixa campeao');
-  cartao.append(criar('h2', 'rotulo', nomeDoMes(mes)));
+  const dono = euVenci ? estado.eu.id : campeoes[0].id;
+  const titulo = nomeDoMes(mes);
+  const cartao = criar('section', 'papel campeao');
+  const topo = criar('div', 'secao-topo');
+  topo.append(criar('h3', '', titulo[0].toUpperCase() + titulo.slice(1)));
+  cartao.append(topo);
 
-  const trofeu = criar('button', 'botao-limpo');
-  trofeu.type = 'button';
-  if (indice !== null) {
-    trofeu.setAttribute('aria-label', `Ver a ${INSIGNIAS[indice].nome}`);
-    trofeu.append(desenhoDaInsignia(indice, true, true));
-    trofeu.addEventListener('click', () => irPara('insignia', indice + 1));
-  }
   const pessoas = criar('div', 'campeao-pessoas');
   pessoas.append(...campeoes.map(linha => {
     const alguem = jogador(linha.id);
-    const pessoa = criar('div', 'campeao-pessoa');
+    const retrato = criar('div', 'campeao-retrato');
+    retrato.append(imagemDe(alguem, 'campeao-foto'));
+    if (linha.id === dono && indice !== null) {
+      const selo = criar('span', 'campeao-selo');
+      selo.append(desenhoDaInsignia(indice, true));
+      retrato.append(selo);
+    }
     const dados = criar('div');
-    dados.append(criar('p', 'perfil-apelido', alguem.apelido), criar('p', 'detalhe', `Nota do mês ${formatoNota.format(linha.nota)}`));
-    pessoa.append(imagemDe(alguem, 'foto-grande'), dados);
+    dados.append(criar('p', 'campeao-nome', alguem.apelido), criar('p', 'campeao-nota', `Nota do mês ${formatoNota.format(linha.nota)}`));
+    const pessoa = criar('div', 'campeao-pessoa');
+    pessoa.append(retrato, dados);
     return pessoa;
   }));
-  const topo = criar('div', 'campeao-topo');
-  topo.append(trofeu, pessoas);
-  cartao.append(topo);
+  cartao.append(pessoas);
 
   for (const linha of campeoes) {
     const frase = estado.frases.find(f => f.mes === mes && f.jogador === linha.id);
     if (!frase) continue;
-    const balao = criar('div', 'balao');
-    if (campeoes.length > 1) balao.append(criar('span', 'detalhe', jogador(linha.id).apelido));
-    balao.append(criar('p', 'frase', frase.texto));
-    cartao.append(balao);
+    const fala = criar('blockquote', 'campeao-fala');
+    if (campeoes.length > 1) fala.append(criar('span', 'campeao-nota', jogador(linha.id).apelido));
+    fala.append(criar('p', '', frase.texto));
+    cartao.append(fala);
   }
 
-  const premio = estado.premios[mes] || 'prêmio não registrado';
-  let entrega = indice === null ? premio : `${INSIGNIAS[indice].nome} e ${premio}`;
-  if (campeoes.length > 1) entrega = `Cada um levou a sua próxima insígnia. Prêmio: ${premio}`;
-  cartao.append(criar('p', 'detalhe', entrega));
+  const entrega = criar('dl', 'campeao-entrega');
+  const item = (rotulo, valor) => {
+    const linha = criar('div');
+    linha.append(criar('dt', '', rotulo), criar('dd', '', valor));
+    return linha;
+  };
+  entrega.append(item('Prêmio', estado.premios[mes] || 'Não registrado'));
+  if (campeoes.length > 1) entrega.append(item('Insígnia', 'Cada um levou a sua próxima'));
+  else if (indice !== null) entrega.append(item('Insígnia', INSIGNIAS[indice].nome.replace(/^Insígnia d[aeo]s? /, '')));
+  cartao.append(entrega);
 
   const seguintes = linhas.filter(l => l.nota > 0 && l.posicao > 1 && l.posicao <= 3);
   if (seguintes.length) {
     const podio = criar('div', 'campeao-seguintes');
     podio.append(...seguintes.map(linha => {
       const alguem = jogador(linha.id);
-      const item = criar('span', 'campeao-seguinte');
-      item.append(criar('span', '', `${linha.posicao}º`), imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido), criar('span', 'detalhe', formatoNota.format(linha.nota)));
-      return item;
+      const dados = criar('span', 'campeao-seguinte-dados');
+      dados.append(criar('span', '', alguem.apelido), criar('span', 'campeao-nota', `nota ${formatoNota.format(linha.nota)}`));
+      const vaga = criar('div', 'campeao-seguinte');
+      vaga.append(criar('span', 'campeao-posicao', `${linha.posicao}º`), imagemDe(alguem, 'foto'), dados);
+      return vaga;
     }));
     cartao.append(podio);
   }
@@ -3432,6 +3447,7 @@ function iniciar() {
   ligarAdministracao();
   ligarDuelos();
   ligarRegras();
+  document.querySelectorAll('.pagina .som').forEach(botao => botao.addEventListener('click', alternarSom));
   document.getElementById('botao-google').addEventListener('click', entrarComGoogle);
   window.addEventListener('hashchange', renderizar);
   document.addEventListener('visibilitychange', registrarAcesso);

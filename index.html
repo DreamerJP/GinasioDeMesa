@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=71">
-<script type="module" src="app.js?v=81" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=72">
+<script type="module" src="app.js?v=82" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -194,11 +194,11 @@
     </div>
   </main>
 
-  <main class="nova-partida" data-tela="nova-partida" hidden>
+  <main class="pagina nova-partida" data-tela="nova-partida" hidden>
     <header class="cabecalho-site">
-      <a class="voltar-partida" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
+      <a class="voltar-inicio" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
       <p class="marca" data-ir="inicio">Ginásio de Mesa</p>
-      <button class="som" id="som-partida" type="button">Som: ligado</button>
+      <button class="som" type="button">Som: ligado</button>
     </header>
     <div class="abertura"><h2>Nova partida</h2></div>
     <section class="papel jogo" aria-labelledby="rotulo-jogo">
@@ -430,8 +430,14 @@
     </section>
   </main>
 
-  <main class="conteudo" data-tela="campeoes" hidden>
-    <div class="conteudo" id="lista-campeoes"></div>
+  <main class="pagina campeoes" data-tela="campeoes" hidden>
+    <header class="cabecalho-site">
+      <a class="voltar-inicio" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
+      <p class="marca" data-ir="inicio">Ginásio de Mesa</p>
+      <button class="som" type="button">Som: ligado</button>
+    </header>
+    <div class="abertura"><h2>Campeões</h2></div>
+    <div id="lista-campeoes"></div>
   </main>
 
   <main class="conteudo" data-tela="regras" hidden>
