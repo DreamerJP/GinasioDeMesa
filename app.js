@@ -157,12 +157,16 @@ function alternarSom() {
   try {
     localStorage.setItem(CHAVE_SOM, somLigado ? 'ligado' : 'desligado');
   } catch {}
-  mostrarItemDeSom();
+  mostrarSom();
   tocar('escolher');
 }
 
-function mostrarItemDeSom() {
-  document.querySelector('[data-item="som"]').textContent = `Som: ${somLigado ? 'ligado' : 'desligado'}`;
+function mostrarSom() {
+  const texto = `Som: ${somLigado ? 'ligado' : 'desligado'}`;
+  const botao = document.getElementById('som-partida');
+  document.querySelector('[data-item="som"]').textContent = texto;
+  botao.textContent = texto;
+  botao.setAttribute('aria-pressed', somLigado);
 }
 
 function tocar(nome) {
@@ -1242,6 +1246,7 @@ function mostrarTela(nome) {
   document.querySelectorAll('[data-tela]').forEach(tela => { tela.hidden = tela.dataset.tela !== nome; });
   document.getElementById('abrir-menu').hidden = !TELAS[nome];
   if (nome !== 'entrada') document.getElementById('apresentacao').pause();
+  if (nome !== 'nova-partida') document.getElementById('catalogo-jogos').close();
   if (nome !== telaVisivel) window.scrollTo(0, 0);
   telaVisivel = nome;
 }
@@ -2099,89 +2104,181 @@ function jogoSelecionado() {
   return estado.jogos.find(j => j.id === jogoEscolhido);
 }
 
-function mostrarNovaPartida() {
-  const lista = document.getElementById('campo-jogo');
-  const jogos = [...estado.jogos].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-  lista.replaceChildren(new Option('Escolha o jogo', ''), ...jogos.map(j => new Option(j.nome, j.id)));
-  if (!jogoSelecionado()) jogoEscolhido = '';
-  lista.value = jogoEscolhido;
-  if (!selecao) selecao = [estado.eu.id];
-  selecao = selecao.filter(id => jogador(id));
-  desenharFichas();
+function motivoParaNaoAbrir() {
+  if (!jogoEscolhido && selecao.length < 3) return 'Escolha um jogo e selecione pelo menos 3 participantes.';
+  if (!jogoEscolhido) return 'Escolha um jogo para abrir a partida.';
+  if (selecao.length < 3) return 'Selecione pelo menos 3 participantes.';
+  return '';
 }
 
-function desenharFichas() {
-  const escolhido = jogoSelecionado();
-  const semPlacar = escolhido?.semPlacar;
-  document.getElementById('capa-do-jogo').hidden = !escolhido;
-  if (escolhido) mostrarCapa(document.getElementById('capa-atual'), escolhido);
-  document.getElementById('instrucao-jogadores').textContent = semPlacar
-    ? 'Toque na ordem de chegada, começando pelo vencedor.'
-    : 'Toque em quem jogou.';
-  document.getElementById('contagem-jogadores').textContent = `${selecao.length} ${selecao.length === 1 ? 'marcado' : 'marcados'}, de 3 a 10`;
-  document.getElementById('rodape-partida').textContent = semPlacar
-    ? 'Jogo sem placar: a ordem de chegada já fecha a partida.'
-    : 'Cada jogador lança o próprio placar depois. A partida só conta quando todos lançarem.';
-
+function mostrarNovaPartida() {
+  const jogo = jogoSelecionado();
+  if (!jogo) jogoEscolhido = '';
+  if (!selecao) selecao = [estado.eu.id];
+  selecao = selecao.filter(id => jogador(id));
+  const miniatura = document.getElementById('miniatura-jogo');
+  if (jogo) mostrarCapa(miniatura, jogo);
+  else miniatura.src = 'midia/caixa-azul.png';
+  document.getElementById('nome-jogo-selecionado').textContent = jogo?.nome || 'Escolha o jogo';
+  document.getElementById('escolher-jogo').disabled = !estado.jogos.length;
+  document.getElementById('trocar-foto-jogo').hidden = !jogo;
+  document.getElementById('resumo-jogo').textContent = jogo?.nome || 'Escolha um jogo';
+  document.getElementById('instrucao-jogadores').hidden = !jogo?.semPlacar;
+  document.getElementById('rodape-partida').textContent = jogo?.semPlacar
+    ? 'Sem placar: a ordem dos jogadores já fecha a partida.'
+    : 'Cada jogador lança o próprio placar depois.';
+  document.getElementById('aviso-abrir-partida').hidden = true;
   const jogadores = [...estado.jogadores].sort((a, b) => a.apelido.localeCompare(b.apelido, 'pt-BR'));
-  document.getElementById('escolha-jogadores').replaceChildren(...jogadores.map(alguem => {
-    const posicao = selecao.indexOf(alguem.id);
-    const ficha = criar('button', 'ficha');
-    ficha.type = 'button';
-    ficha.setAttribute('aria-pressed', posicao >= 0);
-    ficha.append(imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido));
-    if (semPlacar && posicao >= 0) ficha.append(criar('span', 'ficha-ordem', `${posicao + 1}º`));
-    ficha.addEventListener('click', () => {
-      if (posicao >= 0) selecao.splice(posicao, 1);
-      else if (selecao.length < 10) selecao.push(alguem.id);
-      desenharFichas();
-    });
-    return ficha;
-  }));
+  document.getElementById('escolha-jogadores').replaceChildren(...jogadores.map(fichaDoJogador));
+  marcarParticipantes();
+}
 
+function fichaDoJogador(alguem) {
+  const ficha = criar('button', 'ficha-jogador');
+  ficha.type = 'button';
+  ficha.dataset.jogador = alguem.id;
+  const giro = criar('span', 'retrato-giro');
+  giro.append(imagemDe(alguem, 'foto-jogador face-cinza'), imagemDe(alguem, 'foto-jogador face-colorida'));
+  const retrato = criar('span', 'retrato-jogador');
+  retrato.append(giro);
+  const identidade = criar('span', 'identidade-jogador');
+  identidade.append(criar('span', 'nome-jogador', alguem.apelido), criar('span', 'ordem-jogador'));
+  ficha.append(retrato, identidade);
+  ficha.addEventListener('click', () => {
+    const aviso = document.getElementById('aviso-partida');
+    const posicao = selecao.indexOf(alguem.id);
+    if (posicao < 0 && selecao.length === 10) {
+      aviso.textContent = 'A mesa pode ter até 10 jogadores.';
+      tocar('erro');
+      return;
+    }
+    if (posicao >= 0) selecao.splice(posicao, 1);
+    else selecao.push(alguem.id);
+    aviso.textContent = '';
+    marcarParticipantes();
+    tocar('escolher');
+  });
+  return ficha;
+}
+
+function marcarParticipantes() {
+  const ordenada = jogoSelecionado()?.semPlacar;
+  for (const ficha of document.getElementById('escolha-jogadores').children) {
+    const posicao = selecao.indexOf(ficha.dataset.jogador);
+    ficha.setAttribute('aria-pressed', posicao >= 0);
+    ficha.querySelector('.ordem-jogador').textContent = ordenada && posicao >= 0 ? `${posicao + 1}º` : '';
+  }
+  document.getElementById('resumo-quantidade').textContent = `${selecao.length} ${selecao.length === 1 ? 'jogador' : 'jogadores'}`;
   const decide = duelosDoGinasio().filter(d => d.fase === 'valendo' && d.jogo === jogoEscolhido && selecao.includes(d.desafiante) && selecao.includes(d.desafiado));
   const linhaDoDuelo = document.getElementById('duelo-da-partida');
   linhaDoDuelo.hidden = !decide.length;
   linhaDoDuelo.textContent = `Esta partida decide ${decide.length > 1 ? 'os duelos' : 'o duelo'} ${decide.map(nomesDoDuelo).join(' e ')}.`;
+  document.getElementById('abrir-partida').setAttribute('aria-disabled', Boolean(motivoParaNaoAbrir()));
+}
 
-  document.querySelector('#form-partida > .botao').disabled = !jogoEscolhido || selecao.length < 3;
+function textoDeBusca(texto) {
+  return texto.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
+}
+
+function mostrarCatalogo() {
+  const busca = textoDeBusca(document.getElementById('buscar-jogo').value);
+  const jogos = [...estado.jogos].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).filter(j => textoDeBusca(j.nome).includes(busca));
+  document.getElementById('lista-catalogo').replaceChildren(...jogos.map(jogo => {
+    const opcao = criar('button', 'opcao-jogo');
+    opcao.type = 'button';
+    opcao.setAttribute('aria-pressed', jogo.id === jogoEscolhido);
+    opcao.append(imagemDaCapa(jogo, ''), criar('span', '', jogo.nome));
+    opcao.addEventListener('click', () => {
+      jogoEscolhido = jogo.id;
+      document.getElementById('catalogo-jogos').close();
+      document.getElementById('aviso-capa').textContent = '';
+      mostrarNovaPartida();
+      tocar('escolher');
+    });
+    const item = criar('li');
+    item.append(opcao);
+    return item;
+  }));
+  document.getElementById('catalogo-vazio').hidden = jogos.length > 0;
 }
 
 function ligarNovaPartida() {
-  const lista = document.getElementById('campo-jogo');
+  const catalogo = document.getElementById('catalogo-jogos');
+  const busca = document.getElementById('buscar-jogo');
+  document.getElementById('som-partida').addEventListener('click', alternarSom);
+  document.getElementById('escolher-jogo').addEventListener('click', () => {
+    busca.value = '';
+    mostrarCatalogo();
+    catalogo.showModal();
+    document.getElementById('lista-catalogo').scrollTop = 0;
+  });
+  busca.addEventListener('input', mostrarCatalogo);
+  document.getElementById('fechar-catalogo').addEventListener('click', () => catalogo.close());
+  catalogo.addEventListener('click', evento => {
+    if (evento.target === catalogo) catalogo.close();
+  });
+
+  const trocar = document.getElementById('trocar-foto-jogo');
+  const arquivoTroca = document.getElementById('foto-jogo-atual');
+  trocar.addEventListener('click', () => arquivoTroca.click());
+  arquivoTroca.addEventListener('change', async () => {
+    const [escolhido] = arquivoTroca.files;
+    const jogo = jogoEscolhido;
+    const aviso = document.getElementById('aviso-capa');
+    arquivoTroca.value = '';
+    if (!escolhido || !jogo) return;
+    aviso.textContent = '';
+    try {
+      await enviar(trocar, aviso, 'definirCapa', { jogo, capa: await fotoReduzida(escolhido, { inteira: true }) });
+    } catch (erro) {
+      aviso.textContent = erro.message;
+    }
+  });
+
   const formJogo = document.getElementById('form-jogo');
+  const alternar = document.getElementById('alternar-jogo-novo');
   const nome = document.getElementById('campo-nome-jogo');
   const menorVence = document.getElementById('jogo-menor-vence');
   const semPlacar = document.getElementById('jogo-sem-placar');
-  const salvarJogo = formJogo.querySelector('button');
-
-  lista.addEventListener('change', () => {
-    jogoEscolhido = lista.value;
-    desenharFichas();
-  });
-
-  document.getElementById('alternar-jogo-novo').addEventListener('click', () => {
-    formJogo.hidden = !formJogo.hidden;
-    if (!formJogo.hidden) nome.focus();
-  });
-
+  const salvarJogo = document.getElementById('salvar-jogo');
   const avisoJogo = document.getElementById('aviso-jogo');
   const previa = document.getElementById('capa-nova');
   const arquivoNovo = document.getElementById('capa-nova-arquivo');
   const linkNovo = document.getElementById('capa-nova-link');
   let capaNova = '';
-  const mostrarPrevia = () => mostrarCapa(previa, { nome: nome.value.trim() || '?', capa: capaNova });
-  mostrarPrevia();
+  const mostrarPrevia = () => {
+    previa.hidden = !capaNova;
+    if (capaNova) mostrarCapa(previa, { nome: nome.value.trim(), capa: capaNova });
+  };
+  const fecharCadastro = () => {
+    formJogo.reset();
+    formJogo.hidden = true;
+    alternar.setAttribute('aria-expanded', false);
+    capaNova = '';
+    avisoJogo.textContent = '';
+    menorVence.disabled = false;
+    salvarJogo.disabled = true;
+    mostrarPrevia();
+  };
 
+  alternar.addEventListener('click', () => {
+    if (!formJogo.hidden) {
+      fecharCadastro();
+      return;
+    }
+    formJogo.hidden = false;
+    alternar.setAttribute('aria-expanded', true);
+    nome.focus();
+  });
+  document.getElementById('cancelar-jogo').addEventListener('click', fecharCadastro);
   nome.addEventListener('input', () => {
     salvarJogo.disabled = nome.value.trim().length < 2;
-    mostrarPrevia();
   });
   semPlacar.addEventListener('change', () => {
     menorVence.disabled = semPlacar.checked;
     if (semPlacar.checked) menorVence.checked = false;
   });
-
+  document.getElementById('escolher-foto-jogo').addEventListener('click', () => arquivoNovo.click());
   arquivoNovo.addEventListener('change', async () => {
     const [escolhido] = arquivoNovo.files;
     arquivoNovo.value = '';
@@ -2196,55 +2293,44 @@ function ligarNovaPartida() {
     }
   });
   linkNovo.addEventListener('input', () => {
-    capaNova = linkDeFoto(linkNovo.value.trim()) ? linkNovo.value.trim() : '';
+    const link = linkNovo.value.trim();
+    capaNova = linkDeFoto(link) ? link : '';
     mostrarPrevia();
   });
-
   formJogo.addEventListener('submit', async evento => {
     evento.preventDefault();
-    const id = novoId('jogos');
-    const dados = { id, nome: nome.value.trim(), menorVence: menorVence.checked, semPlacar: semPlacar.checked, capa: capaNova };
-    if (await enviar(salvarJogo, avisoJogo, 'cadastrarJogo', dados)) {
-      jogoEscolhido = id;
-      formJogo.reset();
-      capaNova = '';
-      mostrarPrevia();
-      menorVence.disabled = false;
-      formJogo.hidden = true;
-      mostrarNovaPartida();
-    }
-    salvarJogo.disabled = nome.value.trim().length < 2;
-  });
-
-  const arquivoTroca = document.getElementById('capa-troca-arquivo');
-  const rotuloTroca = document.querySelector('label[for="capa-troca-arquivo"]');
-  arquivoTroca.addEventListener('change', async () => {
-    const [escolhido] = arquivoTroca.files;
-    arquivoTroca.value = '';
-    const aviso = document.getElementById('aviso-capa');
-    if (!escolhido || !jogoEscolhido) return;
-    aviso.textContent = '';
-    try {
-      await enviar(rotuloTroca, aviso, 'definirCapa', { jogo: jogoEscolhido, capa: await fotoReduzida(escolhido, { inteira: true }) });
-    } catch (erro) {
-      aviso.textContent = erro.message;
-    }
-  });
-
-  const formPartida = document.getElementById('form-partida');
-  formPartida.addEventListener('submit', async evento => {
-    evento.preventDefault();
-    const jogo = jogoSelecionado();
-    if (!jogo || selecao.length < 3) return;
-    const id = novoId('partidas');
-    const abriu = await enviar(formPartida.querySelector('.botao'), document.getElementById('aviso-partida'), 'abrirPartida', { id, jogo: jogo.id, participantes: selecao }, jogo.semPlacar ? 'partidaFechada' : 'confirmar');
-    if (!abriu) {
-      desenharFichas();
+    if (linkNovo.value.trim() && !capaNova) {
+      avisoJogo.textContent = 'Use um link começando com https://.';
       return;
     }
+    const id = novoId('jogos');
+    const dados = { id, nome: nome.value, menorVence: menorVence.checked, semPlacar: semPlacar.checked, capa: capaNova };
+    if (!await enviar(salvarJogo, avisoJogo, 'cadastrarJogo', dados)) return;
+    jogoEscolhido = id;
+    fecharCadastro();
+    mostrarNovaPartida();
+  });
+
+  const abrir = document.getElementById('abrir-partida');
+  const avisoAbrir = document.getElementById('aviso-abrir-partida');
+  document.getElementById('form-partida').addEventListener('submit', async evento => {
+    evento.preventDefault();
+    const motivo = motivoParaNaoAbrir();
+    if (motivo) {
+      avisoAbrir.textContent = motivo;
+      avisoAbrir.hidden = false;
+      tocar('erro');
+      return;
+    }
+    const jogo = jogoSelecionado();
+    const id = novoId('partidas');
+    if (!await enviar(abrir, document.getElementById('aviso-partida'), 'abrirPartida', { id, jogo: jogo.id, participantes: selecao }, jogo.semPlacar ? 'partidaFechada' : 'confirmar')) return;
     selecao = null;
     jogoEscolhido = '';
     irPara('partida', id);
+  });
+  document.addEventListener('pointerdown', evento => {
+    if (evento.target !== abrir) avisoAbrir.hidden = true;
   });
 }
 
@@ -3336,7 +3422,7 @@ function ligarApresentacao() {
 }
 
 function iniciar() {
-  mostrarItemDeSom();
+  mostrarSom();
   ligarApresentacao();
   ligarMenu();
   ligarApelido();

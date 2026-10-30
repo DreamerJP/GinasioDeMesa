@@ -467,8 +467,6 @@ select.campo {
 .provocacao { font-size: 14px; }
 .linha-do-duelo { padding: 6px 10px; background: var(--caixa-marcada); box-shadow: inset 4px 0 0 var(--ouro); color: var(--tinta); font-size: 14px; text-align: left; }
 
-.escolha-capa { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; }
-
 .capa {
   width: 64px;
   height: 64px;
@@ -520,27 +518,147 @@ select.campo {
 .faltas-partida { margin-top: 8px; padding-top: 12px; border-top: 2px solid var(--caixa-funda); }
 .valor { display: grid; justify-items: end; }
 
-.escolha-jogadores {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-  gap: 8px;
+.tela:has(> .nova-partida:not([hidden])) { max-width: 480px; padding-top: 0; padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+.tela:has(> .nova-partida:not([hidden])) > .topo { display: none; }
+.nova-partida {
+  --folga-pequena: clamp(0px, calc(2.5svh - 21.1px), 2px);
+  --folga-media: clamp(0px, calc(5svh - 42.2px), 4px);
+  --folga-grande: clamp(0px, calc(10svh - 84.4px), 8px);
+  font: 15px/1.45 'DotGothic16', monospace;
+  -webkit-tap-highlight-color: transparent;
+}
+.nova-partida button, .nova-partida input { border-radius: 0; font-family: 'DotGothic16', monospace; touch-action: manipulation; }
+.nova-partida button { cursor: pointer; }
+.nova-partida button:disabled { cursor: default; }
+.nova-partida :is(button, a, input):focus-visible { outline: 3px solid var(--ouro); outline-offset: 3px; }
+.nova-partida .cabecalho-site { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; min-height: 54px; gap: 8px; border-bottom: 1px solid var(--moldura); }
+.nova-partida .marca { display: flex; align-items: center; min-height: 36px; padding-top: 2px; font: 600 14px/1 'Pixelify Sans', sans-serif; letter-spacing: 1.4px; text-shadow: none; cursor: default; }
+.nova-partida .voltar-partida { display: grid; place-items: center; min-width: 38px; min-height: 44px; color: var(--caixa); text-decoration: none; touch-action: manipulation; }
+.nova-partida .voltar-partida > span { display: block; width: 8px; height: 14px; background: currentColor; -webkit-mask: var(--seta-direita) center / 100% 100% no-repeat; mask: var(--seta-direita) center / 100% 100% no-repeat; transform: rotate(180deg); }
+.nova-partida .som { display: inline-flex; align-items: center; justify-content: center; min-height: 24px; padding: 3px 6px; border: 1px solid var(--tinta-suave); background: #4a4b63; color: #e9e8f2; font-size: 13px; line-height: 1; white-space: nowrap; }
+.nova-partida .som[aria-pressed="true"] { background: #2f3155; border-color: var(--ouro); color: var(--ouro); }
+.nova-partida .abertura { padding: calc(8px + var(--folga-grande)) 18px calc(10px + var(--folga-grande)); }
+.nova-partida .abertura h2 { font: 600 30px/1.05 'Pixelify Sans', sans-serif; letter-spacing: .4px; color: var(--caixa); }
+.nova-partida .papel { margin: 0 0 12px; padding: calc(10px + var(--folga-media)) 16px; border: 2px solid var(--tinta); background: var(--caixa); color: var(--tinta); box-shadow: inset 0 0 0 2px var(--moldura), 3px 3px 0 var(--tinta); }
+.nova-partida .secao-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+.nova-partida .secao-topo h3 { margin: 0; font: 600 19px/1.2 'Pixelify Sans', sans-serif; }
+.nova-partida .jogo { margin-bottom: calc(8px + var(--folga-media)); }
+.nova-partida .jogo .secao-topo { margin-top: -5px; margin-bottom: 7px; }
+.nova-partida .acoes-jogo { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+.nova-partida .botao-texto { display: inline-flex; align-items: center; justify-content: center; min-height: 24px; padding: 3px 6px; border: 1px solid var(--tinta-suave); background: #4a4b63; color: #e9e8f2; font-size: 13px; line-height: 1.25; text-decoration: none; white-space: nowrap; box-shadow: 2px 2px 0 var(--tinta); }
+.nova-partida .botao-texto:is(:active, [aria-expanded="true"]) { background: #2f3155; border-color: var(--ouro); color: var(--ouro); }
+.nova-partida .botao-texto:active { box-shadow: none; transform: translate(2px, 2px); }
+.nova-partida .seletor-jogo { display: grid; grid-template-columns: 40px minmax(0, 1fr) 16px; align-items: center; gap: 12px; width: 100%; padding: 8px 12px 10px; border: 2px solid var(--tinta); background: #fff; color: var(--tinta); text-align: left; box-shadow: inset 0 -4px 0 var(--caixa-funda), 2px 2px 0 var(--tinta); }
+.nova-partida .seletor-jogo > img { width: 36px; height: 42px; object-fit: contain; image-rendering: auto; }
+.nova-partida .seletor-jogo strong { min-width: 0; font: 600 21px/1.15 'Pixelify Sans', sans-serif; overflow-wrap: anywhere; }
+.nova-partida .seta-catalogo { display: block; width: 14px; height: 8px; background: var(--tinta); -webkit-mask: var(--seta-baixo) center / 100% 100% no-repeat; mask: var(--seta-baixo) center / 100% 100% no-repeat; }
+.nova-partida .participantes { margin-bottom: 0; }
+.nova-partida .participantes .secao-topo { margin-bottom: 5px; }
+.nova-partida .contagem { color: var(--tinta-suave); font-size: 13px; white-space: nowrap; }
+.nova-partida .instrucao { margin-bottom: 12px; color: var(--tinta-suave); font-size: 14px; }
+.nova-partida .jogadores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(7px + var(--folga-pequena)) 7px; }
+.nova-partida .ficha-jogador { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; min-height: clamp(94px, calc(12.5svh - 11.5px), 104px); padding: calc(4px + var(--folga-media)) 4px calc(4px + var(--folga-pequena)); gap: calc(3px + var(--folga-media)); border: 2px solid var(--caixa-funda); background: var(--caixa); color: var(--tinta); overflow: hidden; }
+.nova-partida .ficha-jogador[aria-pressed="true"] { border-color: var(--tinta); background: var(--caixa-marcada); }
+.nova-partida .retrato-jogador { display: block; position: relative; flex: none; width: 64px; height: 64px; perspective: 480px; }
+.nova-partida .retrato-giro { display: block; position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .34s ease-in-out; }
+.nova-partida .ficha-jogador[aria-pressed="true"] .retrato-giro { transform: rotateY(180deg); }
+.nova-partida .foto-jogador { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 1px solid var(--tinta-apagada); background: var(--caixa-funda); object-fit: cover; image-rendering: auto; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.nova-partida .foto-jogador[src^="midia/meeple-"] { object-fit: contain; image-rendering: pixelated; }
+.nova-partida .face-cinza { filter: grayscale(1); transform: rotateY(0deg); }
+.nova-partida .face-colorida { transform: rotateY(180deg); }
+.nova-partida .identidade-jogador { display: flex; flex-direction: column; gap: 2px; width: 100%; min-width: 0; align-items: center; justify-content: center; }
+.nova-partida .nome-jogador { display: block; min-width: 0; font-size: 14px; line-height: 1.2; overflow-wrap: anywhere; text-align: center; }
+.nova-partida .ordem-jogador { margin-block: 3px; padding: 2px 3px; background: var(--tinta); color: var(--caixa); font-size: 12px; line-height: 1.3; }
+.nova-partida .ordem-jogador:empty { display: none; }
+.nova-partida .regra-partida { margin-top: calc(8px + var(--folga-media)); padding-top: calc(7px + var(--folga-pequena)); border-top: 1px solid var(--caixa-funda); color: var(--tinta-suave); font-size: 14px; line-height: 1.5; }
+.nova-partida .aviso { color: var(--perigo); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.nova-partida .participantes > .aviso:not(:empty) { margin-top: 10px; }
+.nova-partida .duelo { margin-top: 12px; padding: 8px; border-left: 3px solid var(--ouro); background: var(--caixa-marcada); color: var(--tinta); font-size: 14px; }
+.nova-partida .acao-partida { position: fixed; z-index: 10; inset: auto 0 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; max-width: 480px; margin: auto; padding: 13px 16px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 2px solid var(--tinta); background: var(--caixa); color: var(--tinta); box-shadow: 0 -3px 0 rgb(28 30 59 / .24); }
+.nova-partida .resumo-partida { display: grid; gap: 2px; min-width: 0; }
+.nova-partida .resumo-partida strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 14px; font-weight: 400; line-height: 1.3; overflow-wrap: anywhere; }
+.nova-partida .resumo-partida span { color: var(--tinta-suave); font-size: 12px; line-height: 1.4; }
+.nova-partida .botao-principal, .nova-partida .botao-secundario { display: inline-flex; align-items: center; justify-content: center; min-height: 45px; padding: 10px 13px; border: 2px solid var(--tinta); color: var(--tinta); text-align: center; text-decoration: none; font: 600 17px/1.1 'Pixelify Sans', sans-serif; box-shadow: 2px 2px 0 var(--tinta); }
+.nova-partida .acao-partida .botao-principal { min-height: 47px; background: #dab15d; color: #20233d; border-color: #131a31; white-space: nowrap; box-shadow: 3px 3px 0 #131a31; }
+.nova-partida .acao-partida .botao-principal:is(:disabled, [aria-disabled="true"]) { background: var(--tinta-apagada); color: var(--caixa); border-color: var(--tinta); box-shadow: 3px 3px 0 var(--tinta); transform: none; cursor: default; }
+.nova-partida .botao-principal:active:not(:disabled):not([aria-disabled="true"]), .nova-partida .botao-secundario:active:not(:disabled) { box-shadow: none; transform: translate(2px, 2px); }
+.nova-partida .acao-partida .botao-principal::after { content: ''; width: 8px; height: 14px; margin-left: 10px; background: currentColor; -webkit-mask: var(--seta-direita) center / 100% 100% no-repeat; mask: var(--seta-direita) center / 100% 100% no-repeat; }
+.nova-partida .acao-partida .botao-principal:disabled::after { display: none; }
+.nova-partida .aviso-acao { position: absolute; inset: auto 12px calc(100% + 12px); padding: 11px 12px; border: 2px solid var(--moldura); background: var(--caixa); color: var(--tinta); font-size: 13px; line-height: 1.5; box-shadow: 3px 3px 0 var(--tinta); }
+.nova-partida .aviso-acao::after { content: ''; position: absolute; right: 56px; bottom: -7px; width: 10px; height: 10px; border-right: 2px solid var(--moldura); border-bottom: 2px solid var(--moldura); background: var(--caixa); transform: rotate(45deg); }
+.nova-partida .cadastro-jogo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.nova-partida .cadastro-jogo .secao-topo { margin-bottom: 0; padding-bottom: 3px; }
+.nova-partida .cadastro-jogo input:is([type="text"], [type="url"]) { display: block; width: 100%; min-width: 0; min-height: 44px; padding: 10px 11px; border: 1px solid var(--tinta); background: #fff; color: var(--tinta); font-size: 16px; line-height: 1.25; box-shadow: inset 0 -2px 0 var(--caixa-funda); }
+.nova-partida .cadastro-jogo input::placeholder { color: var(--tinta-suave); opacity: 1; }
+.nova-partida .opcoes-cadastro { display: grid; gap: 4px; padding: 5px 0; }
+.nova-partida .opcao { display: flex; align-items: center; gap: 9px; min-height: 32px; color: var(--tinta); font-size: 14px; line-height: 1.5; }
+.nova-partida .opcao input { flex: none; width: 19px; height: 19px; margin: 0; accent-color: var(--tinta); color-scheme: light; }
+.nova-partida .opcao:has(input:disabled) { color: var(--tinta-apagada); }
+.nova-partida .foto-cadastro { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--caixa-funda); }
+.nova-partida .campos-foto { display: grid; flex: 1; gap: 8px; min-width: 0; }
+.nova-partida .foto-cadastro-topo { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 8px; }
+.nova-partida .foto-cadastro-topo p { color: var(--tinta); font-size: 14px; white-space: nowrap; }
+.nova-partida .nota-campo { color: var(--tinta-suave); font-size: 13px; }
+.nova-partida .capa-jogo { display: block; flex: none; width: 44px; height: 56px; border: 1px solid var(--tinta-apagada); background: var(--caixa-funda); object-fit: contain; image-rendering: auto; }
+.nova-partida .foto-cadastro .botao-secundario { min-height: 24px; padding: 3px 6px; border: 1px solid var(--tinta-apagada); background: transparent; color: var(--tinta); font: 13px/1.25 'DotGothic16', monospace; box-shadow: none; }
+.nova-partida .foto-cadastro .botao-secundario:active { background: var(--caixa-marcada); border-color: var(--tinta); transform: none; }
+.nova-partida .acoes-cadastro { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 3px; padding-top: 12px; border-top: 1px solid var(--caixa-funda); }
+.nova-partida .acoes-cadastro button { min-height: 32px; padding: 6px 10px; border-width: 1px; font: 600 15px/1.2 'Pixelify Sans', sans-serif; box-shadow: none; }
+.nova-partida .acoes-cadastro .botao-principal { background: var(--tinta); color: var(--caixa); }
+.nova-partida .acoes-cadastro .botao-principal:disabled { background: var(--tinta-apagada); border-color: var(--tinta-apagada); color: var(--caixa); }
+.nova-partida .acoes-cadastro .botao-secundario { background: var(--caixa-funda); }
+.nova-partida .acoes-cadastro button:active { transform: none; }
+.nova-partida .catalogo-jogos { position: fixed; inset: auto 0 0; width: 100%; max-width: 480px; max-height: 90svh; margin: auto auto 0; padding: 0; border: 2px solid var(--moldura); border-bottom: 0; background: var(--caixa); color: var(--tinta); overflow: hidden; }
+.nova-partida .catalogo-jogos[open] { display: flex; flex-direction: column; }
+.nova-partida .catalogo-jogos::backdrop { background: rgb(28 30 59 / .72); }
+.nova-partida .catalogo-cabecalho { display: flex; flex: none; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; padding: 10px 18px; border-bottom: 1px solid var(--tinta-apagada); background: var(--caixa-funda); }
+.nova-partida .catalogo-cabecalho h3 { margin: 0; font: 600 24px/1.2 'Pixelify Sans', sans-serif; }
+.nova-partida .catalogo-busca { flex: none; padding: 14px 18px; }
+.nova-partida .catalogo-busca input { display: block; width: 100%; min-width: 0; min-height: 46px; padding: 10px 11px; border: 2px solid var(--tinta); background: #fff; color: var(--tinta); font-size: 16px; line-height: 1.25; box-shadow: none; }
+.nova-partida .catalogo-busca input::placeholder { color: var(--tinta-suave); opacity: 1; }
+.nova-partida .lista-catalogo { min-height: 0; overflow-y: auto; overscroll-behavior: contain; list-style: none; padding: 0 18px calc(18px + env(safe-area-inset-bottom, 0px)); scroll-padding-block: 6px; }
+.nova-partida .lista-catalogo li + li { margin-top: 7px; }
+.nova-partida .opcao-jogo { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 56px; padding: 6px 9px; border: 1px solid var(--caixa-funda); background: var(--caixa); color: var(--tinta); text-align: left; }
+.nova-partida .opcao-jogo > img { flex: none; width: 36px; height: 42px; object-fit: contain; }
+.nova-partida .opcao-jogo > span { flex: 1; min-width: 0; font: 600 19px/1.15 'Pixelify Sans', sans-serif; overflow-wrap: anywhere; }
+.nova-partida .opcao-jogo[aria-pressed="true"] { border-color: var(--tinta); background: var(--caixa-marcada); }
+.nova-partida .catalogo-vazio { padding: 12px 18px 30px; color: var(--tinta-suave); font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nova-partida .retrato-giro { transition: none; }
 }
 
-.ficha {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  padding: 8px 4px;
-  border: 2px solid var(--caixa-funda);
-  background: var(--caixa);
-  font-size: 14px;
-  cursor: pointer;
-  clip-path: var(--canto);
+@media (max-width: 379px) {
+  .tela:has(> .nova-partida:not([hidden])) { padding-inline: 12px; }
+  .nova-partida .papel { padding: 13px; }
+  .nova-partida .abertura { padding: 17px 15px 18px; }
+  .nova-partida .jogo { margin-bottom: 12px; }
+  .nova-partida .jogadores { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .nova-partida .ficha-jogador { min-height: 114px; padding: 8px 8px 6px; gap: 7px; }
+  .nova-partida .retrato-jogador { width: 72px; height: 72px; }
+  .nova-partida .seletor-jogo { gap: 9px; padding: 8px 10px 10px; }
+  .nova-partida .seletor-jogo strong { font-size: 20px; }
+  .nova-partida .regra-partida { margin-top: 14px; padding-top: 11px; }
 }
 
-.ficha[aria-pressed="true"] { border-color: var(--tinta); background: var(--caixa-marcada); }
-.ficha-ordem { position: absolute; top: 4px; left: 6px; font-size: 13px; }
+@media (max-width: 349px) {
+  .nova-partida .cabecalho-site { gap: 5px; }
+  .nova-partida .marca { font-size: 12px; letter-spacing: 1.1px; }
+  .nova-partida .secao-topo { gap: 6px; }
+  .nova-partida .abertura h2 { font-size: 28px; }
+  .nova-partida .acao-partida { padding-inline: 12px; gap: 8px; }
+  .nova-partida .acao-partida .botao-principal { font-size: 16px; padding-inline: 10px; }
+}
+
+@media (max-height: 700px) {
+  .nova-partida .cabecalho-site { min-height: 50px; }
+  .nova-partida .abertura { padding-block: 12px; }
+  .nova-partida .abertura h2 { font-size: 27px; }
+  .nova-partida .instrucao { margin-bottom: 8px; }
+  .nova-partida .regra-partida { margin-top: 10px; padding-top: 8px; }
+  .nova-partida .acao-partida { padding-top: 10px; padding-bottom: calc(11px + env(safe-area-inset-bottom, 0px)); }
+  .nova-partida .catalogo-jogos { max-height: 94svh; }
+}
 
 .perfil {
   display: grid;

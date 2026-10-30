@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=69">
-<script type="module" src="app.js?v=79" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=70">
+<script type="module" src="app.js?v=81" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -194,53 +194,80 @@
     </div>
   </main>
 
-  <main class="conteudo" data-tela="nova-partida" hidden>
-    <section class="caixa formulario">
-      <label class="rotulo" for="campo-jogo">Jogo</label>
-      <select class="campo campo-texto" id="campo-jogo"></select>
-      <div class="escolha-capa" id="capa-do-jogo" hidden>
-        <img class="capa" id="capa-atual" alt="">
-        <div class="formulario">
-          <label class="botao" for="capa-troca-arquivo">Trocar foto do jogo</label>
-          <input type="file" id="capa-troca-arquivo" accept="image/*" hidden>
-          <p class="aviso" id="aviso-capa" role="alert"></p>
+  <main class="nova-partida" data-tela="nova-partida" hidden>
+    <header class="cabecalho-site">
+      <a class="voltar-partida" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
+      <p class="marca">Ginásio de Mesa</p>
+      <button class="som" id="som-partida" type="button">Som: ligado</button>
+    </header>
+    <div class="abertura"><h2>Nova partida</h2></div>
+    <section class="papel jogo" aria-labelledby="rotulo-jogo">
+      <div class="secao-topo">
+        <h3 id="rotulo-jogo">Jogo</h3>
+        <div class="acoes-jogo">
+          <button class="botao-texto" id="trocar-foto-jogo" type="button" hidden>Trocar foto do jogo</button>
+          <input id="foto-jogo-atual" type="file" accept="image/*" hidden>
+          <button class="botao-texto" id="alternar-jogo-novo" type="button" aria-expanded="false" aria-controls="form-jogo">+ Jogo novo</button>
         </div>
       </div>
-      <button class="botao-menu voltar" id="alternar-jogo-novo" type="button" aria-label="Cadastrar jogo novo">+ Jogo novo</button>
+      <button class="seletor-jogo" id="escolher-jogo" type="button" aria-haspopup="dialog" aria-labelledby="rotulo-jogo nome-jogo-selecionado">
+        <img id="miniatura-jogo" src="midia/caixa-azul.png" alt="">
+        <strong id="nome-jogo-selecionado">Escolha o jogo</strong>
+        <span class="seta-catalogo" aria-hidden="true"></span>
+      </button>
+      <p class="aviso" id="aviso-capa" role="alert"></p>
     </section>
 
-    <form class="caixa formulario" id="form-jogo" hidden>
-      <label class="rotulo" for="campo-nome-jogo">Nome do jogo novo</label>
-      <div class="linha-campo">
-        <input class="campo campo-texto" id="campo-nome-jogo" maxlength="40" autocomplete="off">
-        <button class="botao" disabled>Salvar</button>
+    <form class="papel cadastro-jogo" id="form-jogo" hidden>
+      <div class="secao-topo"><h3>Jogo novo</h3></div>
+      <input id="campo-nome-jogo" type="text" maxlength="40" autocomplete="off" aria-label="Nome do jogo" placeholder="Como ele se chama?">
+      <div class="opcoes-cadastro">
+        <label class="opcao"><input id="jogo-menor-vence" type="checkbox"><span>Menor placar vence</span></label>
+        <label class="opcao"><input id="jogo-sem-placar" type="checkbox"><span>Sem placar, só ordem de chegada</span></label>
       </div>
-      <label class="opcao"><input type="checkbox" id="jogo-menor-vence"> Menor placar vence</label>
-      <label class="opcao"><input type="checkbox" id="jogo-sem-placar"> Não tem placar, só ordem de chegada</label>
-      <p class="rotulo">Foto do jogo (opcional)</p>
-      <div class="escolha-capa">
-        <img class="capa" id="capa-nova" alt="">
-        <div class="formulario">
-          <label class="botao" for="capa-nova-arquivo">Tirar ou escolher foto</label>
-          <input type="file" id="capa-nova-arquivo" accept="image/*" hidden>
-          <input class="campo campo-texto" id="capa-nova-link" type="url" inputmode="url" autocomplete="off" placeholder="ou cole o link da imagem" aria-label="Link da foto do jogo">
+      <div class="foto-cadastro">
+        <img class="capa-jogo" id="capa-nova" alt="Prévia da foto do jogo" hidden>
+        <div class="campos-foto">
+          <div class="foto-cadastro-topo">
+            <p>Foto <span class="nota-campo">(opcional)</span></p>
+            <button class="botao-secundario" id="escolher-foto-jogo" type="button">Escolher foto</button>
+            <input id="capa-nova-arquivo" type="file" accept="image/*" hidden>
+          </div>
+          <input id="capa-nova-link" type="url" inputmode="url" autocomplete="off" placeholder="Ou cole um link" aria-label="Link da foto do jogo">
         </div>
       </div>
       <p class="aviso" id="aviso-jogo" role="alert"></p>
+      <div class="acoes-cadastro">
+        <button class="botao-principal" id="salvar-jogo" type="submit" disabled>Salvar jogo</button>
+        <button class="botao-secundario" id="cancelar-jogo" type="button">Cancelar</button>
+      </div>
     </form>
 
-    <form class="caixa formulario" id="form-partida">
-      <div class="cabecalho">
-        <p class="rotulo">Quem jogou</p>
-        <p class="detalhe" id="contagem-jogadores"></p>
-      </div>
-      <p class="detalhe" id="instrucao-jogadores"></p>
-      <div class="escolha-jogadores" id="escolha-jogadores"></div>
-      <p class="linha-do-duelo" id="duelo-da-partida" hidden></p>
-      <button class="botao" disabled>Abrir partida</button>
-      <p class="aviso" id="aviso-partida" role="alert"></p>
-      <p class="rodape" id="rodape-partida"></p>
+    <form id="form-partida">
+      <section class="papel participantes" aria-labelledby="titulo-jogadores">
+        <div class="secao-topo">
+          <h3 id="titulo-jogadores">Participantes</h3>
+          <span class="contagem">de 3 a 10</span>
+        </div>
+        <p class="instrucao" id="instrucao-jogadores" hidden>Selecione na ordem de chegada, começando pelo vencedor.</p>
+        <div class="jogadores" id="escolha-jogadores"></div>
+        <p class="duelo" id="duelo-da-partida" hidden></p>
+        <p class="aviso" id="aviso-partida" role="alert"></p>
+        <p class="regra-partida" id="rodape-partida"></p>
+      </section>
+      <footer class="acao-partida">
+        <p class="aviso-acao" id="aviso-abrir-partida" role="status" hidden></p>
+        <div class="resumo-partida"><strong id="resumo-jogo">Escolha um jogo</strong><span id="resumo-quantidade">1 jogador</span></div>
+        <button class="botao-principal" id="abrir-partida" type="submit">Abrir partida</button>
+      </footer>
     </form>
+
+    <dialog class="catalogo-jogos" id="catalogo-jogos" aria-labelledby="titulo-catalogo">
+      <div class="catalogo-cabecalho"><h3 id="titulo-catalogo">Escolha o jogo</h3><button class="botao-texto" id="fechar-catalogo" type="button">Fechar</button></div>
+      <div class="catalogo-busca"><input id="buscar-jogo" type="search" placeholder="Buscar jogo" aria-label="Buscar jogo" autocomplete="off" spellcheck="false"></div>
+      <ul class="lista-catalogo" id="lista-catalogo"></ul>
+      <p class="catalogo-vazio" id="catalogo-vazio" hidden>Nenhum jogo encontrado.</p>
+    </dialog>
   </main>
 
   <main class="conteudo" data-tela="duelos" hidden>
