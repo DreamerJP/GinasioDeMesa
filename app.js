@@ -2793,7 +2793,7 @@ function mostrarCampeoes() {
       if (mes === mesDoCampeaoAberto) {
         const cartao = cartaoDeCampeao(mes);
         cartao.classList.replace('papel', 'campeao-aberto');
-        const recolher = criar('button', 'botao-texto', 'Recolher');
+        const recolher = criar('button', 'botao-menu', 'Recolher');
         recolher.type = 'button';
         const topo = cartao.querySelector('.secao-topo');
         topo.append(recolher);
@@ -3365,7 +3365,7 @@ async function sairDaConta() {
 }
 
 function ligarMenu() {
-  const botoes = [document.getElementById('abrir-menu'), ...document.querySelectorAll('.pagina .abre-menu')];
+  const botoes = [...document.querySelectorAll('[aria-controls="menu"]')];
   const menu = document.getElementById('menu');
   const itensAtivos = () => [...menu.querySelectorAll('button:not([hidden])')];
   const acoes = { som: alternarSom, sair: sairDaConta };

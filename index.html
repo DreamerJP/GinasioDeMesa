@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=73">
-<script type="module" src="app.js?v=83" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=74">
+<script type="module" src="app.js?v=84" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -198,16 +198,16 @@
     <header class="cabecalho-site">
       <a class="voltar-inicio" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
       <p class="marca" data-ir="inicio">Ginásio de Mesa</p>
-      <button class="abre-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">Menu</button>
+      <button class="botao-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">Menu</button>
     </header>
     <div class="abertura"><h2>Nova partida</h2></div>
     <section class="papel jogo" aria-labelledby="rotulo-jogo">
       <div class="secao-topo">
         <h3 id="rotulo-jogo">Jogo</h3>
         <div class="acoes-jogo">
-          <button class="botao-texto" id="trocar-foto-jogo" type="button" hidden>Trocar foto do jogo</button>
+          <button class="botao-menu" id="trocar-foto-jogo" type="button" hidden>Trocar foto do jogo</button>
           <input id="foto-jogo-atual" type="file" accept="image/*" hidden>
-          <button class="botao-texto" id="alternar-jogo-novo" type="button" aria-expanded="false" aria-controls="form-jogo">+ Jogo novo</button>
+          <button class="botao-menu" id="alternar-jogo-novo" type="button" aria-expanded="false" aria-controls="form-jogo">+ Jogo novo</button>
         </div>
       </div>
       <button class="seletor-jogo" id="escolher-jogo" type="button" aria-haspopup="dialog" aria-labelledby="rotulo-jogo nome-jogo-selecionado">
@@ -230,7 +230,7 @@
         <div class="campos-foto">
           <div class="foto-cadastro-topo">
             <p>Foto <span class="nota-campo">(opcional)</span></p>
-            <button class="botao-secundario" id="escolher-foto-jogo" type="button">Escolher foto</button>
+            <button class="botao-menu" id="escolher-foto-jogo" type="button">Escolher foto</button>
             <input id="capa-nova-arquivo" type="file" accept="image/*" hidden>
           </div>
           <input id="capa-nova-link" type="url" inputmode="url" autocomplete="off" placeholder="Ou cole um link" aria-label="Link da foto do jogo">
@@ -238,8 +238,8 @@
       </div>
       <p class="aviso" id="aviso-jogo" role="alert"></p>
       <div class="acoes-cadastro">
-        <button class="botao-principal" id="salvar-jogo" type="submit" disabled>Salvar jogo</button>
-        <button class="botao-secundario" id="cancelar-jogo" type="button">Cancelar</button>
+        <button class="botao" id="salvar-jogo" type="submit" disabled>Salvar jogo</button>
+        <button class="botao botao-claro" id="cancelar-jogo" type="button">Cancelar</button>
       </div>
     </form>
 
@@ -258,12 +258,12 @@
       <footer class="acao-partida">
         <p class="aviso-acao" id="aviso-abrir-partida" role="status" hidden></p>
         <div class="resumo-partida"><strong id="resumo-jogo">Escolha um jogo</strong><span id="resumo-quantidade">1 jogador</span></div>
-        <button class="botao-principal" id="abrir-partida" type="submit">Abrir partida</button>
+        <button class="botao" id="abrir-partida" type="submit">Abrir partida</button>
       </footer>
     </form>
 
     <dialog class="catalogo-jogos" id="catalogo-jogos" aria-labelledby="titulo-catalogo">
-      <div class="catalogo-cabecalho"><h3 id="titulo-catalogo">Escolha o jogo</h3><button class="botao-texto" id="fechar-catalogo" type="button">Fechar</button></div>
+      <div class="catalogo-cabecalho"><h3 id="titulo-catalogo">Escolha o jogo</h3><button class="botao-menu" id="fechar-catalogo" type="button">Fechar</button></div>
       <div class="catalogo-busca"><input id="buscar-jogo" type="search" placeholder="Buscar jogo" aria-label="Buscar jogo" autocomplete="off" spellcheck="false"></div>
       <ul class="lista-catalogo" id="lista-catalogo"></ul>
       <p class="catalogo-vazio" id="catalogo-vazio" hidden>Nenhum jogo encontrado.</p>
@@ -391,7 +391,7 @@
 
   <main class="conteudo" data-tela="insignia" hidden>
     <section class="caixa detalhe-insignia">
-      <button class="botao-menu voltar" data-ir="insignias" aria-label="Voltar às insígnias">◀ Insígnias</button>
+      <button class="botao-menu voltar" data-ir="insignias" aria-label="Voltar às insígnias">Insígnias</button>
       <div id="insignia-imagem"></div>
       <h2 class="titulo-caixa" id="insignia-nome"></h2>
       <p class="detalhe" id="insignia-trecho"></p>
@@ -418,7 +418,7 @@
 
   <main class="conteudo" data-tela="titulo" hidden>
     <section class="caixa detalhe-titulo">
-      <button class="botao-menu voltar" data-ir="titulos" aria-label="Voltar aos títulos">◀ Títulos</button>
+      <button class="botao-menu voltar" data-ir="titulos" aria-label="Voltar aos títulos">Títulos</button>
       <div id="titulo-quadro"></div>
       <h2 class="faixa-do-detalhe" id="titulo-faixa"></h2>
       <p class="lore-insignia" id="titulo-medida"></p>
@@ -434,7 +434,7 @@
     <header class="cabecalho-site">
       <a class="voltar-inicio" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
       <p class="marca" data-ir="inicio">Ginásio de Mesa</p>
-      <button class="abre-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">Menu</button>
+      <button class="botao-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">Menu</button>
     </header>
     <div class="abertura"><h2>Campeões</h2></div>
     <div id="lista-campeoes"></div>
