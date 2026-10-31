@@ -1241,6 +1241,9 @@ async function entrarComGoogle() {
 function mostrarTela(nome) {
   document.querySelectorAll('[data-tela]').forEach(tela => { tela.hidden = tela.dataset.tela !== nome; });
   document.getElementById('abrir-menu').hidden = !TELAS[nome];
+  document.getElementById('titulo-da-tela').textContent = TITULOS_DAS_TELAS[nome] || '';
+  document.getElementById('abertura').hidden = !TITULOS_DAS_TELAS[nome];
+  document.querySelector('.voltar-inicio').style.visibility = nome === 'inicio' ? 'hidden' : '';
   if (nome !== 'entrada') document.getElementById('apresentacao').pause();
   if (nome !== 'nova-partida') document.getElementById('catalogo-jogos').close();
   if (nome !== telaVisivel) window.scrollTo(0, 0);
@@ -1785,10 +1788,10 @@ function insigniasEmMiniatura(id, total) {
   return miniaturas;
 }
 
-function ligarTrocaDeMes(botao, mes, texto) {
-  botao.hidden = !mes;
+function ligarTrocaDeMes(botao, mes) {
+  botao.style.visibility = mes ? '' : 'hidden';
   if (!mes) return;
-  botao.textContent = texto(nomeDoMesComAnoSeOutro(mes));
+  botao.setAttribute('aria-label', `Ver ${nomeDoMes(mes)}`);
   botao.onclick = () => irPara('ranking', mes === estado.mesAtual ? '' : mes);
 }
 
@@ -1797,10 +1800,10 @@ function mostrarRanking(pedido) {
   const meses = [...new Set([...partidas.map(p => p.mes), mesAtual])].sort();
   const mes = meses.includes(pedido) ? pedido : mesAtual;
   const posicao = meses.indexOf(mes);
-  ligarTrocaDeMes(document.getElementById('mes-anterior'), meses[posicao - 1], nome => `◀ ${nome}`);
-  ligarTrocaDeMes(document.getElementById('mes-seguinte'), meses[posicao + 1], nome => `${nome} ▶`);
-  document.getElementById('troca-mes').hidden = meses.length < 2;
-  document.getElementById('ranking-mes').textContent = nomeDoMesComAnoSeOutro(mes);
+  ligarTrocaDeMes(document.getElementById('mes-anterior'), meses[posicao - 1]);
+  ligarTrocaDeMes(document.getElementById('mes-seguinte'), meses[posicao + 1]);
+  const titulo = nomeDoMes(mes);
+  document.getElementById('ranking-mes').textContent = titulo[0].toUpperCase() + titulo.slice(1);
   document.getElementById('partidas-mes').textContent = nomeDoMesComAnoSeOutro(mes);
   const doMes = partidas.filter(p => p.mes === mes);
   const { linhas, total } = rankingDe(mes);
@@ -3312,6 +3315,22 @@ function avisarDuelo() {
   mostrarConvite(convite);
   return true;
 }
+
+const TITULOS_DAS_TELAS = {
+  inicio: 'Início',
+  ranking: 'Ranking',
+  partida: 'Partida',
+  'nova-partida': 'Nova partida',
+  duelos: 'Duelos',
+  perfil: 'Perfil',
+  insignias: 'Insígnias',
+  insignia: 'Insígnia',
+  titulos: 'Títulos',
+  titulo: 'Título',
+  campeoes: 'Campeões',
+  regras: 'Regras',
+  administracao: 'Administração',
+};
 
 const TELAS = {
   inicio: mostrarInicio,

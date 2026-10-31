@@ -15,6 +15,7 @@
 <body>
 <div class="tela">
   <header class="topo">
+    <a class="voltar-inicio" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
     <h1 class="marca" data-ir="inicio">Ginásio de Mesa</h1>
     <button class="botao-menu" id="abrir-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="menu" hidden>Menu</button>
   </header>
@@ -39,6 +40,8 @@
       <button role="menuitem" data-item="sair">Sair da conta</button>
     </div>
   </nav>
+
+  <div class="abertura" id="abertura" hidden><h2 id="titulo-da-tela"></h2></div>
 
   <main class="conteudo" data-tela="entrada">
     <section class="caixa entrada">
@@ -124,15 +127,14 @@
   </main>
 
   <main class="conteudo" data-tela="ranking" hidden>
-    <nav class="troca-mes" id="troca-mes" aria-label="Outros meses">
-      <button class="botao-menu" id="mes-anterior" type="button"></button>
-      <button class="botao-menu" id="mes-seguinte" type="button"></button>
-    </nav>
-
     <section class="caixa">
-      <div class="cabecalho">
-        <h2 class="rotulo">Ranking de <span id="ranking-mes"></span></h2>
-        <p class="detalhe" id="total-partidas"></p>
+      <div class="troca-mes">
+        <button class="botao-menu" id="mes-anterior" type="button"></button>
+        <div>
+          <h2 id="ranking-mes"></h2>
+          <p class="detalhe" id="total-partidas"></p>
+        </div>
+        <button class="botao-menu" id="mes-seguinte" type="button"></button>
       </div>
       <ol class="ranking" id="ranking"></ol>
       <div class="rodape linha-rodape">
@@ -195,12 +197,6 @@
   </main>
 
   <main class="pagina nova-partida" data-tela="nova-partida" hidden>
-    <header class="cabecalho-site">
-      <a class="voltar-inicio" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
-      <p class="marca" data-ir="inicio">Ginásio de Mesa</p>
-      <button class="botao-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">Menu</button>
-    </header>
-    <div class="abertura"><h2>Nova partida</h2></div>
     <section class="papel jogo" aria-labelledby="rotulo-jogo">
       <div class="secao-topo">
         <h3 id="rotulo-jogo">Jogo</h3>
@@ -379,12 +375,6 @@
   </main>
 
   <main class="pagina insignias" data-tela="insignias" hidden>
-    <header class="cabecalho-site">
-      <a class="voltar-inicio" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
-      <p class="marca" data-ir="inicio">Ginásio de Mesa</p>
-      <button class="botao-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">Menu</button>
-    </header>
-    <div class="abertura"><h2>Insígnias</h2></div>
     <section class="papel">
       <p class="faixa-travessia">Cada mês vencido leva você uma parada adiante nesta travessia.</p>
       <div class="mapa-insignias" id="mapa-insignias"></div>
@@ -433,12 +423,6 @@
   </main>
 
   <main class="pagina campeoes" data-tela="campeoes" hidden>
-    <header class="cabecalho-site">
-      <a class="voltar-inicio" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span></a>
-      <p class="marca" data-ir="inicio">Ginásio de Mesa</p>
-      <button class="botao-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">Menu</button>
-    </header>
-    <div class="abertura"><h2>Campeões</h2></div>
     <div id="lista-campeoes"></div>
   </main>
 
