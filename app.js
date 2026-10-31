@@ -1526,17 +1526,6 @@ function mostrarInicio() {
     document.getElementById('pendente-botao').onclick = () => irPara('partida', primeira.id);
   }
 
-  const recente = Date.now() - PRAZO_DO_RESULTADO;
-  const meusDuelos = duelosDoGinasio().filter(d => envolve(d, eu.id));
-  const convidado = meusDuelos.filter(d => d.fase === 'convite' && d.desafiado === eu.id);
-  const valendo = meusDuelos.filter(d => d.fase === 'valendo' || d.fase === 'em jogo').sort((a, b) => a.ate - b.ate);
-  const terminados = meusDuelos.filter(d => DUELOS_TERMINADOS.includes(d.fase) && momentoDoDuelo(d) > recente)
-    .sort((a, b) => momentoDoDuelo(b) - momentoDoDuelo(a));
-  const caixaDeDuelos = document.getElementById('caixa-meus-duelos');
-  caixaDeDuelos.hidden = !convidado.length && !valendo.length && !terminados.length;
-  caixaDeDuelos.classList.toggle('pendente', convidado.length > 0);
-  document.getElementById('meus-duelos').replaceChildren(...[...convidado, ...valendo, ...terminados].map(cartaoDoDuelo));
-
   const { linhas, total } = rankingDe(mesAtual);
   const podio = document.getElementById('podio-do-mes');
   if (total) desenharPodio(podio, linhas);
