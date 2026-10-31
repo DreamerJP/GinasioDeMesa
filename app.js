@@ -1243,7 +1243,7 @@ function mostrarTela(nome) {
   document.getElementById('abrir-menu').hidden = !TELAS[nome];
   document.getElementById('titulo-da-tela').textContent = TITULOS_DAS_TELAS[nome] || '';
   document.getElementById('abertura').hidden = !TITULOS_DAS_TELAS[nome];
-  document.querySelector('.voltar-inicio').style.visibility = nome === 'inicio' ? 'hidden' : '';
+  document.querySelector('.topo').classList.toggle('no-inicio', nome === 'inicio');
   if (nome !== 'entrada') document.getElementById('apresentacao').pause();
   if (nome !== 'nova-partida') document.getElementById('catalogo-jogos').close();
   if (nome !== telaVisivel) window.scrollTo(0, 0);

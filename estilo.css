@@ -56,6 +56,9 @@ body {
 .marca { display: flex; align-items: center; min-height: 36px; padding-top: 2px; font: 600 14px/1 'Pixelify Sans', sans-serif; letter-spacing: 1.4px; text-transform: uppercase; cursor: pointer; user-select: none; -webkit-user-select: none; }
 .voltar-inicio { display: grid; place-items: center; min-width: 38px; min-height: 44px; color: var(--caixa); text-decoration: none; touch-action: manipulation; }
 .voltar-inicio > span { display: block; width: 8px; height: 14px; background: currentColor; -webkit-mask: var(--seta-direita) center / 100% 100% no-repeat; mask: var(--seta-direita) center / 100% 100% no-repeat; transform: rotate(180deg); }
+.icone-do-site { width: 28px; height: 28px; image-rendering: pixelated; }
+.topo:not(.no-inicio) .icone-do-site, .no-inicio .voltar-inicio > span { display: none; }
+.no-inicio .voltar-inicio { pointer-events: none; }
 .abertura { padding: calc(8px + var(--folga-grande)) 18px calc(10px + var(--folga-grande)); }
 .abertura h2 { font: 600 30px/1.05 'Pixelify Sans', sans-serif; letter-spacing: .4px; color: var(--caixa); }
 
