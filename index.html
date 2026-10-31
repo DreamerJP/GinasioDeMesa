@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=75">
-<script type="module" src="app.js?v=85" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=76">
+<script type="module" src="app.js?v=86" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -259,32 +259,52 @@
   </main>
 
   <main class="conteudo" data-tela="duelos" hidden>
-    <form class="caixa formulario" id="form-duelo">
-      <p class="rotulo">Novo desafio</p>
-      <select class="campo campo-texto" id="duelo-jogador" aria-label="Quem você desafia"></select>
+    <nav class="arena" id="arena" aria-label="Duelos">
+      <button class="placa-duelo" type="button" data-ir="duelos/desafiar" style="--placa: url(midia/placa-desafiar.png)">Desafiar</button>
+      <button class="placa-duelo" type="button" data-ir="duelos/em-jogo" style="--placa: url(midia/placa-em-jogo.png)">Em jogo<span class="selo-convites" id="selo-convites" hidden></span></button>
+      <button class="placa-duelo" type="button" data-ir="duelos/historico" style="--placa: url(midia/placa-historico.png)">Histórico</button>
+    </nav>
+
+    <button class="botao-menu voltar" id="voltar-arena" type="button" data-ir="duelos" hidden>Arena</button>
+
+    <form class="caixa formulario" id="form-duelo" data-vista="desafiar">
+      <div class="frente-a-frente">
+        <div class="lutador"><span class="lutador-foto" id="lutador-eu"></span><p class="lutador-nome" id="nome-eu"></p></div>
+        <img class="vs" id="vs" src="midia/vs.png" alt="contra">
+        <div class="lutador"><span class="lutador-foto" id="lutador-rival">?</span><p class="lutador-nome" id="nome-rival">Escolha</p></div>
+      </div>
+      <div class="escolha-rival" id="escolha-rival" role="group" aria-label="Quem você desafia"></div>
       <select class="campo campo-texto" id="duelo-jogo" aria-label="Jogo do duelo"></select>
       <div class="linha-campo">
         <input class="campo campo-texto" id="duelo-provocacao" maxlength="60" autocomplete="off" placeholder="Provocação" aria-label="Provocação">
-        <button class="botao" disabled>Desafiar</button>
+        <button class="botao" id="enviar-desafio" disabled>Desafiar</button>
       </div>
       <p class="aviso" id="aviso-duelo" role="alert"></p>
       <p class="rodape">Vale a primeira partida desse jogo em que vocês dois jogarem, aberta em até 14 dias depois do aceite. O resultado fica fora do ranking.</p>
     </form>
 
-    <section class="caixa" id="caixa-convites" hidden>
-      <h2 class="rotulo">Convites</h2>
-      <ul class="lista-duelos" id="lista-convites"></ul>
-    </section>
+    <div class="conteudo" data-vista="em-jogo">
+      <section class="caixa" id="caixa-convites" hidden>
+        <h2 class="rotulo">Convites</h2>
+        <ul class="lista-duelos" id="lista-convites"></ul>
+      </section>
 
-    <section class="caixa" id="caixa-valendo" hidden>
-      <h2 class="rotulo">Valendo</h2>
-      <ul class="lista-duelos" id="lista-valendo"></ul>
-    </section>
+      <section class="caixa" id="caixa-valendo" hidden>
+        <h2 class="rotulo">Valendo</h2>
+        <ul class="lista-duelos" id="lista-valendo"></ul>
+      </section>
 
-    <section class="caixa" id="caixa-resultados-duelos" hidden>
-      <h2 class="rotulo">Últimos resultados</h2>
-      <ul class="lista-duelos" id="lista-resultados-duelos"></ul>
-    </section>
+      <p class="caixa vazio-duelos">Nenhum duelo em jogo agora.</p>
+    </div>
+
+    <div class="conteudo" data-vista="historico">
+      <section class="caixa" id="caixa-resultados-duelos" hidden>
+        <h2 class="rotulo">Últimos resultados</h2>
+        <ul class="lista-duelos" id="lista-resultados-duelos"></ul>
+      </section>
+
+      <p class="caixa vazio-duelos">Nenhum duelo terminou ainda.</p>
+    </div>
   </main>
 
   <main class="conteudo" data-tela="perfil" hidden>
@@ -352,7 +372,7 @@
       <div class="grade-insignias" id="perfil-insignias"></div>
     </section>
 
-    <section class="caixa" id="caixa-titulos">
+    <section class="caixa">
       <div class="cabecalho">
         <h2 class="rotulo">Títulos</h2>
         <p class="detalhe" id="perfil-titulos-conta"></p>

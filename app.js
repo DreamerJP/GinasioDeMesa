@@ -2341,7 +2341,7 @@ function mostrarPerfil(id) {
 
   const ganhas = colecaoDe(alguem.id).length;
   document.getElementById('perfil-insignias-conta').textContent = `${ganhas} de ${INSIGNIAS.length}`;
-  document.getElementById('perfil-insignias').replaceChildren(...trilhaDeInsignias({ ganhas, destacarProxima: alguem.id === eu.id }));
+  document.getElementById('perfil-insignias').replaceChildren(...trilhaDeInsignias(ganhas, alguem.id === eu.id));
 
   const proprio = alguem.id === eu.id;
   document.getElementById('perfil-duelos-placar').textContent = textoDoPlacar(placarDeDuelos(alguem.id));
@@ -2356,7 +2356,7 @@ function mostrarPerfil(id) {
   desafiar.disabled = Boolean(motivo);
   desafiar.onclick = () => {
     if (!proprio) desafio = { ...desafio, jogador: alguem.id };
-    irPara('duelos');
+    irPara('duelos', 'desafiar');
   };
   document.getElementById('perfil-desafiar-motivo').hidden = !motivo;
   document.getElementById('perfil-desafiar-motivo').textContent = motivo;
@@ -2710,22 +2710,21 @@ function ligarPerfil() {
   });
 }
 
-function trilhaDeInsignias({ ganhas = null, comNomes = false, destacarProxima = false } = {}) {
+function trilhaDeInsignias(ganhas, destacarProxima) {
   return INSIGNIAS.map((insignia, i) => {
     const linha = Math.floor(i / 4);
     const posicao = i % 4;
     let trilha = '';
     if (i < INSIGNIAS.length - 1 && posicao < 3) trilha = linha % 2 ? 'trilha-esquerda' : 'trilha-direita';
     if (i < INSIGNIAS.length - 1 && posicao === 3) trilha = linha % 2 ? 'trilha-volta-esquerda' : 'trilha-volta-direita';
-    const tem = ganhas === null || i < ganhas;
-    const casa = criar('span', `casa-insignia ${trilha}${ganhas !== null && i + 1 < ganhas ? ' trilha-feita' : ''}`);
+    const tem = i < ganhas;
+    const casa = criar('span', `casa-insignia ${trilha}${i + 1 < ganhas ? ' trilha-feita' : ''}`);
     casa.style.gridRow = linha + 1;
     casa.style.gridColumn = (linha % 2 ? 3 - posicao : posicao) + 1;
     const botao = criar('button', `botao-insignia${destacarProxima && i === ganhas ? ' proxima' : ''}`);
     botao.type = 'button';
     botao.setAttribute('aria-label', `${insignia.nome}${tem ? '' : ', ainda não tem'}`);
     botao.append(desenhoDaInsignia(i, tem));
-    if (comNomes) botao.append(criar('span', '', insignia.nome.replace(/^Insígnia d[oa]s? /, '')));
     botao.addEventListener('click', () => irPara('insignia', i + 1));
     casa.append(botao);
     return casa;
@@ -3128,7 +3127,7 @@ function rostosDoDuelo(duelo, classe) {
 function pedirRevanche(duelo) {
   const oponente = duelo.desafiante === estado.eu.id ? duelo.desafiado : duelo.desafiante;
   desafio = { jogador: oponente, jogo: duelo.jogo };
-  irPara('duelos');
+  irPara('duelos', 'desafiar');
 }
 
 function botoesDoDuelo(duelo) {
@@ -3172,20 +3171,59 @@ function preencherDuelos(caixa, lista, duelos) {
   document.getElementById(lista).replaceChildren(...duelos.map(cartaoDoDuelo));
 }
 
+function mostrarRival(entrando) {
+  const rival = jogador(desafio.jogador);
+  const foto = document.getElementById('lutador-rival');
+  if (rival) foto.replaceChildren(imagemDe(rival, 'foto'));
+  else foto.textContent = '?';
+  document.getElementById('nome-rival').textContent = rival?.apelido || 'Escolha';
+  for (const ficha of document.getElementById('escolha-rival').children) ficha.setAttribute('aria-pressed', ficha.dataset.jogador === desafio.jogador);
+  if (entrando) {
+    for (const elemento of [foto, document.getElementById('vs')]) {
+      elemento.classList.remove('entrando');
+      void elemento.offsetWidth;
+      elemento.classList.add('entrando');
+    }
+  }
+  validarDesafio();
+}
+
 function validarDesafio() {
   const motivo = desafio.jogador ? motivoParaNaoDesafiar(desafio.jogador) : '';
   document.getElementById('aviso-duelo').textContent = motivo;
-  document.querySelector('#form-duelo button').disabled = !desafio.jogador || !desafio.jogo || Boolean(motivo);
+  document.getElementById('enviar-desafio').disabled = !desafio.jogador || !desafio.jogo || Boolean(motivo);
 }
 
-function mostrarDuelos() {
+const VISTAS_DE_DUELO = ['desafiar', 'em-jogo', 'historico'];
+
+function mostrarDuelos(pedido) {
   const { eu } = estado;
+  const vista = VISTAS_DE_DUELO.includes(pedido) ? pedido : '';
+  const tela = document.querySelector('[data-tela="duelos"]');
+  document.getElementById('arena').hidden = Boolean(vista);
+  document.getElementById('voltar-arena').hidden = !vista;
+  tela.querySelectorAll('[data-vista]').forEach(parte => { parte.hidden = parte.dataset.vista !== vista; });
+  const recebidos = duelosDoGinasio().filter(d => d.fase === 'convite' && d.desafiado === eu.id).length;
+  document.getElementById('selo-convites').hidden = !recebidos;
+  document.getElementById('selo-convites').textContent = recebidos;
   if (!jogador(desafio.jogador) || desafio.jogador === eu.id) desafio.jogador = '';
   if (!estado.jogos.some(j => j.id === desafio.jogo)) desafio.jogo = '';
   const outros = estado.jogadores.filter(j => j.id !== eu.id).sort((a, b) => a.apelido.localeCompare(b.apelido, 'pt-BR'));
-  const campoJogador = document.getElementById('duelo-jogador');
-  campoJogador.replaceChildren(new Option('Quem você desafia', ''), ...outros.map(j => new Option(j.apelido, j.id)));
-  campoJogador.value = desafio.jogador;
+  document.getElementById('lutador-eu').replaceChildren(imagemDe(eu, 'foto'));
+  document.getElementById('nome-eu').textContent = eu.apelido;
+  document.getElementById('escolha-rival').replaceChildren(...outros.map(alguem => {
+    const ficha = criar('button', 'ficha-rival');
+    ficha.type = 'button';
+    ficha.dataset.jogador = alguem.id;
+    ficha.append(imagemDe(alguem, 'foto'), criar('span', '', alguem.apelido));
+    ficha.addEventListener('click', () => {
+      desafio.jogador = alguem.id;
+      mostrarRival(true);
+      tocar('escolher');
+    });
+    return ficha;
+  }));
+  mostrarRival(false);
   const jogos = [...estado.jogos].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   const campoJogo = document.getElementById('duelo-jogo');
   campoJogo.replaceChildren(new Option('Em qual jogo', ''), ...jogos.map(j => new Option(j.nome, j.id)));
@@ -3197,17 +3235,13 @@ function mostrarDuelos() {
   preencherDuelos('caixa-valendo', 'lista-valendo', todos.filter(d => d.fase === 'valendo' || d.fase === 'em jogo').sort((a, b) => a.ate - b.ate));
   const terminados = todos.filter(d => DUELOS_TERMINADOS.includes(d.fase)).sort((a, b) => momentoDoDuelo(b) - momentoDoDuelo(a));
   preencherDuelos('caixa-resultados-duelos', 'lista-resultados-duelos', terminados.slice(0, MAXIMO_DE_RESULTADOS_DE_DUELO));
+  tela.querySelectorAll('.vazio-duelos').forEach(vazio => { vazio.hidden = Boolean(vazio.parentElement.querySelector('section:not([hidden])')); });
 }
 
 function ligarDuelos() {
   const formulario = document.getElementById('form-duelo');
-  const campoJogador = document.getElementById('duelo-jogador');
   const campoJogo = document.getElementById('duelo-jogo');
   const provocacao = document.getElementById('duelo-provocacao');
-  campoJogador.addEventListener('change', () => {
-    desafio.jogador = campoJogador.value;
-    validarDesafio();
-  });
   campoJogo.addEventListener('change', () => {
     desafio.jogo = campoJogo.value;
     validarDesafio();
@@ -3215,10 +3249,10 @@ function ligarDuelos() {
   formulario.addEventListener('submit', async evento => {
     evento.preventDefault();
     const dados = { desafiado: desafio.jogador, jogo: desafio.jogo, provocacao: provocacao.value };
-    if (await enviar(formulario.querySelector('button'), document.getElementById('aviso-duelo'), 'desafiar', dados)) {
+    if (await enviar(document.getElementById('enviar-desafio'), document.getElementById('aviso-duelo'), 'desafiar', dados)) {
       provocacao.value = '';
       desafio = { jogador: '', jogo: '' };
-      renderizar();
+      irPara('duelos', 'em-jogo');
     }
   });
 }
@@ -3246,7 +3280,7 @@ async function responderPeloAviso(duelo, aceitar) {
   } catch {
     tocar('erro');
   }
-  irPara('duelos');
+  irPara('duelos', 'em-jogo');
 }
 
 function mostrarDueloDecidido(duelo) {
@@ -3268,7 +3302,7 @@ function mostrarDueloDecidido(duelo) {
       marcarDueloVisto(`duelo:${duelo.id}`);
       if (escolha !== 'ver') return;
       if (perdi) pedirRevanche(duelo);
-      else irPara('duelos');
+      else irPara('duelos', 'historico');
     },
   });
 }

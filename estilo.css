@@ -441,6 +441,28 @@ select.campo {
 .item-jogadores .mais { align-self: center; color: var(--tinta-suave); }
 .item-partida .capa { width: 104px; height: 70px; object-position: top; }
 
+.arena { display: grid; align-content: end; gap: 10px; aspect-ratio: 848 / 1264; padding: 0 15% 5%; border: 2px solid var(--tinta); background: url(midia/arena.jpg) center / cover; box-shadow: inset 0 0 0 2px var(--moldura), 3px 3px 0 var(--tinta); }
+.placa-duelo { position: relative; aspect-ratio: 640 / 294; padding: 0 6% 0 46%; border: 0; background: var(--placa) center / 100% 100% no-repeat; color: var(--caixa); font: 600 20px/1.1 'Pixelify Sans', sans-serif; text-align: left; cursor: pointer; }
+.placa-duelo:active { transform: translate(1px, 1px); }
+.selo-convites { position: absolute; top: -6px; right: -6px; display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border: 2px solid var(--caixa); background: var(--perigo); color: #fff; font: 14px/1 'DotGothic16', monospace; }
+.vazio-duelos { color: var(--tinta-suave); }
+.frente-a-frente { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 12px 0 6px; background: radial-gradient(circle, rgb(242 193 78 / 25%), transparent 70%); }
+.lutador { display: grid; justify-items: center; gap: 6px; }
+.lutador-foto { display: grid; place-items: center; width: 104px; height: 104px; border: 3px solid var(--tinta); background: var(--caixa-funda); color: var(--tinta-apagada); font: 600 48px/1 'Pixelify Sans', sans-serif; box-shadow: 3px 3px 0 var(--tinta); }
+.lutador-foto .foto { width: 100%; height: 100%; clip-path: none; }
+.lutador:first-child .lutador-foto { border-color: var(--moldura); }
+.lutador:last-child .lutador-foto { border-color: var(--perigo); }
+.lutador-nome { font: 600 17px/1.2 'Pixelify Sans', sans-serif; }
+.vs { width: 92px; margin: 0 -14px 22px; position: relative; z-index: 1; }
+.entrando { animation: entrada-do-rival .35s ease-out; }
+.vs.entrando { animation-name: impacto-do-vs; }
+@keyframes entrada-do-rival { from { opacity: 0; transform: translateX(40px); } }
+@keyframes impacto-do-vs { from { transform: scale(1.8); opacity: 0; } 60% { transform: scale(.9); opacity: 1; } }
+.escolha-rival { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+.ficha-rival { display: grid; justify-items: center; gap: 2px; padding: 4px 2px; border: 2px solid var(--caixa-funda); background: none; color: var(--tinta); font-size: 12px; cursor: pointer; }
+.ficha-rival .foto { width: 44px; height: 44px; }
+.ficha-rival[aria-pressed="true"] { border-color: var(--perigo); background: var(--caixa-marcada); }
+@media (prefers-reduced-motion: reduce) { .entrando { animation: none; } }
 .lista-duelos { padding: 0; list-style: none; }
 .item-duelo { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: start; padding: 10px 0; border-top: 2px solid var(--caixa-funda); }
 .lista-duelos > .item-duelo:first-child { border-top: 0; }
