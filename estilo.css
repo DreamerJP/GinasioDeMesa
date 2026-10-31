@@ -716,7 +716,9 @@ select.campo {
 .parada-insignia { position: absolute; width: 18%; padding: 0; border: 0; background: none; transform: translate(-50%, -50%); cursor: pointer; }
 .parada-pedestal { display: block; width: 100%; height: auto; }
 .parada-insignia .insignia { position: absolute; bottom: 42%; left: 50%; width: 82%; height: auto; aspect-ratio: 1; transform: translateX(-50%); }
-.parada-nome { position: absolute; top: 92%; left: 50%; padding: 0 4px; background: rgb(246 241 223 / 90%); color: var(--tinta); font-size: 11px; line-height: 1.4; white-space: nowrap; transform: translateX(-50%); }
+.parada-nome { position: absolute; top: 90%; left: 50%; display: flex; align-items: center; gap: 4px; padding: 1px 5px; border: 1px solid var(--tinta-suave); background: #4a4b63; color: #e9e8f2; font-size: 11px; line-height: 1.4; white-space: nowrap; box-shadow: 2px 2px 0 var(--tinta); transform: translateX(-50%); }
+.parada-nome::after { content: ''; width: 4px; height: 7px; background: currentColor; -webkit-mask: var(--seta-direita) center / 100% 100% no-repeat; mask: var(--seta-direita) center / 100% 100% no-repeat; }
+.parada-insignia:active .parada-nome { border-color: var(--ouro); background: #2f3155; color: var(--ouro); box-shadow: none; }
 
 .grade-insignias { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .casa-insignia { --cor-da-trilha: var(--tinta-apagada); position: relative; display: grid; }
