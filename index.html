@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ginásio de Mesa</title>
-<link rel="icon" type="image/png" href="midia/icone-64.png?v=2">
-<link rel="apple-touch-icon" href="midia/icone-180.png?v=2">
+<link rel="icon" type="image/png" href="midia/site/icone-64.png?v=2">
+<link rel="apple-touch-icon" href="midia/site/icone-180.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=76">
-<script type="module" src="app.js?v=86" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=77">
+<script type="module" src="app.js?v=87" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -45,7 +45,7 @@
 
   <main class="conteudo" data-tela="entrada">
     <section class="caixa entrada">
-      <img class="entrada-icone" src="midia/cavaleiro.png" alt="">
+      <img class="entrada-icone" src="midia/site/cavaleiro.png" alt="">
       <h2 class="chamada-titulo">Ginásio de Mesa</h2>
       <p id="aviso-entrada">Abrindo o ginásio<span class="pontos"><span>.</span><span>.</span><span>.</span></span></p>
       <p class="detalhe" id="demora-entrada" hidden>Está demorando mais que o normal.</p>
@@ -56,7 +56,7 @@
     <section class="caixa entrada-video" id="video-entrada" hidden>
       <h2 class="rotulo">Conheça o Ginásio</h2>
       <div class="video-capa">
-        <video id="apresentacao" src="midia/apresentacao.mp4" poster="midia/apresentacao.jpg" playsinline preload="none"></video>
+        <video id="apresentacao" src="midia/site/apresentacao.mp4" poster="midia/site/apresentacao.jpg" playsinline preload="none"></video>
         <button class="video-tocar" id="tocar-apresentacao" type="button" aria-label="Ver o vídeo"><span class="seta-redonda"></span></button>
       </div>
     </section>
@@ -93,7 +93,7 @@
       <p class="premio-texto" id="premio-texto"></p>
       <p class="detalhe" id="premio-linha-insignia">e a sua próxima insígnia, a <button class="botao-limpo" id="premio-insignia" type="button"></button></p>
       <div class="podio" id="podio-do-mes">
-        <img class="podio-base" src="midia/podio.png" alt="">
+        <img class="podio-base" src="midia/site/podio.png" alt="">
         <div class="podio-lugar" data-degrau="1"></div>
         <div class="podio-lugar" data-degrau="2"></div>
         <div class="podio-lugar" data-degrau="3"></div>
@@ -199,7 +199,7 @@
         </div>
       </div>
       <button class="seletor-jogo" id="escolher-jogo" type="button" aria-haspopup="dialog" aria-labelledby="rotulo-jogo nome-jogo-selecionado">
-        <img id="miniatura-jogo" src="midia/caixa-azul.png" alt="">
+        <img id="miniatura-jogo" src="midia/avatares/caixa-azul.png" alt="">
         <strong id="nome-jogo-selecionado">Escolha o jogo</strong>
         <span class="seta-catalogo" aria-hidden="true"></span>
       </button>
@@ -260,9 +260,9 @@
 
   <main class="conteudo" data-tela="duelos" hidden>
     <nav class="arena" id="arena" aria-label="Duelos">
-      <button class="placa-duelo" type="button" data-ir="duelos/desafiar" style="--placa: url(midia/placa-desafiar.png)">Desafiar</button>
-      <button class="placa-duelo" type="button" data-ir="duelos/em-jogo" style="--placa: url(midia/placa-em-jogo.png)">Em jogo<span class="selo-convites" id="selo-convites" hidden></span></button>
-      <button class="placa-duelo" type="button" data-ir="duelos/historico" style="--placa: url(midia/placa-historico.png)">Histórico</button>
+      <button class="placa-duelo" type="button" data-ir="duelos/desafiar" style="--placa: url(midia/duelos/placa-desafiar.png)">Desafiar</button>
+      <button class="placa-duelo" type="button" data-ir="duelos/em-jogo" style="--placa: url(midia/duelos/placa-em-jogo.png)">Em jogo<span class="selo-convites" id="selo-convites" hidden></span></button>
+      <button class="placa-duelo" type="button" data-ir="duelos/historico" style="--placa: url(midia/duelos/placa-historico.png)">Histórico</button>
     </nav>
 
     <button class="botao-menu voltar" id="voltar-arena" type="button" data-ir="duelos" hidden>Arena</button>
@@ -270,7 +270,7 @@
     <form class="caixa formulario" id="form-duelo" data-vista="desafiar">
       <div class="frente-a-frente">
         <div class="lutador"><span class="lutador-foto" id="lutador-eu"></span><p class="lutador-nome" id="nome-eu"></p></div>
-        <img class="vs" id="vs" src="midia/vs.png" alt="contra">
+        <img class="vs" id="vs" src="midia/duelos/vs.png" alt="contra">
         <div class="lutador"><span class="lutador-foto" id="lutador-rival">?</span><p class="lutador-nome" id="nome-rival">Escolha</p></div>
       </div>
       <div class="escolha-rival" id="escolha-rival" role="group" aria-label="Quem você desafia"></div>
@@ -450,7 +450,7 @@
     </section>
 
     <section class="caixa pergunta">
-      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-pontos"><img src="midia/regra-pontos.png" alt=""><span class="pergunta-titulo">Pontos</span><span class="seta-redonda"></span></button>
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-pontos"><img src="midia/site/regra-pontos.png" alt=""><span class="pergunta-titulo">Pontos</span><span class="seta-redonda"></span></button>
       <ul class="respostas" id="regra-pontos" hidden>
         <li><strong>Cada partida dá pontos a quem jogou.</strong><span class="detalhe">Quem soma mais no mês vence.</span></li>
         <li><strong>Vencer com folga vale mais que vencer apertado.</strong></li>
@@ -461,7 +461,7 @@
     </section>
 
     <section class="caixa pergunta">
-      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-faltas"><img src="midia/regra-faltas.png" alt=""><span class="pergunta-titulo">Faltas</span><span class="seta-redonda"></span></button>
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-faltas"><img src="midia/site/regra-faltas.png" alt=""><span class="pergunta-titulo">Faltas</span><span class="seta-redonda"></span></button>
       <ul class="respostas" id="regra-faltas" hidden>
         <li><strong>Quem vai e fica em último sempre leva mais do que quem faltou.</strong><span class="detalhe">Quem não vai no dia leva, em cada partida daquele dia, metade da nota do último colocado.</span></li>
         <li><strong>Quem foi e estava em outra mesa não perde nada.</strong><span class="detalhe">As partidas da outra mesa ficam fora da sua conta.</span></li>
@@ -474,7 +474,7 @@
     </section>
 
     <section class="caixa pergunta">
-      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-fim"><img src="midia/regra-fim.png" alt=""><span class="pergunta-titulo">Fim do mês</span><span class="seta-redonda"></span></button>
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-fim"><img src="midia/site/regra-fim.png" alt=""><span class="pergunta-titulo">Fim do mês</span><span class="seta-redonda"></span></button>
       <ul class="respostas" id="regra-fim" hidden>
         <li><strong>A partida conta no mês em que foi aberta.</strong><span class="detalhe">Partida incompleta no fim do mês não conta.</span></li>
         <li><strong>Empate no fim do mês divide o prêmio.</strong></li>
@@ -482,7 +482,7 @@
     </section>
 
     <section class="caixa pergunta">
-      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-geral"><img src="midia/insignia-01.webp" alt=""><span class="pergunta-titulo">Ranking geral</span><span class="seta-redonda"></span></button>
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-geral"><img src="midia/insignias/insignia-01.webp" alt=""><span class="pergunta-titulo">Ranking geral</span><span class="seta-redonda"></span></button>
       <ul class="respostas" id="regra-geral" hidden>
         <li><strong>Cada mês vencido vale uma insígnia.</strong><span class="detalhe">Quem tem mais fica na frente.</span></li>
         <li><strong>Empate em insígnias: fica na frente quem terminou mais meses no pódio.</strong><span class="detalhe">Ficar em 2º ou em 3º vale o mesmo aqui.</span></li>
@@ -492,7 +492,7 @@
     </section>
 
     <section class="caixa pergunta">
-      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-duelos"><img src="midia/titulo-duelista.png" alt=""><span class="pergunta-titulo">Duelos</span><span class="seta-redonda"></span></button>
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="regra-duelos"><img src="midia/titulos/titulo-duelista.png" alt=""><span class="pergunta-titulo">Duelos</span><span class="seta-redonda"></span></button>
       <ul class="respostas" id="regra-duelos" hidden>
         <li><strong>Você desafia alguém num jogo, e vale a primeira partida desse jogo com vocês dois.</strong><span class="detalhe">Ela tem de ser aberta em até 14 dias depois do aceite.</span></li>
         <li><strong>Vence quem ficar mais bem colocado nessa partida.</strong><span class="detalhe">Mesma colocação é empate.</span></li>
@@ -502,7 +502,7 @@
     </section>
 
     <section class="caixa pergunta">
-      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="conta-por-dentro"><img src="midia/regra-formulas.png" alt=""><span class="pergunta-titulo">Fórmulas</span><span class="seta-redonda"></span></button>
+      <button class="pergunta-topo" type="button" aria-expanded="false" aria-controls="conta-por-dentro"><img src="midia/site/regra-formulas.png" alt=""><span class="pergunta-titulo">Fórmulas</span><span class="seta-redonda"></span></button>
     </section>
 
     <div class="conta-por-dentro" id="conta-por-dentro" hidden>
@@ -597,7 +597,7 @@
   <div class="caixa celebracao-centro">
     <p class="celebracao-titulo" id="celebracao-titulo"></p>
     <div class="podio" id="celebracao-podio">
-      <img class="podio-base" src="midia/podio.png" alt="">
+      <img class="podio-base" src="midia/site/podio.png" alt="">
       <div class="podio-lugar" data-degrau="1"></div>
       <div class="podio-lugar" data-degrau="2"></div>
       <div class="podio-lugar" data-degrau="3"></div>

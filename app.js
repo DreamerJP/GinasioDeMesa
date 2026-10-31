@@ -27,12 +27,12 @@ const TITULOS_A_VISTA_NO_PERFIL = 3;
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const SONS = {
-  mover: 'midia/som-mover.wav',
-  escolher: 'midia/som-escolher.wav',
-  confirmar: 'midia/som-confirmar.wav',
-  partidaFechada: 'midia/som-partida-fechada.wav',
-  campeao: 'midia/som-campeao.wav',
-  erro: 'midia/som-erro.wav',
+  mover: 'midia/sons/som-mover.wav',
+  escolher: 'midia/sons/som-escolher.wav',
+  confirmar: 'midia/sons/som-confirmar.wav',
+  partidaFechada: 'midia/sons/som-partida-fechada.wav',
+  campeao: 'midia/sons/som-campeao.wav',
+  erro: 'midia/sons/som-erro.wav',
 };
 
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -50,7 +50,7 @@ const INSIGNIAS = [
   { nome: 'Insígnia da Flor', trecho: 'Jardim de espinhos', lore: 'Flor de cristal colhida no jardim de espinhos. Não murcha, e o caule ainda espeta quem a segura.' },
   { nome: 'Insígnia da Estrela', trecho: 'Bosque estrelado', lore: 'No alto do bosque estrelado, as noites são tão claras que dá para ler o mapa sem lanterna.' },
   { nome: 'Insígnia dos Confins', trecho: 'Confins do mapa', lore: 'Bússola achada nos confins do mapa. A agulha não aponta para o norte, aponta o caminho de volta.' },
-].map((insignia, i) => ({ ...insignia, imagem: `midia/insignia-${String(i + 1).padStart(2, '0')}.webp` }));
+].map((insignia, i) => ({ ...insignia, imagem: `midia/insignias/insignia-${String(i + 1).padStart(2, '0')}.webp` }));
 
 const PRAZO_DO_CONVITE = 7 * 864e5;
 const PRAZO_DO_DUELO = 14 * 864e5;
@@ -696,13 +696,13 @@ function avatarPadrao(alguem) {
     let numero = numeroDoTexto(outro.id) % QUANTOS_MEEPLES;
     while (usados.has(numero) && usados.size < QUANTOS_MEEPLES) numero = (numero + 1) % QUANTOS_MEEPLES;
     usados.add(numero);
-    if (outro.id === id) return `midia/meeple-${numero + 1}.png`;
+    if (outro.id === id) return `midia/avatares/meeple-${numero + 1}.png`;
   }
-  return `midia/meeple-${numeroDoTexto(id) % QUANTOS_MEEPLES + 1}.png`;
+  return `midia/avatares/meeple-${numeroDoTexto(id) % QUANTOS_MEEPLES + 1}.png`;
 }
 
 function capaPadrao(nome) {
-  return `midia/caixa-${CORES_DAS_CAIXAS[numeroDoTexto(nome) % CORES_DAS_CAIXAS.length]}.png`;
+  return `midia/avatares/caixa-${CORES_DAS_CAIXAS[numeroDoTexto(nome) % CORES_DAS_CAIXAS.length]}.png`;
 }
 
 function imagemDaCapa(jogo, classe = 'capa') {
@@ -771,7 +771,7 @@ function figuraDoTitulo(titulo, classe = '') {
   if (titulo.jogo) return imagemDaCapa(titulo.jogo, `capa-titulo ${classe}`);
   const figura = criar('img', `icone-titulo ${classe}`);
   figura.alt = '';
-  figura.src = `midia/titulo-${titulo.desenho}.png`;
+  figura.src = `midia/titulos/titulo-${titulo.desenho}.png`;
   return figura;
 }
 
@@ -780,7 +780,7 @@ function quadroDoTitulo(situacao, grande = false) {
   const quadro = criar('span', `quadro-titulo nivel-${nivel}${alcancados ? '' : ' apagado'}${grande ? ' grande' : ''}`);
   const moldura = criar('img', 'moldura-titulo');
   moldura.alt = '';
-  moldura.src = `midia/moldura-${nivel}.png`;
+  moldura.src = `midia/titulos/moldura-${nivel}.png`;
   quadro.append(figuraDoTitulo(titulo), moldura);
   return quadro;
 }
@@ -1328,7 +1328,7 @@ function desenharPodio(podio, linhas) {
 function vagaNoPodio() {
   const vaga = criar('span', 'podio-pessoa vaga');
   const imagem = criar('img', 'foto');
-  imagem.src = 'midia/meeple-1.png';
+  imagem.src = 'midia/avatares/meeple-1.png';
   imagem.alt = '';
   vaga.append(criar('span', '', '?'), imagem);
   return vaga;
@@ -1724,7 +1724,7 @@ function mostrarConquista(situacao) {
   const quadro = quadroDoTitulo(sobe ? { ...situacao, nivel: NIVEIS[antes - 1] } : situacao, true);
   const subir = () => {
     quadro.classList.replace(`nivel-${NIVEIS[antes - 1]}`, `nivel-${nivel}`);
-    quadro.querySelector('.moldura-titulo').src = `midia/moldura-${nivel}.png`;
+    quadro.querySelector('.moldura-titulo').src = `midia/titulos/moldura-${nivel}.png`;
   };
   if (sobe && !POUCO_MOVIMENTO.matches) {
     setTimeout(() => {
@@ -2106,7 +2106,7 @@ function mostrarNovaPartida() {
   selecao = selecao.filter(id => jogador(id));
   const miniatura = document.getElementById('miniatura-jogo');
   if (jogo) mostrarCapa(miniatura, jogo);
-  else miniatura.src = 'midia/caixa-azul.png';
+  else miniatura.src = 'midia/avatares/caixa-azul.png';
   document.getElementById('nome-jogo-selecionado').textContent = jogo?.nome || 'Escolha o jogo';
   document.getElementById('escolher-jogo').disabled = !estado.jogos.length;
   document.getElementById('trocar-foto-jogo').hidden = !jogo;
@@ -2366,7 +2366,7 @@ function mostrarPerfil(id) {
   const moldura = document.getElementById('perfil-moldura');
   document.getElementById('perfil-quadro').classList.toggle('com-moldura', comMoldura);
   moldura.hidden = !comMoldura;
-  if (comMoldura) moldura.src = `midia/moldura-${exibido.nivel}.png`;
+  if (comMoldura) moldura.src = `midia/titulos/moldura-${exibido.nivel}.png`;
   mostrarTitulosDoPerfil(alguem, exibido);
   document.getElementById('trocar-foto').hidden = !proprio;
   if (!proprio) document.getElementById('menu-foto').hidden = true;
@@ -2745,7 +2745,7 @@ function mostrarInsignias() {
     parada.setAttribute('aria-label', insignia.nome);
     const pedestal = criar('img', 'parada-pedestal');
     pedestal.alt = '';
-    pedestal.src = 'midia/pedestal.png';
+    pedestal.src = 'midia/insignias/pedestal.png';
     parada.append(pedestal, desenhoDaInsignia(i, true), criar('span', 'parada-nome', insignia.nome.replace(/^Insígnia d[aeo]s? /, '')));
     parada.addEventListener('click', () => irPara('insignia', i + 1));
     return parada;
