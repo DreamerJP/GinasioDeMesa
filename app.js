@@ -2740,8 +2740,25 @@ function trilhaDeInsignias({ ganhas = null, comNomes = false, destacarProxima = 
   });
 }
 
+const COLUNAS_DO_MAPA = [11.6, 37.2, 62.8, 88.4];
+const ALTURA_VISIVEL_DO_MAPA = 0.95;
+
 function mostrarInsignias() {
-  document.getElementById('grade-insignias').replaceChildren(...trilhaDeInsignias({ comNomes: true }));
+  document.getElementById('mapa-insignias').replaceChildren(...INSIGNIAS.map((insignia, i) => {
+    const linha = Math.floor(i / 4);
+    const coluna = linha % 2 ? 3 - i % 4 : i % 4;
+    const parada = criar('button', 'parada-insignia');
+    parada.type = 'button';
+    parada.style.left = `${COLUNAS_DO_MAPA[coluna]}%`;
+    parada.style.top = `${(13 + 34 * linha) / ALTURA_VISIVEL_DO_MAPA}%`;
+    parada.setAttribute('aria-label', insignia.nome);
+    const pedestal = criar('img', 'parada-pedestal');
+    pedestal.alt = '';
+    pedestal.src = 'midia/pedestal.png';
+    parada.append(pedestal, desenhoDaInsignia(i, true), criar('span', 'parada-nome', insignia.nome.replace(/^Insígnia d[aeo]s? /, '')));
+    parada.addEventListener('click', () => irPara('insignia', i + 1));
+    return parada;
+  }));
 }
 
 function mostrarInsignia(numero) {

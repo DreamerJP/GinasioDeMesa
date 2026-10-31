@@ -705,6 +705,13 @@ select.campo {
 
 .historia { display: grid; gap: 10px; margin-top: 8px; font-size: 15px; }
 
+.faixa-travessia { display: grid; place-items: center; aspect-ratio: 720 / 160; padding: 0 17% 1%; background: url(midia/faixa-travessia.png) center / 100% 100% no-repeat; color: var(--tinta); font-size: 14px; line-height: 1.3; text-align: center; }
+.mapa-insignias { position: relative; aspect-ratio: 1 / .95; margin-top: 12px; border: 2px solid var(--tinta); background: url(midia/mapa-insignias.jpg) top / 100% auto; }
+.parada-insignia { position: absolute; width: 18%; padding: 0; border: 0; background: none; transform: translate(-50%, -50%); cursor: pointer; }
+.parada-pedestal { display: block; width: 100%; height: auto; }
+.parada-insignia .insignia { position: absolute; bottom: 42%; left: 50%; width: 82%; height: auto; aspect-ratio: 1; transform: translateX(-50%); }
+.parada-nome { position: absolute; top: 92%; left: 50%; padding: 0 4px; background: rgb(246 241 223 / 90%); color: var(--tinta); font-size: 11px; line-height: 1.4; white-space: nowrap; transform: translateX(-50%); }
+
 .grade-insignias { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .casa-insignia { --cor-da-trilha: var(--tinta-apagada); position: relative; display: grid; }
 .casa-insignia.trilha-feita { --cor-da-trilha: var(--ouro); }
