@@ -249,12 +249,21 @@ select.campo {
   clip-path: var(--canto);
 }
 
-.disputa { display: grid; justify-items: center; gap: 4px; text-align: center; }
-.disputa .cabecalho { justify-self: stretch; flex-wrap: wrap; }
+.inicio .papel { margin: 0; }
+.botao-destaque { justify-self: stretch; min-height: 47px; padding: 10px 13px; border-color: #131a31; background: #dab15d; color: #20233d; font-size: 17px; white-space: nowrap; box-shadow: 3px 3px 0 #131a31; }
+.botao-destaque::after { content: ''; width: 8px; height: 14px; margin-left: 10px; background: currentColor; -webkit-mask: var(--seta-direita) center / 100% 100% no-repeat; mask: var(--seta-direita) center / 100% 100% no-repeat; }
+.botao-destaque:active { box-shadow: none; transform: translate(2px, 2px); }
+.voce-no-mes { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 14px; }
+.voce-no-mes .foto { width: 64px; height: 64px; }
+.voce-posicao { font: 600 24px/1.15 'Pixelify Sans Digitos', 'Pixelify Sans', sans-serif; }
+.disputa .podio { margin: 70px 0 14px; }
+.premio-do-mes { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: center; gap: 14px; padding-top: 12px; border-top: 1px solid var(--caixa-funda); }
+.premio-do-mes .insignia.grande { width: 56px; height: 56px; }
+.premio-do-mes-texto { display: grid; justify-items: start; gap: 3px; }
+.premio-do-mes-texto .botao-menu { margin-top: 8px; }
 .linha-rodape { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .linha-rodape > :only-child { margin-left: auto; }
 .botao-limpo { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
-.disputa .botao-menu { justify-self: center; margin-top: 10px; }
 
 .premio-texto { font-size: 20px; }
 
@@ -574,10 +583,7 @@ select.campo {
 .nova-partida .resumo-partida { display: grid; gap: 2px; min-width: 0; }
 .nova-partida .resumo-partida strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 14px; font-weight: 400; line-height: 1.3; overflow-wrap: anywhere; }
 .nova-partida .resumo-partida span { color: var(--tinta-suave); font-size: 12px; line-height: 1.4; }
-.nova-partida .acao-partida .botao { min-height: 47px; padding: 10px 13px; border-color: #131a31; background: #dab15d; color: #20233d; font-size: 17px; white-space: nowrap; box-shadow: 3px 3px 0 #131a31; }
 .nova-partida .acao-partida .botao:is(:disabled, [aria-disabled="true"]) { border-color: var(--tinta); background: var(--tinta-apagada); color: var(--caixa); box-shadow: 3px 3px 0 var(--tinta); transform: none; cursor: default; }
-.nova-partida .acao-partida .botao:active:not(:disabled):not([aria-disabled="true"]) { box-shadow: none; transform: translate(2px, 2px); }
-.nova-partida .acao-partida .botao::after { content: ''; width: 8px; height: 14px; margin-left: 10px; background: currentColor; -webkit-mask: var(--seta-direita) center / 100% 100% no-repeat; mask: var(--seta-direita) center / 100% 100% no-repeat; }
 .nova-partida .acao-partida .botao:disabled::after { display: none; }
 .nova-partida .aviso-acao { position: absolute; inset: auto 12px calc(100% + 12px); padding: 11px 12px; border: 2px solid var(--moldura); background: var(--caixa); color: var(--tinta); font-size: 13px; line-height: 1.5; box-shadow: 3px 3px 0 var(--tinta); }
 .nova-partida .aviso-acao::after { content: ''; position: absolute; right: 56px; bottom: -7px; width: 10px; height: 10px; border-right: 2px solid var(--moldura); border-bottom: 2px solid var(--moldura); background: var(--caixa); transform: rotate(45deg); }

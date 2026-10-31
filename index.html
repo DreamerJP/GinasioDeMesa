@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
-<link rel="stylesheet" href="estilo.css?v=78">
-<script type="module" src="app.js?v=87" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=79">
+<script type="module" src="app.js?v=88" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
 </head>
 <body>
 <div class="tela">
@@ -83,37 +83,50 @@
     </form>
   </main>
 
-  <main class="conteudo" data-tela="inicio" hidden>
-    <section class="caixa disputa">
-      <div class="cabecalho">
-        <h2 class="rotulo">Disputa de <span data-mes></span></h2>
-        <p class="detalhe" id="premio-fecha"></p>
+  <main class="conteudo pagina inicio" data-tela="inicio" hidden>
+    <section class="papel pendente" id="pendente" hidden>
+      <p><strong id="pendente-autor"></strong> abriu <strong id="pendente-jogo"></strong>. Falta o seu placar.</p>
+      <p class="detalhe" id="pendente-progresso"></p>
+      <button class="botao" id="pendente-botao">Lançar meu placar</button>
+    </section>
+
+    <section class="papel pendente" id="aviso-pedidos" hidden>
+      <p id="aviso-pedidos-texto"></p>
+      <button class="botao" data-ir="administracao">Ver pedidos</button>
+    </section>
+
+    <section class="papel voce-no-mes">
+      <span id="voce-foto"></span>
+      <div>
+        <p class="voce-posicao" id="voce-posicao"></p>
+        <p class="detalhe" id="voce-detalhe"></p>
       </div>
-      <button class="botao-limpo" id="premio-insignia-imagem" type="button" aria-label="Ver a sua próxima insígnia"></button>
-      <p class="premio-texto" id="premio-texto"></p>
-      <p class="detalhe" id="premio-linha-insignia">e a sua próxima insígnia, a <button class="botao-limpo" id="premio-insignia" type="button"></button></p>
+    </section>
+
+    <section class="papel disputa">
+      <div class="secao-topo">
+        <h3>Disputa de <span data-mes></span></h3>
+        <span class="detalhe" id="premio-fecha"></span>
+      </div>
       <div class="podio" id="podio-do-mes">
         <img class="podio-base" src="midia/site/podio.png" alt="">
         <div class="podio-lugar" data-degrau="1"></div>
         <div class="podio-lugar" data-degrau="2"></div>
         <div class="podio-lugar" data-degrau="3"></div>
       </div>
-      <button class="botao-menu" data-ir="ranking">Ver ranking completo</button>
+      <div class="premio-do-mes">
+        <button class="botao-limpo" id="premio-insignia-imagem" type="button" aria-label="Ver a sua próxima insígnia"></button>
+        <div class="premio-do-mes-texto">
+          <p class="detalhe">Prêmio do mês</p>
+          <p class="premio-texto" id="premio-texto"></p>
+          <p class="detalhe" id="premio-linha-insignia">e a sua próxima insígnia, a <button class="botao-limpo" id="premio-insignia" type="button"></button></p>
+          <button class="botao-menu" data-ir="ranking">Ver ranking completo</button>
+        </div>
+      </div>
     </section>
 
-    <section class="caixa pendente" id="aviso-pedidos" hidden>
-      <p id="aviso-pedidos-texto"></p>
-      <button class="botao" data-ir="administracao">Ver pedidos</button>
-    </section>
-
-    <section class="caixa pendente" id="pendente" hidden>
-      <p><strong id="pendente-autor"></strong> abriu <strong id="pendente-jogo"></strong>. Falta o seu placar.</p>
-      <p class="detalhe" id="pendente-progresso"></p>
-      <button class="botao" id="pendente-botao">Lançar meu placar</button>
-    </section>
-
-    <section class="caixa">
-      <h2 class="rotulo">Ranking geral</h2>
+    <section class="papel">
+      <div class="secao-topo"><h3>Ranking geral</h3></div>
       <ol class="ranking" id="ranking-geral"></ol>
     </section>
   </main>
@@ -246,7 +259,7 @@
       <footer class="acao-partida">
         <p class="aviso-acao" id="aviso-abrir-partida" role="status" hidden></p>
         <div class="resumo-partida"><strong id="resumo-jogo">Escolha um jogo</strong><span id="resumo-quantidade">1 jogador</span></div>
-        <button class="botao" id="abrir-partida" type="submit">Abrir partida</button>
+        <button class="botao botao-destaque" id="abrir-partida" type="submit">Abrir partida</button>
       </footer>
     </form>
 

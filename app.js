@@ -1527,6 +1527,19 @@ function mostrarInicio() {
   }
 
   const { linhas, total } = rankingDe(mesAtual);
+  const contados = linhas.filter(l => l.partidas > 0);
+  const lugar = contados.findIndex(l => l.id === eu.id);
+  const minha = contados[lugar];
+  const vizinho = contados[lugar ? lugar - 1 : 1];
+  document.getElementById('voce-foto').replaceChildren(imagemDe(eu, 'foto'));
+  document.getElementById('voce-posicao').textContent = minha ? `${minha.posicao}º lugar` : 'Fora da disputa';
+  let situacao = `Você ainda não jogou em ${MESES[indice]}.`;
+  if (minha && !vizinho) situacao = 'Sozinho na disputa.';
+  else if (minha && lugar === 0) situacao = `${formatoNota.format(minha.nota - vizinho.nota)} à frente de ${jogador(vizinho.id).apelido}.`;
+  else if (minha && vizinho.nota > minha.nota) situacao = `Faltam ${formatoNota.format(vizinho.nota - minha.nota)} para passar ${jogador(vizinho.id).apelido}.`;
+  else if (minha) situacao = `Empatado com ${jogador(vizinho.id).apelido}.`;
+  document.getElementById('voce-detalhe').textContent = minha ? `Nota ${formatoNota.format(minha.nota)}. ${situacao}` : situacao;
+
   const podio = document.getElementById('podio-do-mes');
   if (total) desenharPodio(podio, linhas);
   else podio.querySelectorAll('.podio-lugar').forEach(lugar => lugar.replaceChildren(vagaNoPodio()));
