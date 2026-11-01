@@ -1277,6 +1277,8 @@ function mostrarEntrada(mensagem, saida = null) {
   tentar.hidden = saida !== 'tentar';
   document.getElementById('rodape-entrada').hidden = saida !== 'google' || mensagem === AGUARDANDO;
   document.getElementById('video-entrada').hidden = saida !== 'google';
+  const apresentacao = document.getElementById('apresentacao');
+  if (saida === 'google') apresentacao.poster ||= apresentacao.dataset.poster;
   mostrarTela('entrada');
 }
 
@@ -2777,7 +2779,7 @@ function mostrarInsignias() {
     parada.setAttribute('aria-label', insignia.nome);
     const pedestal = criar('img', 'parada-pedestal');
     pedestal.alt = '';
-    pedestal.src = 'midia/insignias/pedestal.png';
+    pedestal.src = 'midia/insignias/pedestal.webp';
     parada.append(pedestal, desenhoDaInsignia(i, true), criar('span', 'parada-nome', insignia.nome.replace(/^Insígnia d[aeo]s? /, '')));
     parada.addEventListener('click', () => irPara('insignia', i + 1));
     return parada;
@@ -3192,7 +3194,7 @@ function cartazDoMeuDuelo(duelo) {
   const item = criar('li', 'meu-duelo');
   const cartaz = criar('div', `cartaz-duelo${duelo.fase === 'em jogo' ? ' jogando' : ''}`);
   const vs = criar('img', 'cartaz-vs');
-  vs.src = 'midia/duelos/vs.png';
+  vs.src = 'midia/duelos/vs.webp';
   vs.alt = 'contra';
   const rostos = criar('div', 'cartaz-rostos');
   rostos.append(imagemDe(eu, 'foto'), vs, imagemDe(jogador(rival), 'foto'));
@@ -3233,7 +3235,7 @@ function rivalidadesDe(id) {
 function destaqueDaFicha(rotulo, emblema, rival) {
   const destaque = criar('div', 'ficha-destaque');
   const icone = criar('img', 'ficha-emblema');
-  icone.src = `midia/duelos/emblema-${emblema}.png`;
+  icone.src = `midia/duelos/emblema-${emblema}.webp`;
   icone.alt = '';
   const texto = criar('span');
   texto.append(criar('span', 'detalhe', rotulo), criar('span', '', jogador(rival.b)?.apelido || '?'), criar('span', 'detalhe', `${rival.placarA} x ${rival.placarB}`));

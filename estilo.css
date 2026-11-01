@@ -514,7 +514,7 @@ select.campo {
 .ficha-duelos { display: grid; gap: 10px; }
 .ficha-duelos .secao-topo { margin-bottom: 0; }
 .ficha-icone { width: 40px; height: 40px; image-rendering: pixelated; }
-.placar-de-pedra { --largura: 220px; position: relative; display: block; width: var(--largura); aspect-ratio: 480 / 233; background: url(midia/duelos/placar.png) center / 100% 100% no-repeat; image-rendering: pixelated; color: var(--caixa); font: 600 calc(var(--largura) * .22)/1 'Pixelify Sans Digitos', 'Pixelify Sans', sans-serif; text-shadow: 2px 2px 0 var(--tinta); }
+.placar-de-pedra { --largura: 220px; position: relative; display: block; width: var(--largura); aspect-ratio: 480 / 233; background: url(midia/duelos/placar.webp) center / 100% 100% no-repeat; image-rendering: pixelated; color: var(--caixa); font: 600 calc(var(--largura) * .22)/1 'Pixelify Sans Digitos', 'Pixelify Sans', sans-serif; text-shadow: 2px 2px 0 var(--tinta); }
 .placar-de-pedra > span { position: absolute; top: 28.3%; width: 38.125%; height: 48.9%; display: grid; place-items: center; translate: var(--centro-da-tinta) .08em; }
 .placar-de-pedra > span:first-child { left: 7.5%; }
 .placar-de-pedra > span:last-child { left: 54.375%; }
@@ -771,7 +771,7 @@ select.campo {
 
 .historia { display: grid; gap: 10px; margin-top: 8px; font-size: 15px; }
 
-.faixa-travessia { display: grid; place-items: center; aspect-ratio: 720 / 160; padding: 0 17% 1%; background: url(midia/insignias/faixa-travessia.png) center / 100% 100% no-repeat; color: var(--tinta); font-size: 14px; line-height: 1.3; text-align: center; }
+.faixa-travessia { display: grid; place-items: center; aspect-ratio: 720 / 160; padding: 0 17% 1%; background: url(midia/insignias/faixa-travessia.webp) center / 100% 100% no-repeat; color: var(--tinta); font-size: 14px; line-height: 1.3; text-align: center; }
 .mapa-insignias { position: relative; aspect-ratio: 1 / .95; margin-top: 12px; border: 2px solid var(--tinta); background: url(midia/insignias/mapa-insignias.jpg) top / 100% auto; }
 .parada-insignia { position: absolute; width: 18%; padding: 0; border: 0; background: none; transform: translate(-50%, -50%); cursor: pointer; }
 .parada-pedestal { display: block; width: 100%; height: auto; }
