@@ -54,6 +54,8 @@ body {
 
 .topo { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 54px; border-bottom: 1px solid var(--moldura); }
 .marca { display: flex; align-items: center; min-height: 36px; padding-top: 2px; font: 600 14px/1 'Pixelify Sans', sans-serif; letter-spacing: 1.4px; text-transform: uppercase; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.marca-servidor { margin-left: 8px; padding: 2px 6px; border: 1px solid var(--moldura); color: var(--ouro); font: 12px/1.2 'DotGothic16', monospace; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.marca-servidor:empty { display: none; }
 .voltar-inicio { display: grid; place-items: center; min-width: 38px; min-height: 44px; color: var(--caixa); text-decoration: none; touch-action: manipulation; }
 .voltar-inicio > span { display: block; width: 8px; height: 14px; background: currentColor; -webkit-mask: var(--seta-direita) center / 100% 100% no-repeat; mask: var(--seta-direita) center / 100% 100% no-repeat; transform: rotate(180deg); }
 .icone-do-site { width: 28px; height: 28px; image-rendering: pixelated; }
@@ -219,6 +221,8 @@ select.campo {
 .tela:has(> [data-tela="entrada"]:not([hidden])) > .topo { display: none; }
 .entrada { display: grid; gap: 14px; justify-items: center; padding-block: 24px; text-align: center; }
 .entrada .botao { justify-self: center; }
+.entrada .formulario { justify-self: stretch; text-align: left; }
+.entrada #servidores-outra-conta { justify-self: center; margin-top: 6px; }
 .entrada-icone { width: 150px; height: 150px; }
 .entrada-rodape { justify-self: stretch; margin-top: 4px; padding-top: 14px; border-top: 2px solid var(--caixa-funda); font-size: 13px; color: var(--tinta-suave); }
 .entrada-video { display: grid; gap: 10px; }
@@ -261,6 +265,7 @@ select.campo {
 .voce-posicao { font: 600 24px/1.15 'Pixelify Sans Digitos', 'Pixelify Sans', sans-serif; }
 .disputa .podio { margin: 70px 0 14px; }
 .premio-do-mes { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: center; gap: 14px; padding-top: 12px; border-top: 1px solid var(--caixa-funda); }
+.premio-do-mes:has(> #premio-insignia-imagem[hidden]) { grid-template-columns: minmax(0, 1fr); }
 .premio-do-mes .insignia.grande { width: 56px; height: 56px; }
 .premio-do-mes-texto { display: grid; justify-items: start; gap: 3px; }
 .premio-do-mes-texto .botao-menu { margin-top: 8px; }
@@ -936,20 +941,32 @@ select.campo {
 .exemplo { display: grid; gap: 2px; margin-top: 4px; padding: 8px 10px; background: var(--caixa-marcada); border-left: 4px solid var(--ouro); font-size: 14px; }
 .exemplo .rotulo { font-size: 11px; }
 
-.lista-acessos li {
+.lista-acessos { margin-top: 6px; }
+.lista-acessos li { border-top: 2px solid var(--caixa-funda); }
+
+.linha-acesso {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-  padding: 8px 0;
-  border-top: 2px solid var(--caixa-funda);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 8px;
+  width: 100%;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--tinta);
   font-size: 16px;
-  overflow-wrap: anywhere;
+  text-align: left;
 }
 
-.lista-acessos li:first-child { border-top: 0; }
-.acesso-quem { display: grid; gap: 2px; min-width: 0; }
-.acesso-quem .email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.acesso-quando { align-self: center; text-align: right; }
+button.linha-acesso { cursor: pointer; }
+.linha-acesso[aria-expanded="true"] { background: var(--caixa-marcada); }
+.linha-acesso .email { grid-column: 1 / -1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acesso-nome { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.acesso-quando { text-align: right; }
+.acoes-do-acesso { display: grid; grid-template-columns: 1fr 1fr; padding: 8px 4px 10px; background: var(--caixa-marcada); }
+.acoes-do-acesso .botao { justify-self: stretch; min-height: 44px; padding: 6px 8px; font-size: 14px; }
+.campo-servidor-acessos { flex: 0 0 auto; width: auto; padding: 4px 34px 4px 10px; font-size: 15px; }
+.selo-menu { display: inline-grid; place-items: center; min-width: 22px; height: 22px; margin-left: 8px; padding: 0 5px; background: var(--perigo); color: #fff; font: 13px/1 'DotGothic16', monospace; letter-spacing: 0; vertical-align: middle; }
 .email, #campo-email { font-family: 'Pixelify Sans Digitos', 'Pixelify Sans', monospace; font-weight: 400; letter-spacing: 0; }
 
 .lista-pedidos { padding: 0; list-style: none; }

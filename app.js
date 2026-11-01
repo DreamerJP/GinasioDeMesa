@@ -1,20 +1,36 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import {
   initializeFirestore, memoryLocalCache, terminate, clearIndexedDbPersistence,
-  collection, doc, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, arrayUnion, arrayRemove,
+  collection, doc, query, where, onSnapshot, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, arrayUnion, arrayRemove,
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
-const FIREBASE = {
-  apiKey: 'AIzaSyA13vwn78UVFuTeSR1fnOmvUa8Nk-E697Q',
-  authDomain: 'ginasio-de-mesa.firebaseapp.com',
-  projectId: 'ginasio-de-mesa',
-  appId: '1:777149850301:web:ef7fd180c2654bb338cdd4',
-};
+const SERVIDORES = [
+  {
+    id: 'edson',
+    nome: 'Edson',
+    firebase: {
+      apiKey: 'AIzaSyA13vwn78UVFuTeSR1fnOmvUa8Nk-E697Q',
+      authDomain: 'ginasio-de-mesa.firebaseapp.com',
+      projectId: 'ginasio-de-mesa',
+      appId: '1:777149850301:web:ef7fd180c2654bb338cdd4',
+    },
+  },
+  {
+    id: 'victor',
+    nome: 'Victor',
+    firebase: {
+      apiKey: 'AIzaSyA-CCkpEgM7yJ09x5yclj3d_1PQ9EEvKuc',
+      authDomain: 'ginasio-victor.firebaseapp.com',
+      projectId: 'ginasio-victor',
+      appId: '1:534534773650:web:eb492b8c0251a8e6bc3f4b',
+    },
+  },
+];
 const CHAVE_SOM = 'ginasio.som';
+const CHAVE_SERVIDOR = 'ginasio.servidor';
 const FUSO = 'America/Sao_Paulo';
 const DIAS_PARA_FECHAR_O_MES = 7;
-const AGUARDANDO = 'Seu pedido de entrada foi enviado. Assim que o administrador aprovar, o ginásio abre sozinho.';
 const DEMORA_DA_ENTRADA = 8000;
 const INTERVALO_DO_ACESSO = 30 * 60e3;
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
@@ -111,16 +127,23 @@ const CHEGADA_AO_PODIO = [
 const formatoNota = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: CASAS_DA_NOTA, maximumFractionDigits: CASAS_DA_NOTA });
 const formatoPlacar = new Intl.NumberFormat('pt-BR');
 
-const app = initializeApp(FIREBASE);
-const auth = getAuth(app);
-// Sem cópia do banco no aparelho: uma cópia guardada por versões antigas deixava o site parado em "Abrindo o ginásio…".
-const banco = initializeFirestore(app, { localCache: memoryLocalCache() });
+for (const [i, servidor] of SERVIDORES.entries()) {
+  const app = i ? initializeApp(servidor.firebase, servidor.id) : initializeApp(servidor.firebase);
+  servidor.auth = getAuth(app);
+  // Sem cópia do banco no aparelho: uma cópia guardada por versões antigas deixava o site parado em "Abrindo o ginásio…".
+  servidor.banco = initializeFirestore(app, { localCache: memoryLocalCache() });
+  servidor.escutas = [];
+  servidor.escutasExtras = [];
+}
+const [PRINCIPAL] = SERVIDORES;
 
+let email = '';
+let servidor = null;
+let banco = null;
 let conta = null;
 let lidos = {};
 let fotoCompletada = false;
 let acessoRegistradoEm = 0;
-let escutaDoAcesso = null;
 let escutasDosDados = [];
 let estado = null;
 let estadoEmEspera = null;
@@ -142,6 +165,8 @@ let duelosCalculados = { estado: null, valor: null };
 let desafio = { jogador: '', jogo: '' };
 let mesDosDuelos = '';
 let mesCompleto = false;
+let servidorNosAcessos = '';
+let acessoAberto = '';
 const imagensDosIcones = new Map();
 const tocadores = {};
 let somLigado = lerPreferenciaDeSom();
@@ -603,6 +628,7 @@ function avisosVistos() {
 }
 
 function marcarComoVisto(chaves) {
+  if (estado.eu.observador) return;
   const novas = chaves.filter(c => !estado.eu.vistos.includes(c));
   novas.forEach(c => vistosNestaSessao.add(c));
   if (novas.length) updateDoc(doc(banco, 'jogadores', estado.eu.id), { vistos: arrayUnion(...novas) }).catch(() => {});
@@ -874,7 +900,7 @@ function linkDeFoto(texto) {
 }
 
 function fotoDoGoogle() {
-  const foto = auth.currentUser?.photoURL || '';
+  const foto = PRINCIPAL.auth.currentUser?.photoURL || '';
   return linkDeFoto(foto) ? foto : '';
 }
 
@@ -892,13 +918,26 @@ function capaValida(capa) {
   throw recusa('Foto do jogo inválida. Use uma foto ou um link que abra direto a imagem.');
 }
 
-function exigirEmailLivre(endereco) {
-  if (lidos.acessos.some(a => a.id === endereco)) throw recusa('Esse e-mail já está liberado.');
-  if (lidos.pedidos.some(p => p.id === endereco)) throw recusa('Esse e-mail já pediu entrada. Aprove na lista de pedidos.');
+function servidorDoDono(id) {
+  const alvo = SERVIDORES.find(cada => cada.id === id && cada.doDono);
+  if (!alvo) throw recusa('Você não é dono desse servidor.');
+  return alvo;
 }
 
-function exigirJogadorSemEmail(id) {
-  if (!jogador(id) || lidos.acessos.some(a => a.jogador === id)) throw recusa('Esse jogador já tem e-mail.');
+async function emailJaLiberado(endereco, alvo) {
+  if (estado.eu.dono) return alvo.doDono.acessos.some(a => a.id === endereco);
+  return getDoc(doc(alvo.banco, 'acessos', endereco)).then(retrato => retrato.exists(), () => true);
+}
+
+function jogadoresSemEmail(alvo) {
+  if (!alvo?.doDono) return [];
+  const { jogadores, acessos } = alvo.doDono;
+  return jogadores.filter(j => j.apelido && !acessos.some(a => a.jogador === j.id)).sort((a, b) => a.apelido.localeCompare(b.apelido, 'pt-BR'));
+}
+
+function exigirJogadorSemEmail(id, alvo) {
+  if (!estado.eu.dono) throw recusa('Só o dono liga um e-mail a um jogador que já existe.');
+  if (!jogadoresSemEmail(alvo).some(j => j.id === id)) throw recusa('Esse jogador já tem e-mail.');
 }
 
 function partidaAbertaNoMes(id) {
@@ -997,21 +1036,38 @@ const ACOES = {
     return setDoc(doc(banco, 'premios', mes), { texto: textoLivre(texto, 2, 80, 'O prêmio') });
   },
 
-  liberarEmail({ email, jogador: id }) {
-    const endereco = String(email || '').trim().toLowerCase();
+  async liberarEmail({ email: endereco, jogador: id, servidor: alvoId }) {
+    endereco = String(endereco || '').trim().toLowerCase();
     if (!EMAIL_VALIDO.test(endereco)) throw recusa('E-mail inválido.');
-    exigirEmailLivre(endereco);
-    if (id) exigirJogadorSemEmail(id);
-    return setDoc(doc(banco, 'acessos', endereco), { jogador: id || novoIdDeJogador(), admin: false });
+    const alvo = estado.eu.dono ? servidorDoDono(alvoId) : servidor;
+    if (await emailJaLiberado(endereco, alvo)) throw recusa('Esse e-mail já está liberado.');
+    if (id) exigirJogadorSemEmail(id, alvo);
+    const pedidos = estado.eu.dono ? alvo.doDono.pedidos : lidos.pedidos;
+    const lote = writeBatch(alvo.banco);
+    lote.set(doc(alvo.banco, 'acessos', endereco), { jogador: id || novoIdDeJogador(), admin: false, dono: false });
+    if (pedidos.some(p => p.id === endereco)) lote.delete(doc(alvo.banco, 'pedidos', endereco));
+    return lote.commit();
   },
 
   aprovarPedido({ pedido, jogador: id }) {
     if (!lidos.pedidos.some(p => p.id === pedido)) throw recusa('Esse pedido não existe mais.');
-    if (id) exigirJogadorSemEmail(id);
+    if (id) exigirJogadorSemEmail(id, servidor);
     const lote = writeBatch(banco);
-    lote.set(doc(banco, 'acessos', pedido), { jogador: id || novoIdDeJogador(), admin: false });
+    lote.set(doc(banco, 'acessos', pedido), { jogador: id || novoIdDeJogador(), admin: false, dono: false });
     lote.delete(doc(banco, 'pedidos', pedido));
     return lote.commit();
+  },
+
+  mudarAcesso({ servidor: alvoId, email: endereco, papel }) {
+    if (!estado.eu.dono) throw recusa('Só o dono muda os acessos.');
+    if (endereco === email) throw recusa('O seu próprio acesso não muda por aqui.');
+    const alvo = servidorDoDono(alvoId);
+    const atual = alvo.doDono.acessos.find(a => a.id === endereco);
+    if (!atual) throw recusa('Esse acesso não existe mais.');
+    if (atual.dono) throw recusa('O acesso de outro dono não muda por aqui.');
+    const lugar = doc(alvo.banco, 'acessos', endereco);
+    if (!papel) return deleteDoc(lugar);
+    return setDoc(lugar, { jogador: atual.jogador, admin: papel === 'admin', dono: false });
   },
 
   recusarPedido({ pedido }) {
@@ -1081,60 +1137,255 @@ function pararDados() {
   escutasDosDados.forEach(parar => parar());
   escutasDosDados = [];
   lidos = {};
-}
-
-function pararEscutas() {
-  escutaDoAcesso?.();
-  escutaDoAcesso = null;
-  pararDados();
   conta = null;
   estado = null;
   estadoEmEspera = null;
   vistosNestaSessao.clear();
 }
 
-function acompanharConta(usuario) {
-  pararEscutas();
+function pararServidores() {
+  for (const cada of SERVIDORES) {
+    [...cada.escutas, ...cada.escutasExtras].forEach(parar => parar());
+    Object.assign(cada, { escutas: [], escutasExtras: [], extras: '', acesso: undefined, pedido: undefined, falhou: false, convites: [], pedidosDeEntrada: 0, doDono: null });
+  }
+}
+
+function sairDoServidor() {
+  pararDados();
+  servidor = null;
+  banco = null;
+  document.getElementById('nome-do-servidor').textContent = '';
+}
+
+function pararEscutas() {
+  pararServidores();
+  sairDoServidor();
+}
+
+function esquecerTelas() {
+  partidaAberta = '';
+  diaAberto = '';
+  mesDoDiaAberto = '';
+  tituloSendoVisto = '';
+  faixaAbertaNoPerfil = '';
+  correcao = null;
+  jogoEscolhido = '';
+  selecao = null;
   mesDoConvite = '';
+  mesDoCampeaoAberto = '';
+  desafio = { jogador: '', jogo: '' };
+  mesDosDuelos = '';
+  mesCompleto = false;
   fotoCompletada = false;
   acessoRegistradoEm = 0;
-  if (!usuario) {
+  servidorNosAcessos = '';
+  acessoAberto = '';
+  ['celebracao', 'conquista', 'resultado'].forEach(id => { document.getElementById(id).hidden = true; });
+}
+
+async function iniciarSessao() {
+  await Promise.all(SERVIDORES.map(cada => cada.auth.authStateReady()));
+  const endereco = PRINCIPAL.auth.currentUser?.email?.toLowerCase() || '';
+  if (!endereco || SERVIDORES.some(cada => cada.auth.currentUser?.email?.toLowerCase() !== endereco)) {
     mostrarEntrada('', 'google');
     return;
   }
-  mostrarEntrada('Abrindo o ginásio…');
-  const email = usuario.email.toLowerCase();
-  escutaDoAcesso = onSnapshot(doc(banco, 'acessos', email), retrato => {
-    if (retrato.metadata.hasPendingWrites) return;
-    if (!retrato.exists()) {
-      if (retrato.metadata.fromCache) return;
-      pararDados();
-      conta = null;
-      estado = null;
-      pedirEntrada(usuario, email);
-      return;
-    }
-    const { jogador: id, admin } = retrato.data();
-    if (conta?.id === id && conta?.admin === admin) return;
-    conta = { id, admin };
-    escutarDados();
-  }, falhaDeLeitura);
+  acompanharConta(endereco);
 }
 
-async function pedirEntrada(usuario, email) {
+function acompanharConta(endereco) {
+  pararEscutas();
+  email = endereco;
   mostrarEntrada('Abrindo o ginásio…');
+  for (const cada of SERVIDORES) {
+    const falhou = () => {
+      Object.assign(cada, { falhou: true, acesso: null, pedido: false });
+      decidirServidor();
+    };
+    cada.escutas = [
+      onSnapshot(doc(cada.banco, 'acessos', email), retrato => {
+        if (retrato.metadata.hasPendingWrites || (!retrato.exists() && retrato.metadata.fromCache)) return;
+        cada.acesso = retrato.exists() ? retrato.data() : null;
+        decidirServidor();
+      }, falhou),
+      onSnapshot(doc(cada.banco, 'pedidos', email), retrato => {
+        if (!retrato.exists() && retrato.metadata.fromCache) return;
+        cada.pedido = retrato.exists();
+        decidirServidor();
+      }, falhou),
+    ];
+  }
+}
+
+function papelEm(cada) {
+  const { jogador: id = '', admin = false, dono = false } = cada.acesso || {};
+  return { id, admin: admin || dono, dono };
+}
+
+function decidirServidor() {
+  if (SERVIDORES.some(cada => cada.acesso === undefined || cada.pedido === undefined)) return;
+  const comAcesso = SERVIDORES.filter(cada => cada.acesso);
+  if (servidor?.acesso) {
+    const papel = papelEm(servidor);
+    if (conta && (conta.id !== papel.id || conta.admin !== papel.admin || conta.dono !== papel.dono)) entrarNoServidor(servidor);
+    else atualizarServidores();
+    return;
+  }
+  if (servidor) {
+    sairDoServidor();
+    history.replaceState(null, '', location.pathname);
+  }
+  atualizarServidores();
+  let lembrado = '';
   try {
-    const pedido = doc(banco, 'pedidos', email);
-    if (!(await getDoc(pedido)).exists()) await setDoc(pedido, { nome: (usuario.displayName || '').slice(0, 60), criadoEm: serverTimestamp() });
-    if (!conta) mostrarEntrada(AGUARDANDO, 'google');
+    lembrado = localStorage.getItem(CHAVE_SERVIDOR) || '';
+  } catch {}
+  const escolhido = comAcesso.length === 1 ? comAcesso[0] : comAcesso.find(cada => cada.id === lembrado);
+  if (escolhido) entrarNoServidor(escolhido);
+  else if (comAcesso.length) mostrarEscolha();
+  else if (SERVIDORES.some(cada => cada.falhou)) mostrarEntrada('Não consegui abrir os dados do ginásio.', 'tentar');
+  else if (SERVIDORES.some(cada => cada.pedido)) {
+    const { nome } = SERVIDORES.find(cada => cada.pedido);
+    mostrarEntrada(`Seu pedido de entrada foi enviado para o servidor ${nome}. Assim que o administrador aprovar, o ginásio abre sozinho.`, 'google', true);
+  } else mostrarEscolha();
+}
+
+function entrarNoServidor(escolhido) {
+  pararDados();
+  esquecerTelas();
+  servidor = escolhido;
+  banco = escolhido.banco;
+  try {
+    localStorage.setItem(CHAVE_SERVIDOR, escolhido.id);
+  } catch {}
+  conta = papelEm(escolhido);
+  document.getElementById('nome-do-servidor').textContent = escolhido.nome;
+  atualizarServidores();
+  mostrarEntrada('Abrindo o ginásio…');
+  escutarDados();
+}
+
+function trocarDeServidor(escolhido) {
+  tocar('escolher');
+  if (escolhido === servidor) {
+    irPara('inicio');
+    return;
+  }
+  if (servidor) history.replaceState(null, '', location.pathname);
+  entrarNoServidor(escolhido);
+}
+
+function atualizarServidores() {
+  SERVIDORES.forEach(acompanharExtras);
+  mostrarTrocaDeServidor();
+}
+
+function acompanharExtras(cada) {
+  const papel = papelEm(cada);
+  const pendencias = Boolean(cada.acesso) && cada !== servidor && SERVIDORES.filter(s => s.acesso).length > 1;
+  const chave = cada.acesso ? [papel.id, papel.admin, papel.dono, pendencias].join() : '';
+  if (cada.extras === chave) return;
+  cada.escutasExtras.forEach(parar => parar());
+  Object.assign(cada, { escutasExtras: [], extras: chave, convites: [], pedidosDeEntrada: 0, doDono: null });
+  if (pendencias && papel.id) {
+    const convites = query(collection(cada.banco, 'duelos'), where('desafiado', '==', papel.id), where('situacao', '==', 'convite'));
+    cada.escutasExtras.push(onSnapshot(convites, retrato => {
+      cada.convites = retrato.docs.map(d => d.data({ serverTimestamps: 'estimate' }).criadoEm?.toDate?.() || new Date(0));
+      mostrarTrocaDeServidor();
+    }, () => {}));
+  }
+  if (pendencias && papel.admin) {
+    cada.escutasExtras.push(onSnapshot(collection(cada.banco, 'pedidos'), retrato => {
+      cada.pedidosDeEntrada = retrato.size;
+      mostrarTrocaDeServidor();
+    }, () => {}));
+  }
+  if (papel.dono) {
+    cada.doDono = { acessos: [], jogadores: [], ultimosAcessos: [], pedidos: [] };
+    for (const nome of Object.keys(cada.doDono)) {
+      cada.escutasExtras.push(onSnapshot(collection(cada.banco, nome), retrato => {
+        cada.doDono[nome] = retrato.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+        if (estado && telaVisivel === 'administracao' && !digitando()) mostrarAdministracao();
+      }, () => {}));
+    }
+  }
+}
+
+function pendenciasDe(cada) {
+  const valendo = cada.convites.filter(criadoEm => Date.now() - criadoEm.getTime() < PRAZO_DO_CONVITE).length;
+  return valendo + cada.pedidosDeEntrada;
+}
+
+function mostrarTrocaDeServidor() {
+  const outros = SERVIDORES.filter(cada => cada.acesso && cada !== servidor);
+  const total = outros.reduce((soma, cada) => soma + pendenciasDe(cada), 0);
+  document.querySelector('[data-item="servidores"]').hidden = !servidor || !outros.length;
+  const selo = document.getElementById('selo-servidores');
+  selo.hidden = !total;
+  selo.textContent = total;
+  if (!document.getElementById('form-servidor').hidden) mostrarServidores();
+}
+
+function mostrarServidores() {
+  const comAcesso = SERVIDORES.filter(cada => cada.acesso);
+  const pedir = !comAcesso.length;
+  const campo = document.getElementById('campo-servidor');
+  const anterior = campo.value;
+  const opcoes = (pedir ? SERVIDORES : comAcesso).map(cada => {
+    const pendencias = pedir || cada === servidor ? 0 : pendenciasDe(cada);
+    return new Option(pendencias ? `${cada.nome} (${pendencias} esperando)` : cada.nome, cada.id);
+  });
+  campo.replaceChildren(...(servidor ? [] : [new Option('Escolha', '')]), ...opcoes);
+  campo.value = [...campo.options].some(o => o.value === anterior && o.value) ? anterior : servidor?.id || '';
+  document.getElementById('botao-servidor').textContent = pedir ? 'Pedir entrada' : 'Entrar';
+  document.getElementById('servidores-outra-conta').hidden = !pedir;
+  const formulario = document.getElementById('form-servidor');
+  formulario.classList.toggle('caixa', Boolean(estado));
+  (estado ? document.querySelector('[data-tela="servidores"]') : document.querySelector('.entrada')).append(formulario);
+  formulario.hidden = false;
+  validarServidor();
+}
+
+function validarServidor() {
+  const escolhido = document.getElementById('campo-servidor').value;
+  document.getElementById('botao-servidor').disabled = !escolhido || escolhido === servidor?.id;
+}
+
+function ligarServidores() {
+  const formulario = document.getElementById('form-servidor');
+  const botao = document.getElementById('botao-servidor');
+  document.getElementById('campo-servidor').addEventListener('change', validarServidor);
+  formulario.addEventListener('submit', evento => {
+    evento.preventDefault();
+    const escolhido = SERVIDORES.find(cada => cada.id === document.getElementById('campo-servidor').value);
+    if (!escolhido || escolhido === servidor) return;
+    if (SERVIDORES.some(cada => cada.acesso)) trocarDeServidor(escolhido);
+    else pedirEntrada(escolhido, botao);
+  });
+  document.getElementById('servidores-outra-conta').addEventListener('click', entrarComGoogle);
+}
+
+function mostrarEscolha() {
+  mostrarEntrada('');
+  mostrarServidores();
+}
+
+async function pedirEntrada(escolhido, botao) {
+  const aviso = document.getElementById('aviso-servidores');
+  botao.disabled = true;
+  aviso.textContent = '';
+  try {
+    await setDoc(doc(escolhido.banco, 'pedidos', email), { nome: (PRINCIPAL.auth.currentUser?.displayName || '').slice(0, 60), criadoEm: serverTimestamp() });
+    tocar('confirmar');
   } catch {
-    if (!conta) mostrarEntrada('Não consegui registrar seu pedido de entrada.', 'tentar');
+    tocar('erro');
+    aviso.textContent = 'Não consegui registrar seu pedido de entrada.';
+    botao.disabled = false;
   }
 }
 
 function escutarDados() {
-  pararDados();
-  const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', 'fechamentos', 'duelos', ...(conta.admin ? ['acessos', 'pedidos', 'ultimosAcessos'] : [])];
+  const nomes = ['jogadores', 'jogos', 'partidas', 'premios', 'frases', 'fechamentos', 'duelos', ...(conta.admin ? ['pedidos'] : [])];
   // Nas partidas, escutar a confirmação do servidor: título só é anunciado depois que o placar gravou.
   escutasDosDados = nomes.map(nome => onSnapshot(collection(banco, nome), { includeMetadataChanges: nome === 'partidas' }, retrato => {
     lidos[nome] = retrato.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
@@ -1147,7 +1398,7 @@ function escutarDados() {
 }
 
 function registrarAcesso() {
-  if (!conta || document.visibilityState !== 'visible' || Date.now() - acessoRegistradoEm < INTERVALO_DO_ACESSO) return;
+  if (!conta?.id || document.visibilityState !== 'visible' || Date.now() - acessoRegistradoEm < INTERVALO_DO_ACESSO) return;
   acessoRegistradoEm = Date.now();
   setDoc(doc(banco, 'ultimosAcessos', conta.id), { em: serverTimestamp() }).catch(() => {});
 }
@@ -1169,15 +1420,12 @@ function comoPartida(p) {
 function montarEstado() {
   const meu = lidos.jogadores.find(j => j.id === conta.id);
   const jogadores = lidos.jogadores.filter(j => j.apelido).map(({ id, apelido, foto, titulo, moldura }) => ({ id, apelido, foto, titulo: titulo || '', moldura: moldura !== false }));
-  const apelidoDe = id => jogadores.find(j => j.id === id)?.apelido || '';
-  const comEmail = new Set((lidos.acessos || []).map(a => a.jogador));
-  const ultimoAcessoDe = id => lidos.ultimosAcessos?.find(u => u.id === id)?.em?.toDate?.() || null;
   return {
     mesAtual: mesDeHoje(),
     gravando: Boolean(lidos.partidasGravando),
     eu: {
-      id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', titulo: meu?.titulo || '', moldura: meu?.moldura !== false, admin: conta.admin,
-      vistos: Array.isArray(meu?.vistos) ? meu.vistos : [],
+      id: conta.id, apelido: meu?.apelido || '', foto: meu?.foto || '', titulo: meu?.titulo || '', moldura: meu?.moldura !== false,
+      admin: conta.admin, dono: conta.dono, observador: !conta.id, vistos: Array.isArray(meu?.vistos) ? meu.vistos : [],
     },
     jogadores,
     jogos: lidos.jogos.map(({ id, nome, menorVence, semPlacar, capa }) => ({ id, nome, menorVence, semPlacar, capa: capa || '' })),
@@ -1188,12 +1436,6 @@ function montarEstado() {
       id: d.id, desafiante: d.desafiante, desafiado: d.desafiado, jogo: d.jogo, provocacao: d.provocacao || '', situacao: d.situacao,
       criadoEm: d.criadoEm?.toDate?.() || new Date(0), respondidoEm: d.respondidoEm?.toDate?.() || null,
     })).sort((a, b) => b.criadoEm - a.criadoEm),
-    liberados: conta.admin
-      ? [
-        ...lidos.acessos.map(a => ({ id: a.jogador, email: a.id, apelido: apelidoDe(a.jogador), ultimoAcesso: ultimoAcessoDe(a.jogador) })),
-        ...jogadores.filter(j => !comEmail.has(j.id)).map(j => ({ id: j.id, email: '', apelido: j.apelido })),
-      ]
-      : [],
     pedidos: conta.admin ? lidos.pedidos.map(p => ({ id: p.id, email: p.id, nome: p.nome })) : [],
   };
 }
@@ -1228,16 +1470,21 @@ function aplicarEstadoEmEspera() {
 async function entrarComGoogle() {
   const provedor = new GoogleAuthProvider();
   provedor.setCustomParameters({ prompt: 'select_account' });
+  let usuario;
   try {
-    await signInWithPopup(auth, provedor);
+    const resultado = await signInWithPopup(PRINCIPAL.auth, provedor);
+    const { idToken, accessToken } = GoogleAuthProvider.credentialFromResult(resultado);
+    usuario = resultado.user;
+    mostrarEntrada('Abrindo o ginásio…');
+    await Promise.all(SERVIDORES.slice(1).map(cada => signInWithCredential(cada.auth, GoogleAuthProvider.credential(idToken, accessToken))));
   } catch (erro) {
     if (['auth/popup-closed-by-user', 'auth/cancelled-popup-request'].includes(erro.code)) return;
-    const aviso = document.getElementById('aviso-entrada');
-    aviso.textContent = erro.code === 'auth/popup-blocked'
+    mostrarEntrada(erro.code === 'auth/popup-blocked'
       ? 'O navegador bloqueou a janela do Google. Toque no botão de novo.'
-      : 'Não consegui entrar com o Google. Tente de novo.';
-    aviso.hidden = false;
+      : 'Não consegui entrar com o Google. Tente de novo.', 'google');
+    return;
   }
+  acompanharConta(usuario.email.toLowerCase());
 }
 
 function mostrarTela(nome) {
@@ -1252,7 +1499,7 @@ function mostrarTela(nome) {
   telaVisivel = nome;
 }
 
-function mostrarEntrada(mensagem, saida = null) {
+function mostrarEntrada(mensagem, saida = null, aguardando = false) {
   const carregando = !saida && mensagem.endsWith('…');
   const aviso = document.getElementById('aviso-entrada');
   aviso.textContent = carregando ? mensagem.slice(0, -1) : mensagem;
@@ -1274,8 +1521,9 @@ function mostrarEntrada(mensagem, saida = null) {
     }, DEMORA_DA_ENTRADA);
   }
   document.getElementById('botao-google').hidden = saida !== 'google';
+  document.getElementById('form-servidor').hidden = true;
   tentar.hidden = saida !== 'tentar';
-  document.getElementById('rodape-entrada').hidden = saida !== 'google' || mensagem === AGUARDANDO;
+  document.getElementById('rodape-entrada').hidden = saida !== 'google' || aguardando;
   document.getElementById('video-entrada').hidden = saida !== 'google';
   const apresentacao = document.getElementById('apresentacao');
   if (saida === 'google') apresentacao.poster ||= apresentacao.dataset.poster;
@@ -1284,15 +1532,19 @@ function mostrarEntrada(mensagem, saida = null) {
 
 function aplicarEstado(novo) {
   estado = novo;
-  if (!estado.eu.apelido) {
+  const { eu } = estado;
+  if (!eu.apelido && !eu.observador) {
     const foto = document.getElementById('previa-apelido-foto');
-    foto.src = estado.eu.foto || fotoDoGoogle() || avatarPadrao(estado.eu);
+    foto.src = eu.foto || fotoDoGoogle() || avatarPadrao(eu);
     mostrarTela('apelido');
     return;
   }
   document.querySelectorAll('[data-mes]').forEach(el => { el.textContent = MESES[indiceDoMes(estado.mesAtual)]; });
-  document.querySelector('[data-item="perfil"]').textContent = estado.eu.apelido;
-  document.querySelector('[data-item="administracao"]').hidden = !estado.eu.admin;
+  const perfil = document.querySelector('[data-item="perfil"]');
+  perfil.textContent = eu.apelido;
+  perfil.hidden = eu.observador;
+  document.querySelector('[data-item="nova-partida"]').hidden = eu.observador;
+  document.querySelector('[data-item="administracao"]').hidden = !eu.admin;
   renderizar();
 }
 
@@ -1501,7 +1753,7 @@ function mostrarInicio() {
   const indice = indiceDoMes(mesAtual);
   document.getElementById('premio-texto').textContent = premios[mesAtual] || 'Prêmio a definir';
   document.getElementById('premio-fecha').textContent = textoFechamento(mesAtual);
-  const proxima = proximaInsignia(eu.id);
+  const proxima = eu.observador ? null : proximaInsignia(eu.id);
   document.getElementById('premio-insignia-imagem').hidden = proxima === null;
   document.getElementById('premio-linha-insignia').hidden = proxima === null;
   if (proxima !== null) {
@@ -1535,6 +1787,7 @@ function mostrarInicio() {
   const lugar = contados.findIndex(l => l.id === eu.id);
   const minha = contados[lugar];
   const vizinho = contados[lugar ? lugar - 1 : 1];
+  document.getElementById('voce-no-mes').hidden = eu.observador;
   document.getElementById('voce-foto').replaceChildren(imagemDe(eu, 'foto'));
   document.getElementById('voce-posicao').textContent = minha ? `${minha.posicao}º lugar` : 'Fora da disputa';
   let situacao = `Você ainda não jogou em ${MESES[indice]}.`;
@@ -2368,7 +2621,8 @@ function mostrarPerfil(id) {
   const empates = entreNos.empates ? `, ${quantidade(entreNos.empates, ['empate', 'empates'])}` : '';
   contra.textContent = `Entre vocês: você ${entreNos.vitorias} x ${entreNos.derrotas} ${alguem.apelido}${empates}`;
   const desafiar = document.getElementById('perfil-desafiar');
-  const motivo = proprio ? '' : motivoParaNaoDesafiar(alguem.id);
+  const motivo = proprio || eu.observador ? '' : motivoParaNaoDesafiar(alguem.id);
+  desafiar.hidden = eu.observador;
   desafiar.textContent = proprio ? 'Desafiar alguém' : `Desafiar ${alguem.apelido}`;
   desafiar.disabled = Boolean(motivo);
   desafiar.onclick = () => {
@@ -2593,6 +2847,7 @@ function mostrarTitulo(id) {
   const { eu } = estado;
   const meu = situacaoDe(eu.id, id);
   const variosNiveis = titulo.metas.length > 1;
+  document.getElementById('titulo-meu').hidden = eu.observador;
   const vitrine = meu.alcancados ? meu : { titulo, nivel: nivelInicial(titulo), alcancados: 1 };
   document.getElementById('titulo-quadro').replaceChildren(quadroDoTitulo(vitrine, true));
   document.getElementById('titulo-faixa').replaceChildren(faixaDoTitulo(vitrine, false));
@@ -2993,7 +3248,7 @@ async function mostrarRegras() {
 }
 
 function mostrarAdministracao() {
-  const { mesAtual, premios, liberados } = estado;
+  const { mesAtual, premios } = estado;
   const premio = document.getElementById('campo-premio');
   premio.value = premios[mesAtual] || '';
   validarPremio();
@@ -3008,13 +3263,22 @@ function mostrarAdministracao() {
     ? 'Feche ou cancele a partida aberta antes.'
     : `O campeão aparece para todos na hora e as partidas novas já contam para ${MESES[indiceDoMes(mesSeguinte(mesAtual))]}.`;
 
+  const { dono } = estado.eu;
+  const alvo = servidorDosAcessos();
   const vinculo = document.getElementById('campo-vinculo');
-  const semEmail = liberados.filter(l => !l.email && l.apelido);
-  const opcoesDeVinculo = () => [new Option('Jogador novo', ''), ...semEmail.map(l => new Option(l.apelido, l.id))];
-  vinculo.replaceChildren(...opcoesDeVinculo());
+  const semEmail = jogadoresSemEmail(alvo);
+  const escolhaDoVinculo = vinculo.value;
+  vinculo.replaceChildren(new Option('Jogador novo', ''), ...semEmail.map(j => new Option(j.apelido, j.id)));
+  vinculo.value = semEmail.some(j => j.id === escolhaDoVinculo) ? escolhaDoVinculo : '';
+  vinculo.hidden = !semEmail.length;
+  document.getElementById('rodape-liberar').hidden = !semEmail.length;
+  document.querySelector('label[data-liberar]').htmlFor = semEmail.length ? 'campo-vinculo' : 'campo-email';
 
+  const semEmailAqui = jogadoresSemEmail(dono ? servidor : null);
+  const opcoesDeVinculo = () => [new Option('Jogador novo', ''), ...semEmailAqui.map(j => new Option(j.apelido, j.id))];
   const pedidos = estado.pedidos || [];
   document.getElementById('caixa-pedidos').hidden = !pedidos.length;
+  document.getElementById('rodape-pedidos').hidden = !semEmailAqui.length;
   document.getElementById('lista-pedidos').replaceChildren(...pedidos.map(pedido => {
     const item = criar('li');
     const escolha = criar('select', 'campo campo-texto');
@@ -3024,6 +3288,7 @@ function mostrarAdministracao() {
     const linhaCampo = criar('div', 'linha-campo');
     escolha.setAttribute('aria-label', `De quem é a conta ${pedido.email}`);
     escolha.append(...opcoesDeVinculo());
+    escolha.hidden = !semEmailAqui.length;
     aprovar.addEventListener('click', () => enviar(aprovar, aviso, 'aprovarPedido', { pedido: pedido.id, jogador: escolha.value || undefined }));
     recusar.addEventListener('click', () => enviar(recusar, aviso, 'recusarPedido', { pedido: pedido.id }));
     linhaCampo.append(escolha, aprovar);
@@ -3031,14 +3296,78 @@ function mostrarAdministracao() {
     return item;
   }));
 
-  const ordenados = [...liberados].sort((a, b) => Boolean(b.email) - Boolean(a.email) || (b.ultimoAcesso || 0) - (a.ultimoAcesso || 0));
-  document.getElementById('lista-acessos').replaceChildren(...ordenados.map(l => {
-    const item = criar('li');
-    const quem = criar('span', 'acesso-quem');
-    quem.append(criar('span', l.apelido ? '' : 'detalhe', l.apelido || 'ainda não entrou'), criar('span', l.email ? 'detalhe email' : 'detalhe', l.email || 'sem e-mail'));
-    item.append(quem, criar('span', 'detalhe acesso-quando', l.email ? quandoFoiOAcesso(l.ultimoAcesso) : ''));
-    return item;
-  }));
+  document.getElementById('topo-acessos').hidden = !dono;
+  document.getElementById('lista-acessos').hidden = !dono;
+  if (!dono) return;
+  const campoServidor = document.getElementById('servidor-dos-acessos');
+  campoServidor.replaceChildren(...SERVIDORES.filter(cada => cada.doDono).map(cada => new Option(cada.nome, cada.id)));
+  campoServidor.value = alvo.id;
+  mostrarAcessosDoDono();
+}
+
+function servidorDosAcessos() {
+  return SERVIDORES.find(cada => cada.id === servidorNosAcessos && cada.doDono) || servidor;
+}
+
+function mostrarAcessosDoDono() {
+  const alvo = servidorDosAcessos();
+  const { acessos, jogadores, ultimosAcessos } = alvo.doDono || { acessos: [], jogadores: [], ultimosAcessos: [] };
+  const pessoas = acessos.map(acesso => ({
+    acesso,
+    apelido: jogadores.find(j => j.id === acesso.jogador)?.apelido || '',
+    ultimo: ultimosAcessos.find(u => u.id === acesso.jogador)?.em?.toDate?.() || null,
+  })).sort((a, b) => (b.ultimo || 0) - (a.ultimo || 0) || (a.apelido || a.acesso.id).localeCompare(b.apelido || b.acesso.id, 'pt-BR'));
+  if (!pessoas.some(p => p.acesso.id === acessoAberto)) acessoAberto = '';
+  document.getElementById('lista-acessos').replaceChildren(...pessoas.map(pessoa => linhaDeAcesso(alvo, pessoa)));
+}
+
+function linhaDeAcesso(alvo, { acesso, apelido, ultimo }) {
+  const fixa = acesso.id === email || acesso.dono;
+  const item = criar('li');
+  const linha = criar(fixa ? 'div' : 'button', 'linha-acesso');
+  const nome = criar('span', 'acesso-nome');
+  nome.append(criar('span', apelido ? '' : 'detalhe', apelido || (acesso.jogador ? 'ainda não entrou' : 'sem jogador')));
+  if (acesso.dono || acesso.admin) nome.append(criar('span', 'etiqueta-escura', acesso.dono ? 'Dono' : 'Admin'));
+  linha.append(nome, criar('span', 'detalhe acesso-quando', apelido ? quandoFoiOAcesso(ultimo) : ''), criar('span', 'detalhe email', acesso.id));
+  item.append(linha);
+  if (fixa) return item;
+  const aberta = acesso.id === acessoAberto;
+  linha.type = 'button';
+  linha.setAttribute('aria-expanded', aberta);
+  linha.addEventListener('click', () => {
+    acessoAberto = aberta ? '' : acesso.id;
+    mostrarAcessosDoDono();
+  });
+  if (aberta) item.append(...acoesDoAcesso(alvo, acesso));
+  return item;
+}
+
+function acoesDoAcesso(alvo, acesso) {
+  const aviso = criar('p', 'aviso');
+  const trocar = criar('button', 'botao botao-claro', acesso.admin ? 'Tornar jogador' : 'Tornar admin');
+  trocar.type = 'button';
+  trocar.addEventListener('click', () => enviar(trocar, aviso, 'mudarAcesso', { servidor: alvo.id, email: acesso.id, papel: acesso.admin ? 'jogador' : 'admin' }));
+  const tirar = criar('button', 'botao botao-claro', 'Tirar deste servidor');
+  tirar.type = 'button';
+  let confirmando = null;
+  tirar.addEventListener('click', async () => {
+    if (!confirmando) {
+      tirar.textContent = 'Toque de novo para tirar';
+      tirar.classList.replace('botao-claro', 'botao-perigo');
+      confirmando = setTimeout(() => {
+        confirmando = null;
+        tirar.textContent = 'Tirar deste servidor';
+        tirar.classList.replace('botao-perigo', 'botao-claro');
+      }, 4000);
+      return;
+    }
+    clearTimeout(confirmando);
+    confirmando = null;
+    if (await enviar(tirar, aviso, 'mudarAcesso', { servidor: alvo.id, email: acesso.id, papel: '' })) acessoAberto = '';
+  });
+  const botoes = criar('div', 'linha-botoes acoes-do-acesso');
+  botoes.append(trocar, tirar);
+  return [botoes, aviso];
 }
 
 function quandoFoiOAcesso(momento) {
@@ -3070,13 +3399,21 @@ function ligarAdministracao() {
   });
 
   const formLiberar = document.getElementById('form-liberar');
-  const email = document.getElementById('campo-email');
-  email.addEventListener('input', validarEmail);
+  const campoEmail = document.getElementById('campo-email');
+  const avisoLiberar = document.getElementById('aviso-liberar');
+  campoEmail.addEventListener('input', validarEmail);
   formLiberar.addEventListener('submit', async evento => {
     evento.preventDefault();
-    const dados = { email: email.value.trim(), jogador: document.getElementById('campo-vinculo').value || undefined };
-    if (await enviar(formLiberar.querySelector('button'), document.getElementById('aviso-liberar'), 'liberarEmail', dados)) email.value = '';
+    const dados = { email: campoEmail.value.trim(), jogador: document.getElementById('campo-vinculo').value || undefined, servidor: servidorDosAcessos().id };
+    if (await enviar(formLiberar.querySelector('button'), avisoLiberar, 'liberarEmail', dados)) campoEmail.value = '';
     validarEmail();
+  });
+  document.getElementById('servidor-dos-acessos').addEventListener('change', evento => {
+    servidorNosAcessos = evento.target.value;
+    acessoAberto = '';
+    avisoLiberar.textContent = '';
+    evento.target.blur();
+    mostrarAdministracao();
   });
 
   const fecharMes = document.getElementById('fechar-mes');
@@ -3353,8 +3690,10 @@ const VISTAS_DE_DUELO = ['desafiar', 'em-jogo', 'historico'];
 
 function mostrarDuelos(pedido) {
   const { eu } = estado;
-  const vista = VISTAS_DE_DUELO.includes(pedido) ? pedido : '';
+  const vista = VISTAS_DE_DUELO.includes(pedido) && !(eu.observador && pedido === 'desafiar') ? pedido : '';
   const tela = document.querySelector('[data-tela="duelos"]');
+  tela.querySelectorAll('[data-ir="duelos/desafiar"]').forEach(botao => { botao.hidden = eu.observador; });
+  document.getElementById('ficha-duelos').hidden = eu.observador;
   document.getElementById('arena').hidden = Boolean(vista);
   document.getElementById('voltar-arena').hidden = !vista;
   tela.querySelectorAll('[data-vista]').forEach(parte => { parte.hidden = parte.dataset.vista !== vista; });
@@ -3518,6 +3857,7 @@ const TITULOS_DAS_TELAS = {
   campeoes: 'Campeões',
   regras: 'Regras',
   administracao: 'Administração',
+  servidores: 'Trocar servidor',
 };
 
 const TELAS = {
@@ -3534,16 +3874,21 @@ const TELAS = {
   campeoes: mostrarCampeoes,
   regras: mostrarRegras,
   administracao: mostrarAdministracao,
+  servidores: mostrarServidores,
 };
 
 function rotaAtual() {
   const [tela, parametro = ''] = location.hash.slice(1).split('/');
-  if (!TELAS[tela] || (tela === 'administracao' && !estado.eu.admin)) return { tela: 'inicio', parametro: '' };
+  const { eu } = estado;
+  const fechada = (tela === 'administracao' && !eu.admin)
+    || (tela === 'servidores' && SERVIDORES.filter(cada => cada.acesso).length < 2)
+    || (eu.observador && (tela === 'nova-partida' || (tela === 'perfil' && !parametro)));
+  if (!TELAS[tela] || fechada) return { tela: 'inicio', parametro: '' };
   return { tela, parametro: decodeURIComponent(parametro) };
 }
 
 function renderizar() {
-  if (!estado?.eu.apelido) return;
+  if (!estado || (!estado.eu.apelido && !estado.eu.observador)) return;
   const { tela, parametro } = rotaAtual();
   mostrarTela(tela);
   TELAS[tela](parametro);
@@ -3582,9 +3927,11 @@ async function sairDaConta() {
   pararEscutas();
   history.replaceState(null, '', location.pathname);
   mostrarEntrada('Saindo…');
-  await signOut(auth).catch(() => {});
-  await terminate(banco).catch(() => {});
-  await clearIndexedDbPersistence(banco).catch(() => {});
+  await Promise.all(SERVIDORES.map(async cada => {
+    await signOut(cada.auth).catch(() => {});
+    await terminate(cada.banco).catch(() => {});
+    await clearIndexedDbPersistence(cada.banco).catch(() => {});
+  }));
   location.reload();
 }
 
@@ -3672,6 +4019,7 @@ function iniciar() {
   ligarAdministracao();
   ligarDuelos();
   ligarRegras();
+  ligarServidores();
   document.getElementById('botao-google').addEventListener('click', entrarComGoogle);
   window.addEventListener('hashchange', renderizar);
   window.addEventListener('resize', encaixarTopoDoPerfil);
@@ -3680,8 +4028,8 @@ function iniciar() {
     if (!digitando()) aplicarEstadoEmEspera();
   }));
   try { localStorage.removeItem('ginasio.token'); } catch {}
-  try { indexedDB.deleteDatabase(`firestore/[DEFAULT]/${FIREBASE.projectId}/main`); } catch {}
-  onAuthStateChanged(auth, acompanharConta);
+  try { indexedDB.deleteDatabase(`firestore/[DEFAULT]/${PRINCIPAL.firebase.projectId}/main`); } catch {}
+  iniciarSessao();
 }
 
 iniciar();

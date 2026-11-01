@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' https: data:; media-src 'self'; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://apis.google.com; frame-src https://ginasio-de-mesa.firebaseapp.com https://ginasio-victor.firebaseapp.com https://accounts.google.com; base-uri 'none'; form-action 'self'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ginásio de Mesa</title>
 <link rel="icon" type="image/png" href="midia/site/icone-64.png?v=2">
@@ -13,14 +14,15 @@
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js">
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link rel="stylesheet" href="estilo.css?v=82">
-<script type="module" src="app.js?v=92" onerror="document.getElementById('aviso-entrada').textContent = 'Não consegui carregar o ginásio. Se usar bloqueador de anúncios, libere este site e tente de novo.'; document.getElementById('tentar-de-novo').hidden = false"></script>
+<link rel="stylesheet" href="estilo.css?v=83">
+<script src="carregamento.js?v=1"></script>
+<script type="module" src="app.js?v=93"></script>
 </head>
 <body>
 <div class="tela">
   <header class="topo">
     <a class="voltar-inicio" href="#inicio" aria-label="Voltar ao Ginásio"><span aria-hidden="true"></span><img class="icone-do-site" src="midia/site/icone-64.png" alt=""></a>
-    <h1 class="marca" data-ir="inicio">Ginásio de Mesa</h1>
+    <h1 class="marca" data-ir="inicio">Ginásio de Mesa<span class="marca-servidor" id="nome-do-servidor"></span></h1>
     <button class="botao-menu" id="abrir-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="menu" hidden>Menu</button>
   </header>
 
@@ -41,6 +43,7 @@
       <button role="menuitem" data-item="perfil">Perfil</button>
       <button role="menuitem" data-item="som">Som: ligado</button>
       <button role="menuitem" data-item="administracao" hidden>Administração</button>
+      <button role="menuitem" data-item="servidores" hidden>Trocar servidor<span class="selo-menu" id="selo-servidores" hidden></span></button>
       <button role="menuitem" data-item="sair">Sair da conta</button>
     </div>
   </nav>
@@ -54,8 +57,8 @@
       <p id="aviso-entrada">Abrindo o ginásio<span class="pontos"><span>.</span><span>.</span><span>.</span></span></p>
       <p class="detalhe" id="demora-entrada" hidden>Está demorando mais que o normal.</p>
       <button class="botao" id="botao-google" hidden>Entrar com o Google</button>
-      <button class="botao" id="tentar-de-novo" onclick="location.reload()" hidden>Tentar de novo</button>
-      <p class="entrada-rodape" id="rodape-entrada" hidden>Ainda não está no grupo? Entre mesmo assim e o pedido vai para o administrador.</p>
+      <button class="botao" id="tentar-de-novo" hidden>Tentar de novo</button>
+      <p class="entrada-rodape" id="rodape-entrada" hidden>Ainda não está no grupo? Entre mesmo assim e escolha onde pedir entrada.</p>
     </section>
     <section class="caixa entrada-video" id="video-entrada" hidden>
       <h2 class="rotulo">Conheça o Ginásio</h2>
@@ -87,6 +90,18 @@
     </form>
   </main>
 
+  <main class="conteudo" data-tela="servidores" hidden>
+    <form class="caixa formulario" id="form-servidor">
+      <label class="rotulo" for="campo-servidor">Servidor</label>
+      <div class="linha-campo">
+        <select class="campo campo-texto" id="campo-servidor"></select>
+        <button class="botao" id="botao-servidor" disabled>Entrar</button>
+      </div>
+      <p class="aviso" id="aviso-servidores" role="alert"></p>
+      <button class="botao-menu" id="servidores-outra-conta" type="button" hidden>Entrar com outra conta</button>
+    </form>
+  </main>
+
   <main class="conteudo pagina inicio" data-tela="inicio" hidden>
     <section class="papel pendente" id="pendente" hidden>
       <p><strong id="pendente-autor"></strong> abriu <strong id="pendente-jogo"></strong>. Falta o seu placar.</p>
@@ -99,7 +114,7 @@
       <button class="botao" data-ir="administracao">Ver pedidos</button>
     </section>
 
-    <section class="papel voce-no-mes">
+    <section class="papel voce-no-mes" id="voce-no-mes">
       <span id="voce-foto"></span>
       <div>
         <p class="voce-posicao" id="voce-posicao"></p>
@@ -318,7 +333,7 @@
     </div>
 
     <div class="conteudo" data-vista="historico">
-      <section class="papel ficha-duelos">
+      <section class="papel ficha-duelos" id="ficha-duelos">
         <div class="secao-topo"><h3>Sua campanha</h3><img class="ficha-icone" src="midia/titulos/titulo-duelista.png" alt="" loading="lazy"></div>
         <div class="ficha-contagem" id="ficha-contagem"></div>
         <div class="ficha-destaques" id="ficha-destaques"></div>
@@ -589,7 +604,7 @@
     <section class="caixa" id="caixa-pedidos" hidden>
       <h2 class="rotulo">Pedidos de entrada</h2>
       <ul class="lista-pedidos" id="lista-pedidos"></ul>
-      <p class="rodape">Escolha de quem é cada conta antes de aprovar. Jogador novo escolhe o apelido quando entrar.</p>
+      <p class="rodape" id="rodape-pedidos" hidden>Escolha de quem é cada conta antes de aprovar.</p>
     </section>
 
     <section class="caixa formulario" id="caixa-fechar-mes" hidden>
@@ -608,24 +623,22 @@
       <p class="aviso" id="aviso-premio" role="alert"></p>
     </form>
 
-    <form class="caixa formulario" id="form-liberar">
-      <label class="rotulo" for="campo-vinculo">Liberar acesso para</label>
-      <select class="campo campo-texto" id="campo-vinculo"></select>
-      <div class="linha-campo">
-        <input class="campo campo-texto" id="campo-email" type="email" autocomplete="off" placeholder="amigo@gmail.com">
-        <button class="botao" disabled>Liberar</button>
+    <section class="caixa formulario">
+      <div class="cabecalho" id="topo-acessos" hidden>
+        <h2 class="rotulo">Acessos</h2>
+        <select class="campo campo-texto campo-servidor-acessos" id="servidor-dos-acessos" aria-label="Servidor"></select>
       </div>
-      <p class="aviso" id="aviso-liberar" role="alert"></p>
-      <p class="rodape">Jogador novo escolhe o apelido quando entrar. Escolher um nome da lista dá a ele as partidas que já estão nesse nome.</p>
-    </form>
-
-    <section class="caixa">
-      <div class="cabecalho">
-        <h2 class="rotulo">Com acesso</h2>
-        <p class="detalhe">Último acesso</p>
-      </div>
-      <ul class="lista-acessos" id="lista-acessos"></ul>
-      <p class="rodape">Para tirar o acesso de alguém, apague o e&#8209;mail dele na coleção acessos do Firebase.</p>
+      <form class="formulario" id="form-liberar">
+        <label class="rotulo" for="campo-email" data-liberar>Liberar acesso para</label>
+        <select class="campo campo-texto" id="campo-vinculo" aria-label="De quem é a conta" hidden></select>
+        <div class="linha-campo">
+          <input class="campo campo-texto" id="campo-email" type="email" autocomplete="off" placeholder="amigo@gmail.com">
+          <button class="botao" disabled>Liberar</button>
+        </div>
+        <p class="aviso" id="aviso-liberar" role="alert"></p>
+        <p class="rodape" id="rodape-liberar" hidden>Escolher um nome da lista dá a ele as partidas que já estão nesse nome.</p>
+      </form>
+      <ul class="lista-acessos" id="lista-acessos" hidden></ul>
     </section>
   </main>
 </div>
