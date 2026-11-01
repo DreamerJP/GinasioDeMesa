@@ -221,8 +221,8 @@ select.campo {
 .tela:has(> [data-tela="entrada"]:not([hidden])) > .topo { display: none; }
 .entrada { display: grid; gap: 14px; justify-items: center; padding-block: 24px; text-align: center; }
 .entrada .botao { justify-self: center; }
-.salao { position: relative; aspect-ratio: 848 / 1264; border: 2px solid var(--tinta); background: url(midia/site/salao-servidores.jpg) center / cover; box-shadow: inset 0 0 0 2px var(--moldura), 3px 3px 0 var(--tinta); overflow: hidden; }
-.estandarte { --cor: transparent; position: absolute; top: 2.5%; left: 50%; width: 36%; aspect-ratio: 360 / 528; translate: -50% 0; }
+.salao { position: relative; aspect-ratio: 848 / 1014; border: 2px solid var(--tinta); background: url(midia/site/salao-servidores.jpg) center bottom / 100% auto; box-shadow: inset 0 0 0 2px var(--moldura), 3px 3px 0 var(--tinta); overflow: hidden; }
+.estandarte { --cor: transparent; position: absolute; top: 2%; left: 50%; width: 33%; aspect-ratio: 360 / 528; translate: -50% 0; }
 .estandarte img, .estandarte-cor { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
 .estandarte-cor { background: var(--cor); -webkit-mask: url(midia/site/estandarte-tecido.webp) center / 100% 100%; mask: url(midia/site/estandarte-tecido.webp) center / 100% 100%; mix-blend-mode: multiply; }
 .estandarte-letra { position: absolute; top: 30%; right: 0; left: 0; color: var(--caixa); font: 600 clamp(36px, 12vw, 56px)/1 'Pixelify Sans', sans-serif; text-align: center; text-shadow: 3px 3px 0 var(--tinta); }
