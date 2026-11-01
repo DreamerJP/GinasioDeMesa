@@ -7,8 +7,8 @@ import {
 
 const SERVIDORES = [
   {
-    id: 'edson',
-    nome: 'Edson',
+    id: 'principal',
+    nome: 'Principal',
     cor: '#3d5a9e',
     firebase: {
       apiKey: 'AIzaSyA13vwn78UVFuTeSR1fnOmvUa8Nk-E697Q',
