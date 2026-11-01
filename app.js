@@ -9,6 +9,7 @@ const SERVIDORES = [
   {
     id: 'edson',
     nome: 'Edson',
+    cor: '#3d5a9e',
     firebase: {
       apiKey: 'AIzaSyA13vwn78UVFuTeSR1fnOmvUa8Nk-E697Q',
       authDomain: 'ginasio-de-mesa.firebaseapp.com',
@@ -19,6 +20,7 @@ const SERVIDORES = [
   {
     id: 'victor',
     nome: 'Victor',
+    cor: '#8f2d2d',
     firebase: {
       apiKey: 'AIzaSyA-CCkpEgM7yJ09x5yclj3d_1PQ9EEvKuc',
       authDomain: 'ginasio-victor.firebaseapp.com',
@@ -1323,7 +1325,7 @@ function mostrarTrocaDeServidor() {
   const selo = document.getElementById('selo-servidores');
   selo.hidden = !total;
   selo.textContent = total;
-  if (!document.getElementById('form-servidor').hidden) mostrarServidores();
+  if (!document.getElementById('salao').hidden) mostrarServidores();
 }
 
 function mostrarServidores() {
@@ -1339,11 +1341,12 @@ function mostrarServidores() {
   campo.value = [...campo.options].some(o => o.value === anterior && o.value) ? anterior : servidor?.id || '';
   document.getElementById('botao-servidor').textContent = pedir ? 'Pedir entrada' : 'Entrar';
   document.getElementById('servidores-outra-conta').hidden = !pedir;
-  const formulario = document.getElementById('form-servidor');
-  formulario.classList.toggle('caixa', Boolean(estado));
-  (estado ? document.querySelector('[data-tela="servidores"]') : document.querySelector('.entrada')).append(formulario);
-  formulario.hidden = false;
+  const salao = document.getElementById('salao');
+  const destino = document.querySelector(`[data-tela="${estado ? 'servidores' : 'entrada'}"]`);
+  if (salao.parentElement !== destino) destino.append(salao);
+  salao.hidden = false;
   validarServidor();
+  mostrarEstandarte(false);
 }
 
 function validarServidor() {
@@ -1351,10 +1354,25 @@ function validarServidor() {
   document.getElementById('botao-servidor').disabled = !escolhido || escolhido === servidor?.id;
 }
 
+function mostrarEstandarte(descendo) {
+  const escolhido = SERVIDORES.find(cada => cada.id === document.getElementById('campo-servidor').value);
+  const estandarte = document.getElementById('estandarte');
+  estandarte.style.setProperty('--cor', escolhido?.cor || 'transparent');
+  document.getElementById('estandarte-letra').textContent = escolhido?.nome[0] || '';
+  if (!descendo) return;
+  estandarte.classList.remove('descendo');
+  void estandarte.offsetWidth;
+  estandarte.classList.add('descendo');
+}
+
 function ligarServidores() {
   const formulario = document.getElementById('form-servidor');
   const botao = document.getElementById('botao-servidor');
-  document.getElementById('campo-servidor').addEventListener('change', validarServidor);
+  document.getElementById('campo-servidor').addEventListener('change', () => {
+    validarServidor();
+    mostrarEstandarte(true);
+  });
+  document.getElementById('estandarte').addEventListener('animationend', evento => evento.currentTarget.classList.remove('descendo'));
   formulario.addEventListener('submit', evento => {
     evento.preventDefault();
     const escolhido = SERVIDORES.find(cada => cada.id === document.getElementById('campo-servidor').value);
@@ -1521,7 +1539,7 @@ function mostrarEntrada(mensagem, saida = null, aguardando = false) {
     }, DEMORA_DA_ENTRADA);
   }
   document.getElementById('botao-google').hidden = saida !== 'google';
-  document.getElementById('form-servidor').hidden = true;
+  document.getElementById('salao').hidden = true;
   tentar.hidden = saida !== 'tentar';
   document.getElementById('rodape-entrada').hidden = saida !== 'google' || aguardando;
   document.getElementById('video-entrada').hidden = saida !== 'google';
