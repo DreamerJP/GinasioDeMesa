@@ -3692,7 +3692,8 @@ function mostrarDuelos(pedido) {
   const { eu } = estado;
   const vista = VISTAS_DE_DUELO.includes(pedido) && !(eu.observador && pedido === 'desafiar') ? pedido : '';
   const tela = document.querySelector('[data-tela="duelos"]');
-  tela.querySelectorAll('[data-ir="duelos/desafiar"]').forEach(botao => { botao.hidden = eu.observador; });
+  document.querySelector('#arena [data-ir="duelos/desafiar"]').disabled = eu.observador;
+  document.querySelector('#sem-confrontos [data-ir="duelos/desafiar"]').hidden = eu.observador;
   document.getElementById('ficha-duelos').hidden = eu.observador;
   document.getElementById('arena').hidden = Boolean(vista);
   document.getElementById('voltar-arena').hidden = !vista;
