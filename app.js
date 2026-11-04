@@ -1331,7 +1331,7 @@ function mostrarTrocaDeServidor() {
 
 // Medidas em pixels da arte de salao.png e salao-mesas.png. Na folha das mesas, a linha de cima tem
 // o lampião aceso e a de baixo, apagado. Com mais de duas mesas o chão cresce repetindo a faixa de
-// tábuas logo acima do corte; a faixa começa e termina numa emenda para a repetição não aparecer.
+// tábuas logo acima do corte; a faixa vai de uma emenda de tábuas à seguinte, então as cópias se encaixam.
 const SALAO = { largura: 255, altura: 316, corte: 235, faixa: 54, primeiraFileira: 108, margem: 6 };
 const MESAS = [
   { x: 0, largura: 117, placa: [61, 91] },
@@ -1345,7 +1345,7 @@ let imagensDoSalao = null;
 function carregarSalao() {
   imagensDoSalao ??= Promise.all(['salao', 'salao-mesas'].map(nome => {
     const imagem = new Image();
-    imagem.src = `midia/site/${nome}.png`;
+    imagem.src = `midia/site/${nome}.png?v=2`;
     return imagem.decode().then(() => imagem);
   })).catch(erro => {
     imagensDoSalao = null;
@@ -1388,8 +1388,8 @@ function eDaToalha(r, g, b) {
   return Math.abs(120 + 60 * (b - r) / (maior - menor) - 128) < 40;
 }
 
-// A toalha da arte é verde e só ela usa verde. Cada tom vira o tom correspondente da cor do servidor,
-// com a mesma diferença de claridade em relação ao verde base, para manter luz e sombra do desenho.
+// Só a toalha usa verde na arte. Cada tom de verde vira a cor do servidor deslocada pela mesma
+// diferença de claridade que esse tom tem em relação a TOALHA_DA_ARTE.
 function pintarMesa(folha, mesa, linha, cor) {
   const tela = document.createElement('canvas');
   tela.width = mesa.largura;
