@@ -168,6 +168,7 @@ let desafio = { jogador: '', jogo: '' };
 let mesDosDuelos = '';
 let mesCompleto = false;
 let servidorNosAcessos = '';
+let mesaEscolhida = '';
 let acessoAberto = '';
 const imagensDosIcones = new Map();
 const tocadores = {};
@@ -1328,17 +1329,180 @@ function mostrarTrocaDeServidor() {
   if (!document.getElementById('salao').hidden) mostrarServidores();
 }
 
+// Medidas em pixels da arte de salao.png e salao-mesas.png. Na folha das mesas, a linha de cima tem
+// o lampião aceso e a de baixo, apagado. Com mais de duas mesas o chão cresce repetindo a faixa de
+// tábuas logo acima do corte; a faixa começa e termina numa emenda para a repetição não aparecer.
+const SALAO = { largura: 255, altura: 316, corte: 235, faixa: 54, primeiraFileira: 108, margem: 6 };
+const MESAS = [
+  { x: 0, largura: 117, placa: [61, 91] },
+  { x: 117, largura: 104, placa: [41, 91] },
+];
+const ALTURA_DA_MESA = 121;
+const AMPLIACAO_DO_SALAO = 4;
+const TOALHA_DA_ARTE = [63, 129, 72];
+let imagensDoSalao = null;
+
+function carregarSalao() {
+  imagensDoSalao ??= Promise.all(['salao', 'salao-mesas'].map(nome => {
+    const imagem = new Image();
+    imagem.src = `midia/site/${nome}.png`;
+    return imagem.decode().then(() => imagem);
+  })).catch(erro => {
+    imagensDoSalao = null;
+    throw erro;
+  });
+  return imagensDoSalao;
+}
+
+function emOklab([r, g, b]) {
+  const linear = c => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const [lr, lg, lb] = [r, g, b].map(linear);
+  const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+  const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+  const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+  return [
+    0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s,
+  ];
+}
+
+function deOklab([L, a, b]) {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s,
+  ].map(c => {
+    const limitado = Math.min(1, Math.max(0, c));
+    return Math.round(255 * (limitado <= 0.0031308 ? 12.92 * limitado : 1.055 * limitado ** (1 / 2.4) - 0.055));
+  });
+}
+
+function eDaToalha(r, g, b) {
+  const maior = Math.max(r, g, b);
+  const menor = Math.min(r, g, b);
+  if (g !== maior || maior === menor || (maior - menor) / maior <= 0.25) return false;
+  return Math.abs(120 + 60 * (b - r) / (maior - menor) - 128) < 40;
+}
+
+// A toalha da arte é verde e só ela usa verde. Cada tom vira o tom correspondente da cor do servidor,
+// com a mesma diferença de claridade em relação ao verde base, para manter luz e sombra do desenho.
+function pintarMesa(folha, mesa, linha, cor) {
+  const tela = document.createElement('canvas');
+  tela.width = mesa.largura;
+  tela.height = ALTURA_DA_MESA;
+  const contexto = tela.getContext('2d', { willReadFrequently: true });
+  contexto.drawImage(folha, mesa.x, linha * ALTURA_DA_MESA, mesa.largura, ALTURA_DA_MESA, 0, 0, mesa.largura, ALTURA_DA_MESA);
+  const pixels = contexto.getImageData(0, 0, tela.width, tela.height);
+  const base = emOklab(TOALHA_DA_ARTE);
+  const alvo = emOklab(cor.match(/\w\w/g).map(par => parseInt(par, 16)));
+  const proporcao = Math.hypot(alvo[1], alvo[2]) / Math.hypot(base[1], base[2]);
+  const angulo = Math.atan2(alvo[2], alvo[1]);
+  const trocas = new Map();
+  const d = pixels.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3] || !eDaToalha(d[i], d[i + 1], d[i + 2])) continue;
+    const chave = d[i] * 65536 + d[i + 1] * 256 + d[i + 2];
+    if (!trocas.has(chave)) {
+      const [L, a, b] = emOklab([d[i], d[i + 1], d[i + 2]]);
+      const croma = Math.hypot(a, b) * proporcao;
+      trocas.set(chave, deOklab([alvo[0] + L - base[0], Math.cos(angulo) * croma, Math.sin(angulo) * croma]));
+    }
+    [d[i], d[i + 1], d[i + 2]] = trocas.get(chave);
+  }
+  contexto.putImageData(pixels, 0, 0);
+  return tela;
+}
+
+function ampliar(destino, origem) {
+  const contexto = destino.getContext('2d');
+  contexto.imageSmoothingEnabled = false;
+  contexto.drawImage(origem, 0, 0, destino.width, destino.height);
+}
+
+function desenharFundo(tela, salao, fileiras) {
+  const { largura, altura, corte, faixa } = SALAO;
+  const contexto = tela.getContext('2d');
+  contexto.imageSmoothingEnabled = false;
+  const copiar = (y, alto, destino) => contexto.drawImage(salao, 0, y, largura, alto, 0, destino * AMPLIACAO_DO_SALAO, largura * AMPLIACAO_DO_SALAO, alto * AMPLIACAO_DO_SALAO);
+  const extras = (fileiras - 1) * 2;
+  copiar(0, corte, 0);
+  for (let i = 0; i < extras; i++) copiar(corte - faixa, faixa, corte + i * faixa);
+  copiar(corte, altura - corte, corte + extras * faixa);
+}
+
+function montarSalao(lista) {
+  const mesas = document.getElementById('salao-mesas');
+  const assinatura = lista.map(cada => cada.id).join();
+  if (mesas.dataset.servidores === assinatura) return;
+  mesas.dataset.servidores = assinatura;
+  const fileiras = Math.ceil(lista.length / 2);
+  const altura = SALAO.altura + (fileiras - 1) * 2 * SALAO.faixa;
+  document.querySelector('.salao-cena').style.setProperty('--altura', altura);
+  const fundo = document.getElementById('salao-fundo');
+  fundo.width = SALAO.largura * AMPLIACAO_DO_SALAO;
+  fundo.height = altura * AMPLIACAO_DO_SALAO;
+  const lugares = lista.map((cada, i) => {
+    const mesa = MESAS[i % MESAS.length];
+    const sozinha = i % 2 === 0 && i === lista.length - 1;
+    const x = sozinha ? Math.round((SALAO.largura - mesa.largura) / 2) : i % 2 ? SALAO.largura - SALAO.margem - mesa.largura : SALAO.margem;
+    const y = SALAO.primeiraFileira + Math.floor(i / 2) * 2 * SALAO.faixa;
+    const botao = criar('button', 'mesa');
+    botao.type = 'button';
+    botao.dataset.servidor = cada.id;
+    Object.assign(botao.style, { left: `${x / SALAO.largura * 100}%`, top: `${y / altura * 100}%`, width: `${mesa.largura / SALAO.largura * 100}%` });
+    const telas = [['mesa-apagada', 1], ['mesa-acesa', 0]].map(([classe, linha]) => {
+      const tela = criar('canvas', classe);
+      tela.width = mesa.largura * AMPLIACAO_DO_SALAO;
+      tela.height = ALTURA_DA_MESA * AMPLIACAO_DO_SALAO;
+      return { tela, linha };
+    });
+    const nome = criar('span', 'mesa-nome', cada.nome);
+    Object.assign(nome.style, { left: `${mesa.placa[0] / mesa.largura * 100}%`, top: `${mesa.placa[1] / ALTURA_DA_MESA * 100}%` });
+    const selo = criar('span', 'selo-menu mesa-selo');
+    selo.hidden = true;
+    Object.assign(selo.style, { left: `${(mesa.placa[0] + 22) / mesa.largura * 100}%`, top: `${(mesa.placa[1] - 15) / ALTURA_DA_MESA * 100}%` });
+    botao.append(...telas.map(({ tela }) => tela), nome, selo);
+    return { botao, mesa, cor: cada.cor, telas };
+  });
+  mesas.replaceChildren(...lugares.map(({ botao }) => botao));
+  carregarSalao().then(([salao, folha]) => {
+    if (mesas.dataset.servidores !== assinatura) return;
+    desenharFundo(fundo, salao, fileiras);
+    for (const { mesa, cor, telas } of lugares) {
+      for (const { tela, linha } of telas) ampliar(tela, pintarMesa(folha, mesa, linha, cor));
+    }
+  }).catch(() => {});
+}
+
+function acenderMesas(animar) {
+  for (const botao of document.querySelectorAll('#salao-mesas .mesa')) {
+    const acesa = botao.dataset.servidor === mesaEscolhida;
+    if (animar && acesa && !botao.classList.contains('acesa')) botao.classList.add('acendendo');
+    botao.classList.toggle('acesa', acesa);
+    botao.setAttribute('aria-pressed', acesa);
+  }
+}
+
 function mostrarServidores() {
   const comAcesso = SERVIDORES.filter(cada => cada.acesso);
   const pedir = !comAcesso.length;
-  const campo = document.getElementById('campo-servidor');
-  const anterior = campo.value;
-  const opcoes = (pedir ? SERVIDORES : comAcesso).map(cada => {
+  const lista = pedir ? SERVIDORES : comAcesso;
+  if (mesaEscolhida === servidor?.id || !lista.some(cada => cada.id === mesaEscolhida)) mesaEscolhida = '';
+  montarSalao(lista);
+  for (const botao of document.querySelectorAll('#salao-mesas .mesa')) {
+    const cada = SERVIDORES.find(s => s.id === botao.dataset.servidor);
     const pendencias = pedir || cada === servidor ? 0 : pendenciasDe(cada);
-    return new Option(pendencias ? `${cada.nome} (${pendencias} esperando)` : cada.nome, cada.id);
-  });
-  campo.replaceChildren(...(servidor ? [] : [new Option('Escolha', '')]), ...opcoes);
-  campo.value = [...campo.options].some(o => o.value === anterior && o.value) ? anterior : servidor?.id || '';
+    const selo = botao.querySelector('.mesa-selo');
+    selo.hidden = !pendencias;
+    selo.textContent = pendencias;
+    botao.disabled = cada === servidor;
+    botao.setAttribute('aria-label', pendencias ? `${cada.nome} (${pendencias} esperando)` : cada.nome);
+  }
+  acenderMesas(false);
   document.getElementById('botao-servidor').textContent = pedir ? 'Pedir entrada' : 'Entrar';
   document.getElementById('servidores-outra-conta').hidden = !pedir;
   const salao = document.getElementById('salao');
@@ -1346,36 +1510,27 @@ function mostrarServidores() {
   if (salao.parentElement !== destino) destino.append(salao);
   salao.hidden = false;
   validarServidor();
-  mostrarEstandarte(false);
 }
 
 function validarServidor() {
-  const escolhido = document.getElementById('campo-servidor').value;
-  document.getElementById('botao-servidor').disabled = !escolhido || escolhido === servidor?.id;
-}
-
-function mostrarEstandarte(descendo) {
-  const escolhido = SERVIDORES.find(cada => cada.id === document.getElementById('campo-servidor').value);
-  const estandarte = document.getElementById('estandarte');
-  estandarte.style.setProperty('--cor', escolhido?.cor || 'transparent');
-  document.getElementById('estandarte-letra').textContent = escolhido?.nome[0] || '';
-  if (!descendo) return;
-  estandarte.classList.remove('descendo');
-  void estandarte.offsetWidth;
-  estandarte.classList.add('descendo');
+  document.getElementById('botao-servidor').disabled = !mesaEscolhida;
 }
 
 function ligarServidores() {
   const formulario = document.getElementById('form-servidor');
   const botao = document.getElementById('botao-servidor');
-  document.getElementById('campo-servidor').addEventListener('change', () => {
+  const mesas = document.getElementById('salao-mesas');
+  mesas.addEventListener('click', evento => {
+    const mesa = evento.target.closest('.mesa');
+    if (!mesa || mesa.disabled || mesa.dataset.servidor === mesaEscolhida) return;
+    mesaEscolhida = mesa.dataset.servidor;
+    acenderMesas(true);
     validarServidor();
-    mostrarEstandarte(true);
   });
-  document.getElementById('estandarte').addEventListener('animationend', evento => evento.currentTarget.classList.remove('descendo'));
+  mesas.addEventListener('animationend', evento => evento.target.closest('.mesa')?.classList.remove('acendendo'));
   formulario.addEventListener('submit', evento => {
     evento.preventDefault();
-    const escolhido = SERVIDORES.find(cada => cada.id === document.getElementById('campo-servidor').value);
+    const escolhido = SERVIDORES.find(cada => cada.id === mesaEscolhida);
     if (!escolhido || escolhido === servidor) return;
     if (SERVIDORES.some(cada => cada.acesso)) trocarDeServidor(escolhido);
     else pedirEntrada(escolhido, botao);
@@ -1513,7 +1668,10 @@ function mostrarTela(nome) {
   document.querySelector('.topo').classList.toggle('no-inicio', nome === 'inicio');
   if (nome !== 'entrada') document.getElementById('apresentacao').pause();
   if (nome !== 'nova-partida') document.getElementById('catalogo-jogos').close();
-  if (nome !== telaVisivel) window.scrollTo(0, 0);
+  if (nome !== telaVisivel) {
+    window.scrollTo(0, 0);
+    mesaEscolhida = '';
+  }
   telaVisivel = nome;
 }
 

@@ -14,9 +14,9 @@
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js">
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link rel="stylesheet" href="estilo.css?v=86">
+<link rel="stylesheet" href="estilo.css?v=87">
 <script src="carregamento.js?v=1"></script>
-<script type="module" src="app.js?v=96"></script>
+<script type="module" src="app.js?v=97"></script>
 </head>
 <body>
 <div class="tela">
@@ -92,20 +92,13 @@
 
   <main class="conteudo" data-tela="servidores" hidden>
     <section class="salao" id="salao">
-      <div class="estandarte" id="estandarte">
-        <img src="midia/site/estandarte.webp" alt="" loading="lazy">
-        <span class="estandarte-cor"></span>
-        <span class="estandarte-letra" id="estandarte-letra"></span>
-      </div>
-      <form class="salao-escolha" id="form-servidor">
-        <label class="salao-rotulo" for="campo-servidor">Servidor</label>
-        <div class="linha-campo">
-          <select class="campo campo-texto" id="campo-servidor"></select>
-          <button class="botao botao-destaque" id="botao-servidor" disabled>Entrar</button>
-        </div>
-        <p class="aviso" id="aviso-servidores" role="alert"></p>
-        <button class="botao-menu" id="servidores-outra-conta" type="button" hidden>Entrar com outra conta</button>
+      <form class="salao-cena" id="form-servidor">
+        <canvas class="salao-fundo" id="salao-fundo" width="1020" height="1264"></canvas>
+        <div id="salao-mesas" role="group" aria-label="Servidor"></div>
+        <button class="botao botao-destaque salao-entrar" id="botao-servidor" disabled>Entrar</button>
       </form>
+      <p class="aviso" id="aviso-servidores" role="alert"></p>
+      <button class="botao-menu" id="servidores-outra-conta" type="button" hidden>Entrar com outra conta</button>
     </section>
   </main>
 
