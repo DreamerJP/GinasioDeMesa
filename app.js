@@ -1491,7 +1491,7 @@ function mostrarServidores() {
   const comAcesso = SERVIDORES.filter(cada => cada.acesso);
   const pedir = !comAcesso.length;
   const lista = pedir ? SERVIDORES : comAcesso;
-  if (mesaEscolhida === servidor?.id || !lista.some(cada => cada.id === mesaEscolhida)) mesaEscolhida = '';
+  if (!lista.some(cada => cada.id === mesaEscolhida)) mesaEscolhida = servidor?.id || '';
   montarSalao(lista);
   for (const botao of document.querySelectorAll('#salao-mesas .mesa')) {
     const cada = SERVIDORES.find(s => s.id === botao.dataset.servidor);
@@ -1499,7 +1499,6 @@ function mostrarServidores() {
     const selo = botao.querySelector('.mesa-selo');
     selo.hidden = !pendencias;
     selo.textContent = pendencias;
-    botao.disabled = cada === servidor;
     botao.setAttribute('aria-label', pendencias ? `${cada.nome} (${pendencias} esperando)` : cada.nome);
   }
   acenderMesas(false);
@@ -1522,7 +1521,7 @@ function ligarServidores() {
   const mesas = document.getElementById('salao-mesas');
   mesas.addEventListener('click', evento => {
     const mesa = evento.target.closest('.mesa');
-    if (!mesa || mesa.disabled || mesa.dataset.servidor === mesaEscolhida) return;
+    if (!mesa || mesa.dataset.servidor === mesaEscolhida) return;
     mesaEscolhida = mesa.dataset.servidor;
     acenderMesas(true);
     validarServidor();
@@ -1531,7 +1530,7 @@ function ligarServidores() {
   formulario.addEventListener('submit', evento => {
     evento.preventDefault();
     const escolhido = SERVIDORES.find(cada => cada.id === mesaEscolhida);
-    if (!escolhido || escolhido === servidor) return;
+    if (!escolhido) return;
     if (SERVIDORES.some(cada => cada.acesso)) trocarDeServidor(escolhido);
     else pedirEntrada(escolhido, botao);
   });

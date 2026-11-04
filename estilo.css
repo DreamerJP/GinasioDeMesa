@@ -226,7 +226,6 @@ select.campo {
 .salao-cena::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 0 2px var(--moldura); pointer-events: none; }
 .salao-fundo { display: block; width: 100%; height: auto; }
 .mesa { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.mesa:disabled { cursor: default; }
 .mesa:focus { outline: none; }
 .mesa:focus-visible .mesa-nome { outline: 2px solid var(--ouro); outline-offset: 3px; }
 .mesa canvas { display: block; width: 100%; height: auto; }
