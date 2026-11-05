@@ -45,10 +45,30 @@ body {
   --folga-media: clamp(0px, calc(5svh - 42.2px), 4px);
   --folga-grande: clamp(0px, calc(10svh - 84.4px), 8px);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
-  padding: 0 16px 16px;
+  padding: 0 16px calc(8px + env(safe-area-inset-bottom, 0px));
 }
+
+.rodape-site {
+  align-self: flex-end;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.rodape-site a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  color: #c6c9ed;
+  font: 14px/1 'Pixelify Sans', sans-serif;
+  text-decoration: none;
+}
+.rodape-site a:is(:hover, :focus-visible) { color: var(--ouro); text-decoration: underline; }
+.rodape-site a:focus-visible { outline-offset: -2px; }
 
 .conteudo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 
