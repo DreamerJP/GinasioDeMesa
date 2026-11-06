@@ -14,9 +14,9 @@
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js">
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link rel="stylesheet" href="estilo.css?v=90">
+<link rel="stylesheet" href="estilo.css?v=91">
 <script src="carregamento.js?v=1"></script>
-<script type="module" src="app.js?v=99"></script>
+<script type="module" src="app.js?v=100"></script>
 </head>
 <body>
 <div class="tela">
@@ -94,6 +94,7 @@
     <section class="salao" id="salao">
       <form class="salao-cena" id="form-servidor">
         <canvas class="salao-fundo" id="salao-fundo" width="1020" height="1264"></canvas>
+        <canvas class="salao-quadro" id="salao-quadro" width="288" height="216" aria-hidden="true"></canvas>
         <div id="salao-mesas" role="group" aria-label="Servidor"></div>
         <button class="botao botao-destaque salao-entrar" id="botao-servidor" disabled>Entrar</button>
       </form>
