@@ -1,9 +1,9 @@
 import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import { LIMITE_FOTO, EMAIL_VALIDO, tocar, jogoDe, jogador, mesDeHoje, podeFecharOMes } from './base.js?v=101';
-import { titulosGanhos } from './titulos.js?v=101';
-import { duelosDoGinasio, motivoParaNaoDesafiar } from './duelos.js?v=101';
-import { ordemDeChegadaValida } from './partidas.js?v=101';
-import { SERVIDORES, PRINCIPAL, email, servidor, banco, lidos, estado, aplicarEstadoEmEspera } from './app.js?v=101';
+import { LIMITE_FOTO, EMAIL_VALIDO, tocar, jogoDe, jogador, mesDeHoje, podeFecharOMes } from './base.js?v=102';
+import { titulosGanhos } from './titulos.js?v=102';
+import { duelosDoGinasio, motivoParaNaoDesafiar } from './duelos.js?v=102';
+import { ordemDeChegadaValida } from './partidas.js?v=102';
+import { SERVIDORES, PRINCIPAL, email, servidor, banco, lidos, estado, aplicarEstadoEmEspera } from './app.js?v=102';
 
 function limparApelido(texto) {
   return texto.toUpperCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 8);
@@ -234,6 +234,14 @@ const ACOES = {
     if (registro?.fase !== 'convite') throw recusa('Esse convite não está mais valendo.');
     if (registro.desafiante !== estado.eu.id) throw recusa('Só quem desafiou cancela.');
     return updateDoc(doc(banco, 'duelos', duelo), { situacao: 'cancelado', respondidoEm: serverTimestamp() });
+  },
+
+  lancarResultadoDoDuelo({ duelo, vencedor }) {
+    if (!estado.eu.admin) throw recusa('Só o admin lança o resultado de um duelo.');
+    const registro = duelosDoGinasio().find(d => d.id === duelo);
+    if (!['valendo', 'em jogo'].includes(registro?.fase)) throw recusa('Esse duelo não está mais valendo.');
+    if (vencedor !== registro.desafiante && vencedor !== registro.desafiado) throw recusa('Escolha quem venceu.');
+    return updateDoc(doc(banco, 'duelos', duelo), { vencedor, decididoEm: serverTimestamp() });
   },
 };
 

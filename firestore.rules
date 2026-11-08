@@ -165,7 +165,7 @@ service cloud.firestore {
 
     function dueloValido(dados) {
       return dados.keys().hasAll(['desafiante', 'desafiado', 'jogo', 'provocacao', 'criadoEm', 'situacao', 'respondidoEm'])
-        && dados.keys().hasOnly(['desafiante', 'desafiado', 'jogo', 'provocacao', 'criadoEm', 'situacao', 'respondidoEm'])
+        && dados.keys().hasOnly(['desafiante', 'desafiado', 'jogo', 'provocacao', 'criadoEm', 'situacao', 'respondidoEm', 'vencedor', 'decididoEm'])
         && idDeJogador(dados.desafiante)
         && idDeJogador(dados.desafiado)
         && dados.desafiante != dados.desafiado
@@ -173,7 +173,9 @@ service cloud.firestore {
         && texto(dados.provocacao, 0, 60)
         && dados.criadoEm is timestamp
         && dados.situacao in ['convite', 'aceito', 'recusado', 'cancelado']
-        && (dados.respondidoEm == null || dados.respondidoEm is timestamp);
+        && (dados.respondidoEm == null || dados.respondidoEm is timestamp)
+        && ('vencedor' in dados) == ('decididoEm' in dados)
+        && (!('vencedor' in dados) || (dados.situacao == 'aceito' && dados.vencedor in [dados.desafiante, dados.desafiado] && dados.decididoEm is timestamp));
     }
 
     function premioValido(dados) {

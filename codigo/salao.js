@@ -1,6 +1,6 @@
 import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import { POUCO_MOVIMENTO, tocar, criar } from './base.js?v=101';
-import { SERVIDORES, PRINCIPAL, email, servidor, estado, trocarDeServidor, pendenciasDe, entrarComGoogle, mostrarEntrada } from './app.js?v=101';
+import { POUCO_MOVIMENTO, tocar, criar } from './base.js?v=102';
+import { SERVIDORES, PRINCIPAL, email, servidor, estado, trocarDeServidor, pendenciasDe, entrarComGoogle, mostrarEntrada } from './app.js?v=102';
 
 // Medidas em pixels da arte de salao.png e salao-mesas.png. Na folha das mesas, a linha de cima tem
 // o lampião aceso e a de baixo, apagado. Com mais de duas mesas o chão cresce repetindo a faixa de

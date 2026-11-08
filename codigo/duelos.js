@@ -1,12 +1,12 @@
 import { doc, updateDoc, arrayRemove } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import {
   tocar, jogoDe, jogador, nomeDoMes, avisosVistos, marcarComoVisto, formatoDiaDaMesa, formatoDiaCurto, criar, imagemDaCapa, imagemDe,
-} from './base.js?v=101';
-import { ACOES, enviar } from './acoes.js?v=101';
-import { lugaresDaPartida } from './ranking.js?v=101';
-import { quantidade } from './titulos.js?v=101';
-import { PRAZO_DO_RESULTADO, abrirConquista } from './avisos.js?v=101';
-import { banco, estado, irPara } from './app.js?v=101';
+} from './base.js?v=102';
+import { ACOES, enviar } from './acoes.js?v=102';
+import { lugaresDaPartida } from './ranking.js?v=102';
+import { quantidade } from './titulos.js?v=102';
+import { PRAZO_DO_RESULTADO, abrirConquista } from './avisos.js?v=102';
+import { banco, estado, irPara } from './app.js?v=102';
 
 const PRAZO_DO_CONVITE = 7 * 864e5;
 const PRAZO_DO_DUELO = 14 * 864e5;
@@ -37,7 +37,8 @@ function situacaoDoDuelo(duelo) {
   if (duelo.situacao !== 'aceito' || !duelo.respondidoEm) return { ...comJogo, fase: duelo.situacao };
   const aceitoEm = duelo.respondidoEm.getTime();
   const ate = new Date(aceitoEm + PRAZO_DO_DUELO);
-  const partida = estado.partidas.find(p => p.jogo === duelo.jogo && p.abertaEm.getTime() > aceitoEm && p.abertaEm <= ate
+  if (duelo.decididoEm) return { ...comJogo, ate, fase: 'decidido' };
+  const partida =estado.partidas.find(p => p.jogo === duelo.jogo && p.abertaEm.getTime() > aceitoEm && p.abertaEm <= ate
     && participa(p, duelo.desafiante) && participa(p, duelo.desafiado) && (p.estado === 'fechada' || p.mes === estado.mesAtual));
   if (!partida) return { ...comJogo, ate, fase: agora > ate.getTime() ? 'sem jogo' : 'valendo' };
   if (partida.estado === 'aberta') return { ...comJogo, ate, partida, fase: 'em jogo' };
@@ -90,7 +91,7 @@ function placarDeDuelos(id, contra = '') {
 
 function momentoDoDuelo(duelo) {
   if (duelo.fase === 'sem jogo' || duelo.fase === 'expirado') return duelo.ate.getTime();
-  return (duelo.partida?.abertaEm || duelo.respondidoEm || duelo.criadoEm).getTime();
+  return (duelo.partida?.abertaEm || duelo.decididoEm || duelo.respondidoEm || duelo.criadoEm).getTime();
 }
 
 function nomeNoDuelo(id, comecaFrase = true) {
@@ -124,7 +125,7 @@ function detalheDoDuelo(duelo) {
   if (duelo.fase === 'valendo') return `${jogo}, jogar até ${formatoDiaCurto.format(duelo.ate)}`;
   if (duelo.fase === 'em jogo') return `${jogo}, partida em andamento`;
   if (duelo.fase === 'sem jogo') return `${jogo}, terminou sem partida`;
-  if (duelo.fase !== 'decidido') return jogo;
+  if (duelo.fase !== 'decidido' || !duelo.partida) return jogo;
   const primeiro = duelo.vencedor || duelo.desafiante;
   const segundo = primeiro === duelo.desafiante ? duelo.desafiado : duelo.desafiante;
   return `${jogo}, ${duelo.lugares.get(primeiro)}º x ${duelo.lugares.get(segundo)}º`;
@@ -176,6 +177,35 @@ function botoesDoConvite(duelo) {
   return [linha, aviso];
 }
 
+function podeLancarResultado(duelo) {
+  return estado.eu.admin && ['valendo', 'em jogo'].includes(duelo.fase);
+}
+
+function resultadoPeloAdmin(duelo) {
+  const abrir = criar('button', 'botao-menu botao-resultado', 'Resultado');
+  abrir.type = 'button';
+  abrir.setAttribute('aria-expanded', 'false');
+  const escolha = criar('div', 'escolha-do-vencedor');
+  escolha.hidden = true;
+  const aviso = criar('p', 'aviso');
+  const opcoes = criar('span', 'linha-botoes');
+  opcoes.append(...[duelo.desafiante, duelo.desafiado].map(id => {
+    const botao = criar('button', 'botao', `${jogador(id)?.apelido || '?'} venceu`);
+    botao.type = 'button';
+    botao.addEventListener('click', () => enviar(botao, aviso, 'lancarResultadoDoDuelo', { duelo: duelo.id, vencedor: id }));
+    return botao;
+  }));
+  escolha.append(opcoes, aviso);
+  abrir.addEventListener('click', () => {
+    const abrindo = escolha.hidden;
+    document.querySelectorAll('.escolha-do-vencedor').forEach(outra => { outra.hidden = true; });
+    document.querySelectorAll('.botao-resultado').forEach(outro => outro.setAttribute('aria-expanded', 'false'));
+    escolha.hidden = !abrindo;
+    abrir.setAttribute('aria-expanded', abrindo);
+  });
+  return [abrir, escolha];
+}
+
 function cartazDoMeuDuelo(duelo) {
   const { eu } = estado;
   const rival = duelo.desafiante === eu.id ? duelo.desafiado : duelo.desafiante;
@@ -209,6 +239,14 @@ function cartazDoMeuDuelo(duelo) {
     const rodape = criar('div', 'cartaz-rodape');
     if (meResponder && duelo.provocacao) rodape.append(criar('p', 'cartaz-provocacao', `"${duelo.provocacao}"`));
     rodape.append(...botoesDoConvite(duelo));
+    item.append(rodape);
+  }
+  if (podeLancarResultado(duelo)) {
+    const rodape = criar('div', 'cartaz-rodape');
+    const [abrir, escolha] = resultadoPeloAdmin(duelo);
+    const linha = criar('span', 'linha-botoes');
+    linha.append(abrir);
+    rodape.append(linha, escolha);
     item.append(rodape);
   }
   return item;
@@ -390,7 +428,11 @@ function mostrarDuelos(pedido) {
   document.getElementById('caixa-meus-duelos').hidden = !meus.length;
   document.getElementById('lista-meus-duelos').replaceChildren(...meus.map(cartazDoMeuDuelo));
   document.getElementById('caixa-no-ginasio').hidden = !doGinasio.length;
-  document.getElementById('lista-no-ginasio').replaceChildren(...doGinasio.map(d => linhaDeDuelo(d, detalheDoDuelo(d))));
+  document.getElementById('lista-no-ginasio').replaceChildren(...doGinasio.map(d => {
+    const linha = linhaDeDuelo(d, detalheDoDuelo(d));
+    if (podeLancarResultado(d)) linha.append(...resultadoPeloAdmin(d));
+    return linha;
+  }));
   document.getElementById('sem-confrontos').hidden = andamento.length > 0;
   mostrarHistorico();
 }
@@ -429,7 +471,7 @@ function marcarDueloVisto(chave) {
   const limite = Date.now() - PRAZO_DO_RESULTADO;
   const atuais = new Set(duelosDoGinasio().flatMap(d => {
     if (d.fase === 'convite') return [`convite:${d.id}`];
-    if (d.fase === 'decidido' && d.partida.abertaEm.getTime() > limite) return [`duelo:${d.id}`];
+    if (d.fase === 'decidido' && momentoDoDuelo(d) > limite) return [`duelo:${d.id}`];
     return [];
   }));
   const velhas = estado.eu.vistos.filter(c => (c.startsWith('convite:') || c.startsWith('duelo:')) && !atuais.has(c));
@@ -458,7 +500,7 @@ function mostrarDueloDecidido(duelo) {
     topo,
     palco: [palcoDoDuelo(duelo)],
     texto: `${tituloDoDuelo(duelo)} em ${duelo.jogoDoDuelo.nome}.`,
-    detalhe: `Você em ${duelo.lugares.get(eu.id)}º, ${nomeNoDuelo(oponente)} em ${duelo.lugares.get(oponente)}º.`,
+    detalhe: duelo.partida ? `Você em ${duelo.lugares.get(eu.id)}º, ${nomeNoDuelo(oponente)} em ${duelo.lugares.get(oponente)}º.` : '',
     botaoVer: perdi ? 'Revanche' : 'Ver duelos',
     som: venci ? 'campeao' : 'partidaFechada',
     aoConcluir: escolha => {
@@ -491,7 +533,7 @@ function avisarDuelo() {
   const vistos = avisosVistos();
   const limite = Date.now() - PRAZO_DO_RESULTADO;
   const duelos = duelosDoGinasio();
-  const decidido = duelos.find(d => d.fase === 'decidido' && envolve(d, eu.id) && d.partida.abertaEm.getTime() > limite && !vistos.includes(`duelo:${d.id}`));
+  const decidido = duelos.find(d => d.fase === 'decidido' && envolve(d, eu.id) && momentoDoDuelo(d) > limite && !vistos.includes(`duelo:${d.id}`));
   if (decidido) {
     mostrarDueloDecidido(decidido);
     return true;
@@ -509,6 +551,6 @@ function esquecerDuelos() {
 }
 
 export {
-  PRAZO_DO_CONVITE, desafio, duelosDoGinasio, motivoParaNaoDesafiar, placarDeDuelos, nomesDoDuelo, textoDoPlacar, mostrarLinhaDoDuelo, mostrarDuelos,
+  PRAZO_DO_CONVITE, desafio, duelosDoGinasio, momentoDoDuelo, mesDoDuelo, motivoParaNaoDesafiar, placarDeDuelos, nomesDoDuelo, textoDoPlacar, mostrarLinhaDoDuelo, mostrarDuelos,
   ligarDuelos, avisarDuelo, esquecerDuelos,
 };

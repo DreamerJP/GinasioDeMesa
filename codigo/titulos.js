@@ -1,7 +1,7 @@
-import { MAXIMO_DE_ROSTOS, jogoDe, jogador, nomeDoMes, avisosVistos, diaDaMesa, criar, imagemDaCapa, imagemDe } from './base.js?v=101';
-import { rankingDoMes, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe, mesesFechados } from './ranking.js?v=101';
-import { duelosDoGinasio } from './duelos.js?v=101';
-import { estado, irPara } from './app.js?v=101';
+import { MAXIMO_DE_ROSTOS, jogoDe, jogador, nomeDoMes, avisosVistos, diaDaMesa, criar, imagemDaCapa, imagemDe } from './base.js?v=102';
+import { rankingDoMes, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe, mesesFechados } from './ranking.js?v=102';
+import { duelosDoGinasio, momentoDoDuelo, mesDoDuelo } from './duelos.js?v=102';
+import { estado, irPara } from './app.js?v=102';
 
 const FOLGA_DO_ATROPELO = 1.5;
 const METAS_DE_MESTRE = [5, 10, 15, 20, 25];
@@ -161,8 +161,8 @@ function calcularTitulos() {
     }
   }
 
-  const vencidos = duelosDoGinasio().filter(d => d.fase === 'decidido' && d.vencedor).sort((a, b) => a.partida.abertaEm - b.partida.abertaEm);
-  for (const duelo of vencidos) marcar(duelo.vencedor, 'duelista', ++contagemDe(duelo.vencedor).duelos, duelo.partida.mes);
+  const vencidos = duelosDoGinasio().filter(d => d.fase === 'decidido' && d.vencedor).sort((a, b) => momentoDoDuelo(a) - momentoDoDuelo(b));
+  for (const duelo of vencidos) marcar(duelo.vencedor, 'duelista', ++contagemDe(duelo.vencedor).duelos, duelo.partida?.mes || mesDoDuelo(duelo));
 
   return { catalogo, porId: new Map(catalogo.map(t => [t.id, t])), porJogador };
 }

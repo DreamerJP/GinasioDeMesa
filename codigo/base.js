@@ -1,5 +1,5 @@
 import { doc, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import { banco, lidos, estado } from './app.js?v=101';
+import { banco, lidos, estado } from './app.js?v=102';
 
 const CHAVE_SOM = 'ginasio.som';
 const FUSO = 'America/Sao_Paulo';

@@ -549,6 +549,11 @@ select.campo {
 .cartaz-rodape .linha-botoes:has(.botao) { display: grid; grid-template-columns: 1fr 1fr; }
 .cartaz-rodape .botao { justify-self: stretch; }
 .linha-de-duelo.minha { margin: 0 -8px; padding: 4px 8px; background: var(--caixa-marcada); box-shadow: inset 3px 0 0 var(--ouro); }
+.linha-de-duelo:has(> .botao-resultado) { grid-template-columns: auto minmax(0, 1fr) auto; }
+.linha-de-duelo > .escolha-do-vencedor { grid-column: 1 / -1; }
+.escolha-do-vencedor { display: grid; gap: 8px; }
+.escolha-do-vencedor .linha-botoes { display: grid; grid-template-columns: 1fr 1fr; }
+.escolha-do-vencedor .botao { justify-self: stretch; font-size: 14px; }
 .linha-de-duelo-texto { display: grid; min-width: 0; font-size: 14px; line-height: 1.3; }
 .rostos-do-duelo { display: flex; align-items: center; gap: 3px; }
 .rostos-do-duelo .foto { width: 32px; height: 32px; }
