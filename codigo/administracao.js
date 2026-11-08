@@ -1,6 +1,6 @@
-import { EMAIL_VALIDO, MESES, indiceDoMes, formatoHora, formatoDataDoDia, mesSeguinte, podeFecharOMes, criar } from './base.js?v=102';
-import { jogadoresSemEmail, enviar } from './acoes.js?v=102';
-import { SERVIDORES, email, servidor, estado } from './app.js?v=102';
+import { EMAIL_VALIDO, MESES, indiceDoMes, formatoHora, formatoDataDoDia, mesSeguinte, podeFecharOMes, criar } from './base.js?v=103';
+import { jogadoresSemEmail, enviar } from './acoes.js?v=103';
+import { SERVIDORES, email, servidor, estado } from './app.js?v=103';
 
 let servidorNosAcessos = '';
 let acessoAberto = '';

@@ -1,6 +1,6 @@
 import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import { POUCO_MOVIMENTO, tocar, criar } from './base.js?v=102';
-import { SERVIDORES, PRINCIPAL, email, servidor, estado, trocarDeServidor, pendenciasDe, entrarComGoogle, mostrarEntrada } from './app.js?v=102';
+import { POUCO_MOVIMENTO, tocar, criar } from './base.js?v=103';
+import { SERVIDORES, PRINCIPAL, email, servidor, estado, trocarDeServidor, pendenciasDe, entrarComGoogle, mostrarEntrada } from './app.js?v=103';
 
 // Medidas em pixels da arte de salao.png e salao-mesas.png. Na folha das mesas, a linha de cima tem
 // o lampião aceso e a de baixo, apagado. Com mais de duas mesas o chão cresce repetindo a faixa de
@@ -16,12 +16,14 @@ const TOALHA_DA_ARTE = [63, 129, 72];
 let imagensDoSalao = null;
 let mesaEscolhida = '';
 
+function carregarImagem(endereco) {
+  const imagem = new Image();
+  imagem.src = endereco;
+  return imagem.decode().then(() => imagem);
+}
+
 function carregarSalao() {
-  imagensDoSalao ??= Promise.all(['salao', 'salao-mesas'].map(nome => {
-    const imagem = new Image();
-    imagem.src = `midia/site/${nome}.png?v=2`;
-    return imagem.decode().then(() => imagem);
-  })).catch(erro => {
+  imagensDoSalao ??= Promise.all(['salao', 'salao-mesas'].map(nome => carregarImagem(`midia/site/${nome}.png?v=2`))).catch(erro => {
     imagensDoSalao = null;
     throw erro;
   });
@@ -160,6 +162,7 @@ const GIZ_LEVANTADO = [
   [2, -1, '#a99f91'], [3, -2, '#a99f91'], [4, -3, '#a99f91'], [5, -4, '#a99f91'],
 ];
 const DESENHOS_DO_GIZ = ['coelho', 'c4-na-arvore', 'trevo', 'pipoca', 'granola'];
+const FOTOS_DO_QUADRO = ['grupo'];
 const CORES_DO_GIZ = ['#d6cdc0', '#c9c0b3', '#e3dbce'];
 const VIZINHOS_DO_PIXEL = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
 const VELOCIDADE_DO_TRACO = 50;
@@ -168,19 +171,20 @@ const VELOCIDADE_DO_APAGADOR = 120;
 const APAGADOR = { descanso: [12, 45], largura: 8, intervalo: 6, area: [5, 7, 57, 44], linhas: ['#d29b65', '#a3724a', '#8a8590'] };
 const POEIRA_DO_APAGADOR = { rastro: [0.06, 0.07, 0.06, 0.05, 0.03, 0.02], sobra: 0.35, maxima: 0.16, minima: 0.02 };
 const TEMPOS_DO_QUADRO = { pronto: 6000, pausa: 1200 };
-let desenhosDoGiz = null;
+const POLAROIDE = { margem: 2, rodape: 5, papel: '#e8e2d4', fita: [9, 3, '#ecdea0', 0.75], sombra: ['#14141c', 0.5] };
+const TEMPOS_DA_FOTO = { etapas: 4, etapa: 80, parada: 8000 };
+let itensDoQuadro = null;
 let quadroAnimado = null;
 
-function carregarDesenhosDoGiz() {
-  desenhosDoGiz ??= Promise.all(DESENHOS_DO_GIZ.map(nome => {
-    const imagem = new Image();
-    imagem.src = `midia/site/giz/${nome}.png?v=1`;
-    return imagem.decode().then(() => pixelsDoDesenho(imagem));
-  })).catch(erro => {
-    desenhosDoGiz = null;
+function carregarItensDoQuadro() {
+  itensDoQuadro ??= Promise.all([
+    ...DESENHOS_DO_GIZ.map(nome => carregarImagem(`midia/site/giz/${nome}.png?v=1`).then(imagem => ({ pixels: pixelsDoDesenho(imagem) }))),
+    ...FOTOS_DO_QUADRO.map(nome => carregarImagem(`midia/site/fotos/${nome}.png?v=1`).then(foto => ({ foto }))),
+  ]).catch(erro => {
+    itensDoQuadro = null;
     throw erro;
   });
-  return desenhosDoGiz;
+  return itensDoQuadro;
 }
 
 function pixelsDoDesenho(imagem) {
@@ -341,6 +345,20 @@ function roteiroDoQuadro(ordem) {
   return passos;
 }
 
+function roteiroDaFoto() {
+  const passos = [];
+  let tempo = 0;
+  const marcar = (espera, etapaDaFoto) => {
+    tempo += espera;
+    passos.push({ tempo, etapaDaFoto });
+  };
+  const { etapas, etapa: duracao, parada } = TEMPOS_DA_FOTO;
+  for (let etapa = 1; etapa <= etapas; etapa++) marcar(duracao, etapa);
+  for (let etapa = etapas - 1; etapa >= 0; etapa--) marcar(etapa === etapas - 1 ? parada : duracao, etapa);
+  marcar(TEMPOS_DO_QUADRO.pausa, 0);
+  return passos;
+}
+
 function sujarQuadro(quadro, x, y, quantidade, passada) {
   const [esquerda, topo, direita, base] = QUADRO_NEGRO.interior;
   const chave = chaveDoPixel(x, y);
@@ -375,6 +393,7 @@ function passarApagador(quadro, [ax, ay], passada) {
 }
 
 function aplicarPasso(quadro, passo) {
+  if ('etapaDaFoto' in passo) quadro.etapaDaFoto = passo.etapaDaFoto;
   if ('giz' in passo) quadro.giz = passo.giz;
   if (passo.risca) quadro.riscos.set(chaveDoPixel(...passo.giz), [...passo.giz, passo.risca]);
   if (!passo.apagador) return;
@@ -382,13 +401,40 @@ function aplicarPasso(quadro, passo) {
   if (passo.passada) passarApagador(quadro, passo.apagador, passo.passada);
 }
 
-function trocarDesenhoDoQuadro(quadro) {
-  quadro.indice = sortear(quadro.desenhos.map((_, i) => i).filter(i => i !== quadro.indice));
-  if (!quadro.ordens.has(quadro.indice)) quadro.ordens.set(quadro.indice, ordemDoTraco(quadro.desenhos[quadro.indice]));
-  quadro.passos = roteiroDoQuadro(quadro.ordens.get(quadro.indice));
+function trocarItemDoQuadro(quadro) {
+  quadro.indice = sortear([...quadro.itens.keys()].filter(i => i !== quadro.indice));
+  const item = quadro.itens[quadro.indice];
+  if (item.foto) quadro.passos = roteiroDaFoto();
+  else {
+    item.ordem ??= ordemDoTraco(item.pixels);
+    quadro.passos = roteiroDoQuadro(item.ordem);
+  }
   quadro.passo = 0;
   quadro.passadas = new Map();
   quadro.inicio = quadro.relogio;
+}
+
+function pintarFoto(contexto, foto, etapa) {
+  const lado = AMPLIACAO_DO_SALAO;
+  const { margem, rodape, papel, fita: [larguraDaFita, alturaDaFita, corDaFita, alfaDaFita], sombra: [corDaSombra, alfaDaSombra] } = POLAROIDE;
+  const [esquerda, topo, direita, base] = QUADRO_NEGRO.interior;
+  const largura = foto.width + 2 * margem;
+  const altura = foto.height + margem + rodape;
+  const x = esquerda + Math.floor((direita - esquerda + 1 - largura) / 2);
+  const y = topo + Math.floor((base - topo + 1 - altura) / 2) - TEMPOS_DA_FOTO.etapas + etapa;
+  const opacidade = etapa / TEMPOS_DA_FOTO.etapas;
+  const retangulo = (rx, ry, rl, ra, cor, alfa = 1) => {
+    contexto.globalAlpha = opacidade * alfa;
+    contexto.fillStyle = cor;
+    contexto.fillRect(rx * lado, ry * lado, rl * lado, ra * lado);
+  };
+  retangulo(x + largura, y + 1, 1, altura, corDaSombra, alfaDaSombra);
+  retangulo(x + 1, y + altura, largura - 1, 1, corDaSombra, alfaDaSombra);
+  retangulo(x, y, largura, altura, papel);
+  contexto.globalAlpha = opacidade;
+  contexto.drawImage(foto, (x + margem) * lado, (y + margem) * lado, foto.width * lado, foto.height * lado);
+  retangulo(x + Math.round((largura - larguraDaFita) / 2), y - 1, larguraDaFita, alturaDaFita, corDaFita, alfaDaFita);
+  contexto.globalAlpha = 1;
 }
 
 function pintarQuadro(quadro) {
@@ -405,11 +451,12 @@ function pintarQuadro(quadro) {
   }
   contexto.globalAlpha = 1;
   for (const [x, y, cor] of quadro.riscos.values()) pixel(x, y, cor);
+  contexto.imageSmoothingEnabled = false;
+  if (quadro.etapaDaFoto) pintarFoto(contexto, quadro.itens[quadro.indice].foto, quadro.etapaDaFoto);
   const [ax, ay] = quadro.apagador;
   APAGADOR.linhas.forEach((cor, linha) => pixel(ax, ay + linha, cor, APAGADOR.largura));
   if (!quadro.giz) return;
   const { x, y, largura, fundo: [fx, fy] } = GIZ_NA_CANALETA;
-  contexto.imageSmoothingEnabled = false;
   contexto.drawImage(quadro.salao, fx, fy, largura, 1, x * lado, y * lado, largura * lado, lado);
   for (const [dx, dy, cor] of GIZ_LEVANTADO) pixel(quadro.giz[0] + dx, quadro.giz[1] + dy, cor);
 }
@@ -425,7 +472,7 @@ function avancarQuadro(agora) {
   quadro.ultimo = agora;
   let mudou = false;
   for (;;) {
-    if (quadro.passo === quadro.passos.length) trocarDesenhoDoQuadro(quadro);
+    if (quadro.passo === quadro.passos.length) trocarItemDoQuadro(quadro);
     const passo = quadro.passos[quadro.passo];
     if (quadro.relogio - quadro.inicio < passo.tempo) break;
     aplicarPasso(quadro, passo);
@@ -439,15 +486,15 @@ function avancarQuadro(agora) {
 function animarQuadro() {
   if (quadroAnimado) return;
   quadroAnimado = {};
-  Promise.all([carregarSalao(), carregarDesenhosDoGiz()]).then(([[salao], desenhos]) => {
+  Promise.all([carregarSalao(), carregarItensDoQuadro()]).then(([[salao], itens]) => {
     const quadro = {
-      tela: document.getElementById('salao-quadro'), salao, desenhos, ordens: new Map(), indice: -1, relogio: 0, ultimo: performance.now(),
-      riscos: new Map(), poeira: new Map(), giz: null, apagador: APAGADOR.descanso,
+      tela: document.getElementById('salao-quadro'), salao, itens, indice: -1, relogio: 0, ultimo: performance.now(),
+      riscos: new Map(), poeira: new Map(), giz: null, apagador: APAGADOR.descanso, etapaDaFoto: 0,
     };
     quadroAnimado = quadro;
-    trocarDesenhoDoQuadro(quadro);
+    trocarItemDoQuadro(quadro);
     if (POUCO_MOVIMENTO.matches) {
-      for (const passo of quadro.passos) if (passo.risca) aplicarPasso(quadro, passo);
+      for (const passo of quadro.passos) if (passo.risca || passo.etapaDaFoto === TEMPOS_DA_FOTO.etapas) aplicarPasso(quadro, passo);
       quadro.giz = null;
     } else requestAnimationFrame(avancarQuadro);
     pintarQuadro(quadro);

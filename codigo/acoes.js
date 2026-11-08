@@ -1,9 +1,9 @@
 import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import { LIMITE_FOTO, EMAIL_VALIDO, tocar, jogoDe, jogador, mesDeHoje, podeFecharOMes } from './base.js?v=102';
-import { titulosGanhos } from './titulos.js?v=102';
-import { duelosDoGinasio, motivoParaNaoDesafiar } from './duelos.js?v=102';
-import { ordemDeChegadaValida } from './partidas.js?v=102';
-import { SERVIDORES, PRINCIPAL, email, servidor, banco, lidos, estado, aplicarEstadoEmEspera } from './app.js?v=102';
+import { LIMITE_FOTO, EMAIL_VALIDO, tocar, jogoDe, jogador, mesDeHoje, podeFecharOMes } from './base.js?v=103';
+import { titulosGanhos } from './titulos.js?v=103';
+import { duelosDoGinasio, motivoParaNaoDesafiar } from './duelos.js?v=103';
+import { ordemDeChegadaValida } from './partidas.js?v=103';
+import { SERVIDORES, PRINCIPAL, email, servidor, banco, lidos, estado, aplicarEstadoEmEspera } from './app.js?v=103';
 
 function limparApelido(texto) {
   return texto.toUpperCase().replace(/[^\p{L}\p{N}]/gu, '').slice(0, 8);
