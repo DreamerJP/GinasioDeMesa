@@ -1,11 +1,11 @@
 import {
   MESES, INSIGNIAS, CASAS_DA_NOTA, formatoNota, jogoDe, jogador, indiceDoMes, nomeDoMes, nomeDoMesComAnoSeOutro, diaDaMesa, diaDaPartida,
   textoFechamento, criar, mostrarFoto, imagemDe, desenhoDaInsignia,
-} from './base.js?v=103';
-import { tituloExibido, linhaDoTitulo } from './titulos.js?v=103';
-import { desenharPodio, vagaNoPodio } from './avisos.js?v=103';
-import { itemDaPartida } from './partidas.js?v=103';
-import { estado, irPara } from './app.js?v=103';
+} from './base.js';
+import { tituloExibido, linhaDoTitulo } from './titulos.js';
+import { desenharPodio, vagaNoPodio } from './avisos.js';
+import { itemDaPartida } from './partidas.js';
+import { estado, irPara } from './app.js';
 
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const MAXIMO_DE_INSIGNIAS = 6;

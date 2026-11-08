@@ -2,11 +2,11 @@ import { doc, updateDoc, arrayRemove } from 'https://www.gstatic.com/firebasejs/
 import {
   MESES, INSIGNIAS, formatoNota, formatoPlacar, POUCO_MOVIMENTO, tocar, jogoDe, jogador, indiceDoMes, avisosVistos, marcarComoVisto, quandoFoiAberta,
   criar, imagemDaCapa, imagemDe, desenhoDaInsignia, svgEmImagem,
-} from './base.js?v=103';
-import { notasDaPartida, partidaParaFormula, lugaresDaPartida, rankingDe, mesesFechados, campeoesDe, insigniaDaVitoria } from './ranking.js?v=103';
-import { NIVEIS, NOME_DO_NIVEL, quantidade, titulosNovos, quadroDoTitulo, faixaDoTitulo, encaixarFaixa, degrausDoTitulo } from './titulos.js?v=103';
-import { mostrarLinhaDoDuelo, avisarDuelo } from './duelos.js?v=103';
-import { banco, estado, rotaAtual, renderizar, irPara } from './app.js?v=103';
+} from './base.js';
+import { notasDaPartida, partidaParaFormula, lugaresDaPartida, rankingDe, mesesFechados, campeoesDe, insigniaDaVitoria } from './ranking.js';
+import { NIVEIS, NOME_DO_NIVEL, quantidade, titulosNovos, quadroDoTitulo, faixaDoTitulo, encaixarFaixa, degrausDoTitulo } from './titulos.js';
+import { mostrarLinhaDoDuelo, avisarDuelo } from './duelos.js';
+import { banco, estado, rotaAtual, renderizar, irPara } from './app.js';
 
 const ATRASO_DA_ROLAGEM = 400;
 const DURACAO_DA_ROLAGEM = 1400;

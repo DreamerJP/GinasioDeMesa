@@ -1,11 +1,11 @@
 import {
   MAXIMO_DE_ROSTOS, formatoNota, formatoPlacar, tocar, jogoDe, jogador, formatoHora, diaDaMesa, quandoFoiAberta, criar, imagemDaCapa, mostrarCapa, imagemDe,
-} from './base.js?v=103';
-import { novoId, linkDeFoto, enviar } from './acoes.js?v=103';
-import { FRACAO_DA_FALTA, notasDaPartida, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe } from './ranking.js?v=103';
-import { duelosDoGinasio, nomesDoDuelo, mostrarLinhaDoDuelo } from './duelos.js?v=103';
-import { fotoReduzida } from './perfil.js?v=103';
-import { estado, aplicarEstadoEmEspera, irPara } from './app.js?v=103';
+} from './base.js';
+import { novoId, linkDeFoto, enviar } from './acoes.js';
+import { FRACAO_DA_FALTA, notasDaPartida, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe } from './ranking.js';
+import { duelosDoGinasio, nomesDoDuelo, mostrarLinhaDoDuelo } from './duelos.js';
+import { fotoReduzida } from './perfil.js';
+import { estado, aplicarEstadoEmEspera, irPara } from './app.js';
 
 let partidaAberta = '';
 let correcao = null;

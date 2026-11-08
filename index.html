@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' https: data:; media-src 'self'; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://apis.google.com; frame-src https://ginasio-de-mesa.firebaseapp.com https://ginasio-victor.firebaseapp.com https://accounts.google.com; base-uri 'none'; form-action 'self'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-XPNdOQKZt8GtrORJSlD9pIsBOB8kP0et3wUWt40qQ1E=' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' https: data:; media-src 'self'; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://apis.google.com; frame-src https://ginasio-de-mesa.firebaseapp.com https://ginasio-victor.firebaseapp.com https://accounts.google.com; base-uri 'none'; form-action 'self'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ginásio de Mesa</title>
 <link rel="icon" type="image/png" href="midia/site/icone-64.png?v=2">
@@ -10,24 +10,43 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans:wght@400;600&display=swap">
+<script type="importmap">
+{
+  "imports": {
+    "./codigo/app.js": "./codigo/app.js?v=104",
+    "./codigo/base.js": "./codigo/base.js?v=104",
+    "./codigo/acoes.js": "./codigo/acoes.js?v=104",
+    "./codigo/ranking.js": "./codigo/ranking.js?v=104",
+    "./codigo/titulos.js": "./codigo/titulos.js?v=104",
+    "./codigo/duelos.js": "./codigo/duelos.js?v=104",
+    "./codigo/salao.js": "./codigo/salao.js?v=104",
+    "./codigo/avisos.js": "./codigo/avisos.js?v=104",
+    "./codigo/partidas.js": "./codigo/partidas.js?v=104",
+    "./codigo/perfil.js": "./codigo/perfil.js?v=104",
+    "./codigo/campeoes.js": "./codigo/campeoes.js?v=104",
+    "./codigo/administracao.js": "./codigo/administracao.js?v=104"
+  }
+}
+</script>
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js">
-<link rel="modulepreload" href="codigo/base.js?v=103">
-<link rel="modulepreload" href="codigo/acoes.js?v=103">
-<link rel="modulepreload" href="codigo/ranking.js?v=103">
-<link rel="modulepreload" href="codigo/titulos.js?v=103">
-<link rel="modulepreload" href="codigo/duelos.js?v=103">
-<link rel="modulepreload" href="codigo/salao.js?v=103">
-<link rel="modulepreload" href="codigo/avisos.js?v=103">
-<link rel="modulepreload" href="codigo/partidas.js?v=103">
-<link rel="modulepreload" href="codigo/perfil.js?v=103">
-<link rel="modulepreload" href="codigo/campeoes.js?v=103">
-<link rel="modulepreload" href="codigo/administracao.js?v=103">
+<link rel="modulepreload" href="codigo/app.js?v=104">
+<link rel="modulepreload" href="codigo/base.js?v=104">
+<link rel="modulepreload" href="codigo/acoes.js?v=104">
+<link rel="modulepreload" href="codigo/ranking.js?v=104">
+<link rel="modulepreload" href="codigo/titulos.js?v=104">
+<link rel="modulepreload" href="codigo/duelos.js?v=104">
+<link rel="modulepreload" href="codigo/salao.js?v=104">
+<link rel="modulepreload" href="codigo/avisos.js?v=104">
+<link rel="modulepreload" href="codigo/partidas.js?v=104">
+<link rel="modulepreload" href="codigo/perfil.js?v=104">
+<link rel="modulepreload" href="codigo/campeoes.js?v=104">
+<link rel="modulepreload" href="codigo/administracao.js?v=104">
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="stylesheet" href="estilo.css?v=92">
 <script src="codigo/carregamento.js?v=1"></script>
-<script type="module" src="codigo/app.js?v=103"></script>
+<script type="module" src="codigo/inicio.js"></script>
 </head>
 <body>
 <div class="tela">

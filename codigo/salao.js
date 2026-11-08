@@ -1,6 +1,6 @@
 import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import { POUCO_MOVIMENTO, tocar, criar } from './base.js?v=103';
-import { SERVIDORES, PRINCIPAL, email, servidor, estado, trocarDeServidor, pendenciasDe, entrarComGoogle, mostrarEntrada } from './app.js?v=103';
+import { POUCO_MOVIMENTO, tocar, criar } from './base.js';
+import { SERVIDORES, PRINCIPAL, email, servidor, estado, trocarDeServidor, pendenciasDe, entrarComGoogle, mostrarEntrada } from './app.js';
 
 // Medidas em pixels da arte de salao.png e salao-mesas.png. Na folha das mesas, a linha de cima tem
 // o lampião aceso e a de baixo, apagado. Com mais de duas mesas o chão cresce repetindo a faixa de
@@ -173,13 +173,15 @@ const POEIRA_DO_APAGADOR = { rastro: [0.06, 0.07, 0.06, 0.05, 0.03, 0.02], sobra
 const TEMPOS_DO_QUADRO = { pronto: 6000, pausa: 1200 };
 const POLAROIDE = { margem: 2, rodape: 5, papel: '#e8e2d4', fita: [9, 3, '#ecdea0', 0.75], sombra: ['#14141c', 0.5] };
 const TEMPOS_DA_FOTO = { etapas: 4, etapa: 80, parada: 8000 };
+const CHAVE_DO_QUADRO = 'ginasio.quadro';
 let itensDoQuadro = null;
+let filaDoQuadro = null;
 let quadroAnimado = null;
 
 function carregarItensDoQuadro() {
   itensDoQuadro ??= Promise.all([
-    ...DESENHOS_DO_GIZ.map(nome => carregarImagem(`midia/site/giz/${nome}.png?v=1`).then(imagem => ({ pixels: pixelsDoDesenho(imagem) }))),
-    ...FOTOS_DO_QUADRO.map(nome => carregarImagem(`midia/site/fotos/${nome}.png?v=1`).then(foto => ({ foto }))),
+    ...DESENHOS_DO_GIZ.map(nome => carregarImagem(`midia/site/giz/${nome}.png?v=1`).then(imagem => ({ nome: `giz/${nome}`, pixels: pixelsDoDesenho(imagem) }))),
+    ...FOTOS_DO_QUADRO.map(nome => carregarImagem(`midia/site/fotos/${nome}.png?v=1`).then(foto => ({ nome: `fotos/${nome}`, foto }))),
   ]).catch(erro => {
     itensDoQuadro = null;
     throw erro;
@@ -401,9 +403,38 @@ function aplicarPasso(quadro, passo) {
   if (passo.passada) passarApagador(quadro, passo.apagador, passo.passada);
 }
 
+function embaralhar(lista) {
+  for (let i = lista.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [lista[i], lista[j]] = [lista[j], lista[i]];
+  }
+  return lista;
+}
+
+function proximoItemDoQuadro(itens) {
+  const nomes = itens.map(item => item.nome);
+  if (!filaDoQuadro) {
+    try {
+      filaDoQuadro = JSON.parse(localStorage.getItem(CHAVE_DO_QUADRO));
+    } catch {}
+    if (!Array.isArray(filaDoQuadro?.fila)) filaDoQuadro = { fila: [], ultimo: '' };
+  }
+  let fila = filaDoQuadro.fila.filter(nome => nomes.includes(nome));
+  if (!fila.length) {
+    fila = embaralhar([...nomes]);
+    if (fila[0] === filaDoQuadro.ultimo && fila.length > 1) fila.push(fila.shift());
+  }
+  const [nome, ...resto] = fila;
+  filaDoQuadro = { fila: resto, ultimo: nome };
+  try {
+    localStorage.setItem(CHAVE_DO_QUADRO, JSON.stringify(filaDoQuadro));
+  } catch {}
+  return itens[nomes.indexOf(nome)];
+}
+
 function trocarItemDoQuadro(quadro) {
-  quadro.indice = sortear([...quadro.itens.keys()].filter(i => i !== quadro.indice));
-  const item = quadro.itens[quadro.indice];
+  const item = proximoItemDoQuadro(quadro.itens);
+  quadro.item = item;
   if (item.foto) quadro.passos = roteiroDaFoto();
   else {
     item.ordem ??= ordemDoTraco(item.pixels);
@@ -452,7 +483,7 @@ function pintarQuadro(quadro) {
   contexto.globalAlpha = 1;
   for (const [x, y, cor] of quadro.riscos.values()) pixel(x, y, cor);
   contexto.imageSmoothingEnabled = false;
-  if (quadro.etapaDaFoto) pintarFoto(contexto, quadro.itens[quadro.indice].foto, quadro.etapaDaFoto);
+  if (quadro.etapaDaFoto) pintarFoto(contexto, quadro.item.foto, quadro.etapaDaFoto);
   const [ax, ay] = quadro.apagador;
   APAGADOR.linhas.forEach((cor, linha) => pixel(ax, ay + linha, cor, APAGADOR.largura));
   if (!quadro.giz) return;
@@ -488,7 +519,7 @@ function animarQuadro() {
   quadroAnimado = {};
   Promise.all([carregarSalao(), carregarItensDoQuadro()]).then(([[salao], itens]) => {
     const quadro = {
-      tela: document.getElementById('salao-quadro'), salao, itens, indice: -1, relogio: 0, ultimo: performance.now(),
+      tela: document.getElementById('salao-quadro'), salao, itens, item: null, relogio: 0, ultimo: performance.now(),
       riscos: new Map(), poeira: new Map(), giz: null, apagador: APAGADOR.descanso, etapaDaFoto: 0,
     };
     quadroAnimado = quadro;

@@ -1,7 +1,7 @@
-import { MESES, INSIGNIAS, formatoNota, jogador, indiceDoMes, nomeDoMes, criar, imagemDe, desenhoDaInsignia } from './base.js?v=103';
-import { enviar } from './acoes.js?v=103';
-import { rankingDe, mesesFechados, campeoesDe, colecaoDe, insigniaDaVitoria } from './ranking.js?v=103';
-import { estado, irPara } from './app.js?v=103';
+import { MESES, INSIGNIAS, formatoNota, jogador, indiceDoMes, nomeDoMes, criar, imagemDe, desenhoDaInsignia } from './base.js';
+import { enviar } from './acoes.js';
+import { rankingDe, mesesFechados, campeoesDe, colecaoDe, insigniaDaVitoria } from './ranking.js';
+import { estado, irPara } from './app.js';
 
 let mesDoCampeaoAberto = '';
 

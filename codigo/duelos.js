@@ -1,12 +1,12 @@
 import { doc, updateDoc, arrayRemove } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import {
   tocar, jogoDe, jogador, nomeDoMes, avisosVistos, marcarComoVisto, formatoDiaDaMesa, formatoDiaCurto, criar, imagemDaCapa, imagemDe,
-} from './base.js?v=103';
-import { ACOES, enviar } from './acoes.js?v=103';
-import { lugaresDaPartida } from './ranking.js?v=103';
-import { quantidade } from './titulos.js?v=103';
-import { PRAZO_DO_RESULTADO, abrirConquista } from './avisos.js?v=103';
-import { banco, estado, irPara } from './app.js?v=103';
+} from './base.js';
+import { ACOES, enviar } from './acoes.js';
+import { lugaresDaPartida } from './ranking.js';
+import { quantidade } from './titulos.js';
+import { PRAZO_DO_RESULTADO, abrirConquista } from './avisos.js';
+import { banco, estado, irPara } from './app.js';
 
 const PRAZO_DO_CONVITE = 7 * 864e5;
 const PRAZO_DO_DUELO = 14 * 864e5;

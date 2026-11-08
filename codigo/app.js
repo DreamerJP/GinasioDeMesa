@@ -3,17 +3,17 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, sig
 import {
   initializeFirestore, memoryLocalCache, terminate, clearIndexedDbPersistence, collection, doc, query, where, onSnapshot, setDoc, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import { MESES, alternarSom, mostrarSom, tocar, indiceDoMes, vistosNestaSessao, mesDeHoje, criar, avatarPadrao } from './base.js?v=103';
-import { limparApelido, fotoDoGoogle, enviar } from './acoes.js?v=103';
-import { mostrarInicio, mostrarRanking, mostrarRegras, ligarRegras, esquecerRanking } from './ranking.js?v=103';
-import { mostrarTitulos, mostrarTitulo } from './titulos.js?v=103';
-import { PRAZO_DO_CONVITE, mostrarDuelos, ligarDuelos, esquecerDuelos } from './duelos.js?v=103';
-import { mostrarServidores, ligarServidores, mostrarEscolha, esquecerMesaEscolhida } from './salao.js?v=103';
-import { verificarAvisos, esquecerAvisos } from './avisos.js?v=103';
-import { mostrarPartida, ligarPartida, mostrarNovaPartida, ligarNovaPartida, esquecerPartidas } from './partidas.js?v=103';
-import { mostrarPerfil, encaixarTopoDoPerfil, ligarPerfil, esquecerPerfil } from './perfil.js?v=103';
-import { mostrarInsignias, mostrarInsignia, mostrarCampeoes, esquecerCampeoes } from './campeoes.js?v=103';
-import { mostrarAdministracao, ligarAdministracao, esquecerAdministracao } from './administracao.js?v=103';
+import { MESES, alternarSom, mostrarSom, tocar, indiceDoMes, vistosNestaSessao, mesDeHoje, criar, avatarPadrao } from './base.js';
+import { limparApelido, fotoDoGoogle, enviar } from './acoes.js';
+import { mostrarInicio, mostrarRanking, mostrarRegras, ligarRegras, esquecerRanking } from './ranking.js';
+import { mostrarTitulos, mostrarTitulo } from './titulos.js';
+import { PRAZO_DO_CONVITE, mostrarDuelos, ligarDuelos, esquecerDuelos } from './duelos.js';
+import { mostrarServidores, ligarServidores, mostrarEscolha, esquecerMesaEscolhida } from './salao.js';
+import { verificarAvisos, esquecerAvisos } from './avisos.js';
+import { mostrarPartida, ligarPartida, mostrarNovaPartida, ligarNovaPartida, esquecerPartidas } from './partidas.js';
+import { mostrarPerfil, encaixarTopoDoPerfil, ligarPerfil, esquecerPerfil } from './perfil.js';
+import { mostrarInsignias, mostrarInsignia, mostrarCampeoes, esquecerCampeoes } from './campeoes.js';
+import { mostrarAdministracao, ligarAdministracao, esquecerAdministracao } from './administracao.js';
 
 const SERVIDORES = [
   {

@@ -1,7 +1,7 @@
-import { MAXIMO_DE_ROSTOS, jogoDe, jogador, nomeDoMes, avisosVistos, diaDaMesa, criar, imagemDaCapa, imagemDe } from './base.js?v=103';
-import { rankingDoMes, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe, mesesFechados } from './ranking.js?v=103';
-import { duelosDoGinasio, momentoDoDuelo, mesDoDuelo } from './duelos.js?v=103';
-import { estado, irPara } from './app.js?v=103';
+import { MAXIMO_DE_ROSTOS, jogoDe, jogador, nomeDoMes, avisosVistos, diaDaMesa, criar, imagemDaCapa, imagemDe } from './base.js';
+import { rankingDoMes, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe, mesesFechados } from './ranking.js';
+import { duelosDoGinasio, momentoDoDuelo, mesDoDuelo } from './duelos.js';
+import { estado, irPara } from './app.js';
 
 const FOLGA_DO_ATROPELO = 1.5;
 const METAS_DE_MESTRE = [5, 10, 15, 20, 25];

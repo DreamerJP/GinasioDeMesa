@@ -1,12 +1,12 @@
-import { LIMITE_FOTO, MESES, INSIGNIAS, tocar, jogador, indiceDoMes, criar, imagemDaCapa, mostrarFoto } from './base.js?v=103';
-import { limparApelido, ACOES, mensagemDeErro, enviar } from './acoes.js?v=103';
-import { rankingDe, colecaoDe } from './ranking.js?v=103';
+import { LIMITE_FOTO, MESES, INSIGNIAS, tocar, jogador, indiceDoMes, criar, imagemDaCapa, mostrarFoto } from './base.js';
+import { limparApelido, ACOES, mensagemDeErro, enviar } from './acoes.js';
+import { rankingDe, colecaoDe } from './ranking.js';
 import {
   METAS_DE_MESTRE, TITULOS, titulosDoGinasio, situacaoNoTitulo, situacaoDe, titulosGanhos, tituloExibido, quantidade, faixaDoTitulo, linhaDoTitulo, cartaoDoTitulo,
-} from './titulos.js?v=103';
-import { desafio, motivoParaNaoDesafiar, placarDeDuelos, textoDoPlacar } from './duelos.js?v=103';
-import { trilhaDeInsignias } from './campeoes.js?v=103';
-import { estado, telaVisivel, aplicarEstadoEmEspera, irPara } from './app.js?v=103';
+} from './titulos.js';
+import { desafio, motivoParaNaoDesafiar, placarDeDuelos, textoDoPlacar } from './duelos.js';
+import { trilhaDeInsignias } from './campeoes.js';
+import { estado, telaVisivel, aplicarEstadoEmEspera, irPara } from './app.js';
 
 const QUADRO_DO_PERFIL = [104, 144];
 const LADO_FOTO = 320;
