@@ -9,7 +9,6 @@ import { estado, irPara } from './app.js';
 
 const KATEX = 'https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/';
 const MAXIMO_DE_INSIGNIAS = 6;
-const FRACAO_DA_FALTA = 0.5;
 let diaAberto = '';
 let mesDoDiaAberto = '';
 let carregamentoKatex = null;
@@ -47,7 +46,7 @@ function rankingDoMes(jogadores, partidas, presentes = presentesPorDia(partidas)
   const acumulado = new Map(jogadores.map(id => [id, { soma: 0, faltas: 0, partidas: 0, contadas: 0 }]));
   for (const partida of partidas) {
     const notas = new Map(notasDaPartida(partida));
-    const notaDaFalta = Math.min(...notas.values()) * FRACAO_DA_FALTA;
+    const notaDaFalta = Math.min(...notas.values());
     for (const [id, jogador] of acumulado) {
       if (notas.has(id)) {
         jogador.soma += notas.get(id);
@@ -373,6 +372,6 @@ function esquecerRanking() {
 }
 
 export {
-  FRACAO_DA_FALTA, notasDaPartida, rankingDoMes, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe, mesesFechados, campeoesDe,
+  notasDaPartida, rankingDoMes, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe, mesesFechados, campeoesDe,
   colecaoDe, insigniaDaVitoria, mostrarInicio, mostrarRanking, mostrarRegras, ligarRegras, esquecerRanking,
 };

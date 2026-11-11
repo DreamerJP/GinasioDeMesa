@@ -2,7 +2,7 @@ import {
   MAXIMO_DE_ROSTOS, formatoNota, formatoPlacar, tocar, jogoDe, jogador, formatoHora, diaDaMesa, quandoFoiAberta, criar, imagemDaCapa, mostrarCapa, imagemDe,
 } from './base.js';
 import { novoId, linkDeFoto, enviar } from './acoes.js';
-import { FRACAO_DA_FALTA, notasDaPartida, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe } from './ranking.js';
+import { notasDaPartida, partidaParaFormula, lugaresDaPartida, presentesEmCadaDia, rankingDe } from './ranking.js';
 import { duelosDoGinasio, nomesDoDuelo, mostrarLinhaDoDuelo } from './duelos.js';
 import { fotoReduzida } from './perfil.js';
 import { estado, aplicarEstadoEmEspera, irPara } from './app.js';
@@ -120,7 +120,7 @@ function mostrarPartida(id) {
   // Só conta como falta para quem jogou alguma partida no mês; quem não jogou nenhuma fica com nota 0 de qualquer jeito.
   const presentes = aberta ? new Set() : presentesEmCadaDia().get(diaDaMesa(partida.abertaEm));
   const ausentes = aberta ? [] : rankingDe(partida.mes).linhas.filter(l => l.partidas > 0 && !presentes.has(l.id));
-  const notaDaFalta = aberta ? 0 : Math.min(...notas.values()) * FRACAO_DA_FALTA;
+  const notaDaFalta = aberta ? 0 : Math.min(...notas.values());
   document.getElementById('partida-faltas').hidden = !ausentes.length;
   document.getElementById('partida-ausentes').replaceChildren(...ausentes.map(l => {
     const alguem = jogador(l.id);
